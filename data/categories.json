@@ -1,0 +1,8 @@
+[
+  { "slug": "sabvufery", "title": "Сабвуферы", "image": "cat_sabvufery.png", "count": 11 },
+  { "slug": "usiliteli-monobloki", "title": "Усилители и моноблоки", "image": "cat_usiliteli-monobloki.png", "count": 27 },
+  { "slug": "dinamiki-rupora", "title": "Динамики и рупора", "image": "cat_dinamiki-rupora.png", "count": 25 },
+  { "slug": "multimedia", "title": "Мультимедиа", "image": "cat_multimedia.png", "count": 14 },
+  { "slug": "avtosvet", "title": "Автосвет", "image": "cat_avtosvet.png", "count": 4 },
+  { "slug": "aksessuary", "title": "Аксессуары", "image": "cat_aksessuary.png", "count": 64 }
+]

@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/*
+  Дизайн-токены MOMO.
+  Светлая тема — по умолчанию; тёмная включается атрибутом data-theme="dark"
+  на <html> (переключатель в шапке, выбор запоминается).
+  Единственный источник цветов и шрифтов — менять здесь, а не в компонентах.
+*/
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-signal: #ff5500;
+  --color-tile: var(--tile);
+
+  /*
+    Мост для компонентов shadcn-экосистемы: их классы (bg-background,
+    text-primary, border-border…) резолвятся в палитру MOMO и автоматически
+    поддерживают обе темы. Не переименовывать — это контракт shadcn.
+  */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--fg);
+  --color-primary: #ff5500;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--fg);
+  --color-muted: var(--muted-bg);
+  --color-muted-foreground: var(--muted);
+  --color-accent: #ff5500;
+  --color-accent-foreground: #ffffff;
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: #ff5500;
+
+  --font-display: var(--font-unbounded);
+  --font-body: var(--font-manrope);
+  --font-mono: var(--font-jetbrains);
+  --font-wordmark: var(--font-syne);
+}
+
+:root {
+  --bg: #f7f5f2;
+  --surface: #ffffff;
+  --line: #e5e1da;
+  --fg: #141416;
+  --muted: #6e6e73;
+  --muted-bg: #ece9e2;
+  --tile: #ffffff;
+  --card-shadow: 0 12px 40px rgba(20, 20, 22, 0.08);
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0b0c;
+  --surface: #17171a;
+  --line: #232327;
+  --fg: #f5f3ef;
+  --muted: #8a8a8e;
+  --muted-bg: #1e1e22;
+  --tile: #f2efea;
+  --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s, color 0.25s;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Мега-меню каталога: анимация появления ── */
+.mega-menu-panel {
+  animation: mega-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top center;
+}
+@keyframes mega-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Свечение карточки товара под курсором (spotlight) ── */
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight-card > * {
+  position: relative;
+  z-index: 1;
+}
+.spotlight-card::before,
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+/* мягкая заливка поверхности */
+.spotlight-card::before {
+  background: radial-gradient(
+    200px 200px at var(--mx, 50%) var(--my, 0%),
+    hsl(22 100% 55% / 0.16),
+    transparent 65%
+  );
+}
+/* яркая кромка, идущая за курсором */
+.spotlight-card::after {
+  padding: 1.5px;
+  background: radial-gradient(
+    240px 240px at var(--mx, 50%) var(--my, 0%),
+    hsl(24 100% 60% / 0.9),
+    transparent 60%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+.spotlight-card:hover::before,
+.spotlight-card:hover::after {
+  opacity: 1;
+}
+
+/* ── Осциллограмма-разделитель ── */
+.wave { display: block; width: 100%; height: 64px; }
+.wave .base { stroke: var(--line); }
+.wave .live {
+  stroke: var(--color-signal);
+  stroke-dasharray: 90 1400;
+  animation: wave-travel 7s linear infinite;
+}
+@keyframes wave-travel {
+  from { stroke-dashoffset: 1490; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Оранжевый для мелкого текста: темнее в светлой теме, светлее в тёмной (WCAG AA) */
+:root { --signal-text: #d64a00; }
+:root[data-theme="dark"] { --signal-text: #ff8a4d; }
+
+/* Логотип чёрный по своей природе — в тёмной теме инвертируем в белый */
+:root[data-theme="dark"] .dark-logo { filter: invert(1) brightness(1.15); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .wave .live { stroke-dasharray: none; opacity: 0.5; }
+}

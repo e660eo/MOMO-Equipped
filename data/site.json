@@ -1,0 +1,32 @@
+{
+  "name": "MOMO",
+  "tagline": "Автоакустика и аксессуары",
+  "imageBase": "https://momo-eq.ru/uploads/",
+  "contacts": {
+    "phone": "+7 967 408 3111",
+    "phoneSecondary": "+7 928 526 4111",
+    "email": "mail@momo-eq.ru",
+    "address": "Махачкала, пр-кт Гамидова, 16",
+    "hours": "Пн–Пт: 9:00–18:00",
+    "whatsapp": "https://wa.me/79674083111",
+    "telegram": "https://t.me/+79674083111"
+  },
+  "trust": {
+    "warrantyMonths": 12,
+    "returnDays": 14,
+    "processingDays": 1,
+    "skuCount": "300+"
+  },
+  "requisites": {
+    "fullName": "Индивидуальный предприниматель Махмудов Заур Фархадович",
+    "shortName": "ИП Махмудов З.Ф.",
+    "inn": "056102294715",
+    "ogrnip": "319057100028442",
+    "registrationAddress": "367018, Республика Дагестан, г. Махачкала",
+    "postalAddress": "367013, Республика Дагестан, г. Махачкала, пр-кт Гамидова, 16",
+    "bank": "ОТДЕЛЕНИЕ № 5230 СБЕРБАНКА РОССИИ г. Ставрополь",
+    "bik": "040702615",
+    "correspondentAccount": "30101810907020000615",
+    "settlementAccount": "40802810160320020432"
+  }
+}

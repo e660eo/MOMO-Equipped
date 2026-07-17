@@ -1,0 +1,7 @@
+[
+  { "slug": "momo", "title": "MOMO", "house": true },
+  { "slug": "zeus", "title": "ZEUS", "house": false },
+  { "slug": "android", "title": "ANDROID", "house": false },
+  { "slug": "cap", "title": "CAP", "house": false },
+  { "slug": "starlight", "title": "STARLIGHT", "house": false }
+]

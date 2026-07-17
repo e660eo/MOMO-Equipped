@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOMO — автоакустика. Концепт главной страницы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── Темы: светлая по умолчанию, тёмная по data-theme ── */
+  :root {
+    --bg: #F7F5F2;
+    --surface: #FFFFFF;
+    --line: #E5E1DA;
+    --text: #141416;
+    --muted: #6E6E73;
+    --signal: #FF5500;
+    --tile: #FFFFFF;
+    --header-bg: rgba(247,245,242,.9);
+    --shadow: 0 12px 40px rgba(20,20,22,.08);
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Manrope', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B0B0C;
+    --surface: #17171A;
+    --line: #232327;
+    --text: #F5F3EF;
+    --muted: #8A8A8E;
+    --tile: #F2EFEA;
+    --header-bg: rgba(11,11,12,.88);
+    --shadow: 0 12px 40px rgba(0,0,0,.5);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s, color .25s;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ── */
+  header.site {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .header-in { display: flex; align-items: center; gap: 32px; height: 68px; }
+  .logo-img { height: 40px; width: auto; }
+  :root[data-theme="dark"] .logo-img { filter: invert(1) brightness(1.15); }
+  nav.main { display: flex; gap: 26px; flex: 1; }
+  nav.main a { font-size: .84rem; font-weight: 500; color: var(--muted); letter-spacing: .04em; transition: color .18s; }
+  nav.main a:hover { color: var(--text); }
+  .header-side { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .tel { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); margin-right: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .82rem; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 100px;
+    padding: 8px 16px; transition: border-color .18s, color .18s;
+  }
+  .chip:hover { border-color: var(--signal); color: var(--signal); }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1rem; transition: border-color .18s, color .18s;
+  }
+  .icon-btn:hover { border-color: var(--signal); color: var(--signal); }
+  .theme-btn .moon { display: none; }
+  :root[data-theme="dark"] .theme-btn .sun { display: none; }
+  :root[data-theme="dark"] .theme-btn .moon { display: inline; }
+
+  /* ── Hero ── */
+  .hero-in { display: grid; grid-template-columns: 1.2fr .8fr; gap: 40px; align-items: center; min-height: 66vh; padding: 56px 0; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: .72rem; letter-spacing: .22em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 28px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--signal); }
+  h1 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(2.4rem, 5.6vw, 4.6rem);
+    line-height: 1.02; text-transform: uppercase; letter-spacing: -0.01em;
+  }
+  .accent { color: var(--signal); }
+  .hero-sub { margin-top: 28px; max-width: 46ch; color: var(--muted); font-size: 1.05rem; }
+  .hero-cta { margin-top: 40px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    font-weight: 600; font-size: .92rem;
+    padding: 15px 30px; border-radius: 2px; border: 1px solid transparent;
+    transition: all .18s;
+  }
+  .btn-signal { background: var(--signal); color: #fff; }
+  .btn-signal:hover { background: #ff6a1f; box-shadow: 0 6px 28px rgba(255,85,0,.35); }
+  .btn-ghost { border-color: var(--line); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--signal); color: var(--signal); }
+
+  .rings { position: relative; aspect-ratio: 1; max-width: 440px; margin: 0 auto; width: 100%; }
+  .ring { position: absolute; inset: 0; margin: auto; border: 1px solid rgba(255,85,0,.4); border-radius: 50%; }
+  .ring:nth-child(1) { width: 22%; height: 22%; animation: pulse 4s ease-out infinite; }
+  .ring:nth-child(2) { width: 44%; height: 44%; animation: pulse 4s ease-out .8s infinite; }
+  .ring:nth-child(3) { width: 66%; height: 66%; animation: pulse 4s ease-out 1.6s infinite; border-color: rgba(255,85,0,.24); }
+  .ring:nth-child(4) { width: 88%; height: 88%; animation: pulse 4s ease-out 2.4s infinite; border-color: rgba(255,85,0,.14); }
+  .ring-core {
+    position: absolute; inset: 0; margin: auto; width: 14px; height: 14px;
+    background: var(--signal); border-radius: 50%;
+    box-shadow: 0 0 24px rgba(255,85,0,.8);
+    animation: corePulse 4s ease-out infinite;
+  }
+  @keyframes pulse { 0% { transform: scale(.96); opacity: 1; } 70% { transform: scale(1.06); opacity: .4; } 100% { transform: scale(.96); opacity: 1; } }
+  @keyframes corePulse { 0%, 100% { transform: scale(1); } 8% { transform: scale(1.5); } 16% { transform: scale(1); } }
+
+  .ticker { border-top: 1px solid var(--line); }
+  .ticker-in {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; padding: 18px 0;
+    font-family: var(--font-mono); font-size: .72rem; letter-spacing: .16em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .ticker-in b { color: var(--text); font-weight: 500; }
+
+  /* ── Waveform divider ── */
+  .wave { display: block; width: 100%; height: 64px; }
+  .wave .base { stroke: var(--line); }
+  .wave .live { stroke: var(--signal); stroke-dasharray: 90 1400; animation: travel 7s linear infinite; }
+  @keyframes travel { from { stroke-dashoffset: 1490; } to { stroke-dashoffset: 0; } }
+
+  /* ── Sections ── */
+  section { padding: 80px 0; }
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 44px; gap: 20px; }
+  h2 { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.4rem, 2.6vw, 2rem); text-transform: uppercase; }
+  .sec-link { font-family: var(--font-mono); font-size: .78rem; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; transition: color .18s; white-space: nowrap; }
+  .sec-link:hover { color: var(--signal); }
+
+  /* category index */
+  .cat-index { border-top: 1px solid var(--line); }
+  .cat-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 24px;
+    padding: 24px 8px; border-bottom: 1px solid var(--line);
+    position: relative; transition: padding-left .22s;
+  }
+  .cat-row::before { content: ''; position: absolute; left: 0; bottom: -1px; height: 1px; width: 0; background: var(--signal); transition: width .32s ease; }
+  .cat-row:hover { padding-left: 20px; }
+  .cat-row:hover::before { width: 100%; }
+  .cat-name { font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; text-transform: uppercase; }
+  .cat-count { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); letter-spacing: .1em; }
+  .cat-arrow { color: var(--muted); transition: color .18s, transform .22s; }
+  .cat-row:hover .cat-arrow { color: var(--signal); transform: translateX(6px); }
+
+  /* ── Banners (как на текущем сайте) ── */
+  .banners { position: relative; }
+  .banner-track {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    gap: 16px; scrollbar-width: none; border-radius: 6px;
+  }
+  .banner-track::-webkit-scrollbar { display: none; }
+  .banner-slide {
+    flex: 0 0 100%; scroll-snap-align: start;
+    position: relative; height: clamp(200px, 26vw, 340px);
+    border-radius: 6px; overflow: hidden;
+    display: flex; align-items: center;
+    border: 1px solid var(--line);
+  }
+  .banner-slide.photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .banner-slide .banner-cta {
+    position: absolute; left: 40px; bottom: 32px; z-index: 2;
+  }
+  .banner-slide.promo-dark {
+    background:
+      radial-gradient(120% 180% at 85% 20%, rgba(255,85,0,.22), transparent 55%),
+      linear-gradient(115deg, #101012 0%, #1B1B1F 60%, #232327 100%);
+    color: #F5F3EF;
+  }
+  .banner-slide.promo-signal {
+    background:
+      radial-gradient(140% 200% at 15% 110%, rgba(0,0,0,.28), transparent 60%),
+      var(--signal);
+    color: #fff;
+  }
+  .banner-body { padding: 0 48px; position: relative; z-index: 2; max-width: 640px; }
+  .banner-eyebrow { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .22em; text-transform: uppercase; opacity: .75; }
+  .banner-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: clamp(1.3rem, 3.4vw, 2.4rem); line-height: 1.05; margin-top: 12px; }
+  .banner-sub { margin-top: 12px; font-size: .95rem; opacity: .85; max-width: 42ch; }
+  .banner-btn { margin-top: 22px; display: inline-flex; padding: 12px 24px; border-radius: 2px; font-weight: 600; font-size: .88rem; transition: all .18s; }
+  .promo-dark .banner-btn { background: var(--signal); color: #fff; }
+  .promo-dark .banner-btn:hover { background: #ff6a1f; }
+  .promo-signal .banner-btn { background: #141416; color: #fff; }
+  .promo-signal .banner-btn:hover { background: #000; }
+  .banner-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
+  .banner-dot { width: 28px; height: 3px; border-radius: 2px; background: var(--line); transition: background .2s; }
+  .banner-dot.active { background: var(--signal); }
+  .banner-arrow {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color .18s, color .18s;
+  }
+  .banner-arrow:hover { border-color: var(--signal); color: var(--signal); }
+
+  /* products */
+  .grid-products { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    padding: 14px; display: flex; flex-direction: column;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .card:hover { border-color: rgba(255,85,0,.55); box-shadow: var(--shadow); transform: translateY(-3px); }
+  .card-img { background: var(--tile); border: 1px solid var(--line); border-radius: 2px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .card-img img { object-fit: contain; width: 86%; height: 86%; mix-blend-mode: multiply; }
+  .card-brand { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .18em; color: var(--muted); margin-top: 16px; }
+  .card-title { font-size: .92rem; font-weight: 500; line-height: 1.4; margin-top: 6px; min-height: 2.8em; }
+  .card-price-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .card-price { font-family: var(--font-display); font-weight: 500; font-size: 1.05rem; }
+  .card-split { font-family: var(--font-mono); font-size: .68rem; color: var(--muted); }
+  .card-split b { color: var(--signal); font-weight: 500; }
+
+  /* manifest / CTA */
+  .manifest { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .manifest-in { display: grid; grid-template-columns: 1.1fr .9fr; gap: 64px; align-items: center; }
+  .manifest h2 { font-size: clamp(1.6rem, 3.2vw, 2.4rem); line-height: 1.15; text-transform: none; }
+  .manifest p { color: var(--muted); margin-top: 20px; max-width: 52ch; }
+  .contact-card { border: 1px solid var(--line); border-radius: 4px; padding: 36px; background: var(--bg); }
+  .contact-card .label { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; }
+  .contact-card .phone { font-family: var(--font-display); font-weight: 500; font-size: 1.5rem; margin: 10px 0 26px; display: block; }
+  .contact-card .phone:hover { color: var(--signal); }
+  .contact-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* footer */
+  footer { padding: 64px 0 40px; border-top: 1px solid var(--line); }
+  .footer-in { display: grid; grid-template-columns: 2fr 1fr 1fr 1.4fr; gap: 40px; }
+  .footer-in h4 { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-bottom: 18px; font-weight: 500; }
+  .footer-in ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-in ul a { font-size: .88rem; color: var(--muted); transition: color .18s; }
+  .footer-in ul a:hover { color: var(--text); }
+  .footer-note { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: var(--font-mono); font-size: .68rem; color: var(--muted); letter-spacing: .06em; }
+
+  /* ── Модалка входа/регистрации и корзина ── */
+  .overlay {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(10,10,12,.5); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity .22s;
+  }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  .modal {
+    position: fixed; z-index: 100; inset: 0; margin: auto;
+    width: min(440px, calc(100vw - 32px)); height: fit-content; max-height: 90vh; overflow: auto;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+    padding: 36px; box-shadow: var(--shadow);
+    opacity: 0; pointer-events: none; transform: translateY(12px); transition: opacity .22s, transform .22s;
+  }
+  .modal.open { opacity: 1; pointer-events: auto; transform: none; }
+  .modal-close { position: absolute; top: 14px; right: 14px; }
+  .modal h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.2rem; text-transform: uppercase; }
+  .tabs { display: flex; gap: 4px; margin: 22px 0; border: 1px solid var(--line); border-radius: 100px; padding: 4px; }
+  .tab { flex: 1; text-align: center; padding: 9px 0; border-radius: 100px; font-size: .85rem; font-weight: 600; color: var(--muted); transition: all .18s; }
+  .tab.active { background: var(--signal); color: #fff; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-family: var(--font-mono); font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .field input, .field textarea {
+    width: 100%; padding: 12px 14px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 3px;
+    font: inherit; font-size: .92rem; transition: border-color .18s;
+  }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--signal); }
+  .form-note { font-family: var(--font-mono); font-size: .66rem; color: var(--muted); margin-top: 14px; letter-spacing: .04em; }
+  .modal .btn, .drawer .btn { width: 100%; margin-top: 8px; }
+
+  .drawer {
+    position: fixed; z-index: 100; top: 0; right: 0; bottom: 0;
+    width: min(460px, 100vw);
+    background: var(--surface); border-left: 1px solid var(--line);
+    padding: 32px; overflow-y: auto;
+    transform: translateX(100%); transition: transform .28s ease;
+  }
+  .drawer.open { transform: none; }
+  .drawer h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.15rem; text-transform: uppercase; margin-bottom: 24px; }
+  .cart-item { display: grid; grid-template-columns: 72px 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .cart-thumb { width: 72px; height: 72px; background: var(--tile); border: 1px solid var(--line); border-radius: 3px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .cart-thumb img { width: 85%; height: 85%; object-fit: contain; mix-blend-mode: multiply; }
+  .cart-name { font-size: .86rem; font-weight: 500; line-height: 1.35; }
+  .cart-qty { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); margin-top: 5px; }
+  .cart-price { font-family: var(--font-display); font-size: .9rem; font-weight: 500; white-space: nowrap; }
+  .drawer .subhead { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 26px 0 16px; }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 4px; }
+  .total-row .sum { font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
+  .split-note { font-family: var(--font-mono); font-size: .7rem; color: var(--muted); margin-bottom: 12px; }
+  .split-note b { color: var(--signal); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ring, .ring-core, .wave .live { animation: none !important; }
+    .wave .live { stroke-dasharray: none; opacity: .5; }
+    *, .modal, .drawer, .overlay { transition: none !important; }
+  }
+
+  @media (max-width: 960px) {
+    .hero-in { grid-template-columns: 1fr; min-height: unset; padding: 44px 0 20px; }
+    .rings { max-width: 280px; opacity: .85; }
+    .grid-products { grid-template-columns: repeat(2, 1fr); }
+    .manifest-in { grid-template-columns: 1fr; gap: 40px; }
+    .footer-in { grid-template-columns: 1fr 1fr; }
+    nav.main { display: none; }
+    .banner-body { padding: 0 28px; }
+  }
+  @media (max-width: 540px) {
+    .grid-products { grid-template-columns: 1fr; }
+    .tel { display: none; }
+    .drawer, .modal { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap header-in">
+    <a href="#" aria-label="MOMO — на главную"><img class="logo-img" src="logo.png" alt="MOMO"></a>
+    <nav class="main" aria-label="Основная навигация">
+      <a href="#catalog">Каталог</a>
+      <a href="#promo">Акции</a>
+      <a href="#flagship">Флагманы</a>
+      <a href="#contact">Контакты</a>
+    </nav>
+    <div class="header-side">
+      <span class="tel">+7 967 408-31-11</span>
+      <button class="icon-btn theme-btn" id="themeBtn" aria-label="Переключить тему: светлая или тёмная">
+        <span class="sun" aria-hidden="true">☀</span><span class="moon" aria-hidden="true">☾</span>
+      </button>
+      <button class="chip" id="loginBtn">Войти</button>
+      <button class="chip" id="cartBtn">Корзина · 2</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="wrap hero-in">
+      <div>
+        <p class="eyebrow">Махачкала · автозвук с 2019</p>
+        <h1>Не громкость.<br><span class="accent">Давление.</span></h1>
+        <p class="hero-sub">Сабвуферы, усилители и эстрадная акустика MOMO — для тех, кто меряет звук не ваттами на бумаге, а ощущением в груди.</p>
+        <div class="hero-cta">
+          <a class="btn btn-signal" href="#catalog">Смотреть каталог</a>
+          <a class="btn btn-ghost" href="#contact">Подобрать комплект</a>
+        </div>
+      </div>
+      <div class="rings" role="img" aria-label="Расходящиеся звуковые волны — фирменный мотив MOMO">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring-core"></div>
+      </div>
+    </div>
+    <div class="ticker">
+      <div class="wrap ticker-in">
+        <span><b>300+</b> позиций в каталоге</span>
+        <span>гарантия <b>12 месяцев</b></span>
+        <span>обработка заказа <b>1 день</b></span>
+        <span>сплит <b>0%</b> · 4 платежа</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <section id="catalog">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Каталог</h2>
+        <a class="sec-link" href="#">Все 145 товаров →</a>
+      </div>
+      <div class="cat-index">
+        <a class="cat-row" href="#"><span class="cat-name">Сабвуферы</span><span class="cat-count">11 позиций</span><span class="cat-arrow">→</span></a>
+        <a class="cat-row" href="#"><span class="cat-name">Усилители и моноблоки</span><span class="cat-count">27 позиций</span><span class="cat-arrow">→</span></a>
+        <a class="cat-row" href="#"><span class="cat-name">Динамики и рупора</span><span class="cat-count">25 позиций</span><span class="cat-arrow">→</span></a>
+        <a class="cat-row" href="#"><span class="cat-name">Мультимедиа</span><span class="cat-count">14 позиций</span><span class="cat-arrow">→</span></a>
+        <a class="cat-row" href="#"><span class="cat-name">Автосвет</span><span class="cat-count">4 позиции</span><span class="cat-arrow">→</span></a>
+        <a class="cat-row" href="#"><span class="cat-name">Аксессуары</span><span class="cat-count">64 позиции</span><span class="cat-arrow">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- BANNERS — по мотивам баннеров текущего сайта -->
+  <section id="promo" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="banner-track" id="bannerTrack" aria-label="Акции и подборки" aria-roledescription="карусель">
+        <div class="banner-slide photo">
+          <img src="banner1.jpg" alt="Сабвуферы MOMO — три динамика на чёрной коже">
+          <a class="btn btn-signal banner-cta" href="#">К сабвуферам</a>
+        </div>
+        <div class="banner-slide promo-dark">
+          <div class="banner-body">
+            <p class="banner-eyebrow">Оплата частями</p>
+            <p class="banner-title">Сплит 0% — 4 платежа</p>
+            <p class="banner-sub">Забирайте комплект сейчас, платите по четверти суммы раз в две недели. Без процентов и переплат.</p>
+            <a class="banner-btn" href="#">Как это работает</a>
+          </div>
+        </div>
+        <div class="banner-slide promo-signal">
+          <div class="banner-body">
+            <p class="banner-eyebrow">Новинки 2026</p>
+            <p class="banner-title">Новая линейка MOMO</p>
+            <p class="banner-sub">Сабвуферы и усилители 2026 года: больше мощности, чище звук, надёжнее сборка.</p>
+            <a class="banner-btn" href="#">Смотреть новинки</a>
+          </div>
+        </div>
+      </div>
+      <div class="banner-nav">
+        <button class="banner-arrow" id="bannerPrev" aria-label="Предыдущий баннер">←</button>
+        <button class="banner-dot active" data-i="0" aria-label="Баннер 1"></button>
+        <button class="banner-dot" data-i="1" aria-label="Баннер 2"></button>
+        <button class="banner-dot" data-i="2" aria-label="Баннер 3"></button>
+        <button class="banner-arrow" id="bannerNext" aria-label="Следующий баннер">→</button>
+      </div>
+    </div>
+  </section>
+
+  <svg class="wave" viewBox="0 0 1400 64" fill="none" preserveAspectRatio="none" aria-hidden="true">
+    <path class="base" d="M0 32 H540 L560 32 570 14 580 50 590 8 600 56 610 20 620 44 630 28 640 32 H1400" stroke-width="1.5"/>
+    <path class="live" d="M0 32 H540 L560 32 570 14 580 50 590 8 600 56 610 20 620 44 630 28 640 32 H1400" stroke-width="1.5"/>
+  </svg>
+
+  <!-- FLAGSHIP -->
+  <section id="flagship">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Флагманы MOMO</h2>
+        <a class="sec-link" href="#">Вся линейка →</a>
+      </div>
+      <div class="grid-products">
+        <a class="card" href="#">
+          <div class="card-img"><img src="p_fr21800.jpg" data-remote="https://momo-eq.ru/uploads/k_1f51af7699bc429cb2b8ac877b9a9df4.jpg" alt="Усилитель MOMO FR-2.1800" loading="lazy"></div>
+          <span class="card-brand">MOMO · УСИЛИТЕЛЬ</span>
+          <span class="card-title">Усилитель автомобильный FR-2.1800</span>
+          <span class="card-price-row"><span class="card-price">22 039 ₽</span><span class="card-split"><b>5 510 ₽</b> × 4</span></span>
+        </a>
+        <a class="card" href="#">
+          <div class="card-img"><img src="p_achilles.jpg" data-remote="https://momo-eq.ru/uploads/k_df56b42ff4614c3592cf59cf997d866c.jpg" alt="Сабвуфер MOMO ACHILLES 12 дюймов" loading="lazy"></div>
+          <span class="card-brand">MOMO · САБВУФЕР</span>
+          <span class="card-title">Сабвуфер ACHILLES 12 дюймов</span>
+          <span class="card-price-row"><span class="card-price">21 474 ₽</span><span class="card-split"><b>5 369 ₽</b> × 4</span></span>
+        </a>
+        <a class="card" href="#">
+          <div class="card-img"><img src="p_bd5000.jpg" data-remote="https://momo-eq.ru/uploads/k_43409182797948968e68c9c6b5816152.jpg" alt="Моноблок MOMO BD-5000.1" loading="lazy"></div>
+          <span class="card-brand">MOMO · МОНОБЛОК</span>
+          <span class="card-title">Моноблок автомобильный BD-5000.1</span>
+          <span class="card-price-row"><span class="card-price">20 127 ₽</span><span class="card-split"><b>5 032 ₽</b> × 4</span></span>
+        </a>
+        <a class="card" href="#">
+          <div class="card-img"><img src="p_ts15.jpg" data-remote="https://momo-eq.ru/uploads/k_63e8e058698c416187d0bc63e6fa0275.jpg" alt="Сабвуфер MOMO TS-15.1100 15 дюймов" loading="lazy"></div>
+          <span class="card-brand">MOMO · САБВУФЕР</span>
+          <span class="card-title">Сабвуфер TS-15.1100 15 дюймов</span>
+          <span class="card-price-row"><span class="card-price">10 901 ₽</span><span class="card-split"><b>2 726 ₽</b> × 4</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFEST + CONTACT -->
+  <section class="manifest" id="contact">
+    <div class="wrap manifest-in">
+      <div>
+        <h2>Свой звук.<br><span class="accent">Свой бренд.</span></h2>
+        <p>MOMO — не перепродажа чужих коробок. Мы разрабатываем и тестируем акустику в Махачкале — городе, где автозвук давно стал спортом. Каждая модель проходит проверку давлением, прежде чем попасть в каталог.</p>
+        <p>Скажите, какой у вас автомобиль и какого звука хотите — соберём комплект под задачу и бюджет, расскажем про установку.</p>
+      </div>
+      <div class="contact-card">
+        <span class="label">Консультация · Пн–Пт 9:00–18:00</span>
+        <a class="phone" href="tel:+79674083111">+7 967 408-31-11</a>
+        <div class="contact-row">
+          <a class="btn btn-signal" href="#" style="width:auto;">Написать в WhatsApp</a>
+          <a class="btn btn-ghost" href="#" style="width:auto;">Telegram</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-in">
+      <div>
+        <img class="logo-img" src="logo.png" alt="MOMO" style="height:34px; margin-bottom:16px;">
+        <p style="color:var(--muted); font-size:.85rem; max-width:32ch;">Автоакустика и аксессуары. Махачкала, пр-кт Гамидова, 16.</p>
+      </div>
+      <div>
+        <h4>Каталог</h4>
+        <ul>
+          <li><a href="#">Сабвуферы</a></li>
+          <li><a href="#">Усилители</a></li>
+          <li><a href="#">Динамики</a></li>
+          <li><a href="#">Аксессуары</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Покупателям</h4>
+        <ul>
+          <li><a href="#">Доставка и оплата</a></li>
+          <li><a href="#">Гарантия 12 мес</a></li>
+          <li><a href="#">Возврат 14 дней</a></li>
+          <li><a href="#">Новости</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <ul>
+          <li><a href="tel:+79674083111">+7 967 408-31-11</a></li>
+          <li><a href="mailto:mail@momo-eq.ru">mail@momo-eq.ru</a></li>
+          <li><a href="#">WhatsApp · Telegram</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-note">
+      <span>ИП Махмудов З.Ф. · ИНН 056102294715 · ОГРНИП 319057100028442</span>
+      <span>© 2026 MOMO</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Оверлей -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Модалка: вход / регистрация -->
+<div class="modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <button class="icon-btn modal-close" data-close aria-label="Закрыть">✕</button>
+  <h3 id="authTitle">Личный кабинет</h3>
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tabLogin" role="tab" aria-selected="true">Вход</button>
+    <button class="tab" id="tabReg" role="tab" aria-selected="false">Регистрация</button>
+  </div>
+  <form id="loginForm">
+    <div class="field"><label for="lg-contact">Телефон или email</label><input id="lg-contact" type="text" autocomplete="username" placeholder="+7 ___ ___-__-__"></div>
+    <div class="field"><label for="lg-pass">Пароль</label><input id="lg-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="btn btn-signal" type="button">Войти</button>
+  </form>
+  <form id="regForm" hidden>
+    <div class="field"><label for="rg-name">Имя</label><input id="rg-name" type="text" autocomplete="name" placeholder="Как к вам обращаться"></div>
+    <div class="field"><label for="rg-phone">Телефон</label><input id="rg-phone" type="tel" autocomplete="tel" placeholder="+7 ___ ___-__-__"></div>
+    <div class="field"><label for="rg-email">Email</label><input id="rg-email" type="email" autocomplete="email" placeholder="you@mail.ru"></div>
+    <div class="field"><label for="rg-pass">Пароль</label><input id="rg-pass" type="password" autocomplete="new-password" placeholder="Минимум 8 символов"></div>
+    <button class="btn btn-signal" type="button">Создать аккаунт</button>
+  </form>
+  <p class="form-note">Прототип: формы оживут в приложении. В аккаунте — история заказов и сохранённые данные получателя.</p>
+</div>
+
+<!-- Корзина с данными получателя -->
+<aside class="drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+  <button class="icon-btn modal-close" data-close aria-label="Закрыть корзину">✕</button>
+  <h3 id="cartTitle">Корзина</h3>
+
+  <div class="cart-item">
+    <span class="cart-thumb"><img src="p_achilles.jpg" data-remote="https://momo-eq.ru/uploads/k_df56b42ff4614c3592cf59cf997d866c.jpg" alt=""></span>
+    <span><span class="cart-name">Сабвуфер ACHILLES 12 дюймов</span><span class="cart-qty">1 шт.</span></span>
+    <span class="cart-price">21 474 ₽</span>
+  </div>
+  <div class="cart-item">
+    <span class="cart-thumb"><img src="p_fr21800.jpg" data-remote="https://momo-eq.ru/uploads/k_1f51af7699bc429cb2b8ac877b9a9df4.jpg" alt=""></span>
+    <span><span class="cart-name">Усилитель FR-2.1800</span><span class="cart-qty">1 шт.</span></span>
+    <span class="cart-price">22 039 ₽</span>
+  </div>
+
+  <p class="subhead">Данные получателя</p>
+  <div class="field"><label for="rc-name">ФИО</label><input id="rc-name" type="text" autocomplete="name" placeholder="Фамилия Имя Отчество"></div>
+  <div class="field"><label for="rc-phone">Телефон</label><input id="rc-phone" type="tel" autocomplete="tel" placeholder="+7 ___ ___-__-__"></div>
+  <div class="field"><label for="rc-addr">Адрес доставки</label><textarea id="rc-addr" rows="2" autocomplete="street-address" placeholder="Город, улица, дом, квартира"></textarea></div>
+  <div class="field"><label for="rc-comment">Комментарий к заказу</label><textarea id="rc-comment" rows="2" placeholder="Необязательно"></textarea></div>
+
+  <div class="total-row"><span>Итого</span><span class="sum">43 513 ₽</span></div>
+  <p class="split-note">или сплит <b>10 879 ₽ × 4</b> без процентов</p>
+  <button class="btn btn-signal" type="button">Оформить заказ</button>
+  <p class="form-note">Прототип: оформление и оплата (ЮKassa) подключаются в приложении.</p>
+</aside>
+
+<script>
+  // ── Тема: светлая по умолчанию, выбор запоминается ──
+  const root = document.documentElement;
+  const saved = localStorage.getItem('momo-theme');
+  if (saved === 'dark') root.dataset.theme = 'dark';
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const dark = root.dataset.theme === 'dark';
+    if (dark) { delete root.dataset.theme; localStorage.setItem('momo-theme', 'light'); }
+    else { root.dataset.theme = 'dark'; localStorage.setItem('momo-theme', 'dark'); }
+  });
+
+  // ── Карусель баннеров ──
+  const track = document.getElementById('bannerTrack');
+  const dots = [...document.querySelectorAll('.banner-dot')];
+  const slides = track.children.length;
+  let current = 0;
+  function goTo(i) {
+    current = (i + slides) % slides;
+    track.scrollTo({ left: track.clientWidth * current * 1.014, behavior: 'smooth' });
+  }
+  track.addEventListener('scroll', () => {
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i !== current) current = i;
+    dots.forEach((d, j) => d.classList.toggle('active', j === current));
+  }, { passive: true });
+  dots.forEach(d => d.addEventListener('click', () => goTo(+d.dataset.i)));
+  document.getElementById('bannerPrev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('bannerNext').addEventListener('click', () => goTo(current + 1));
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let timer = setInterval(() => goTo(current + 1), 6000);
+    track.addEventListener('pointerenter', () => clearInterval(timer));
+    track.addEventListener('pointerleave', () => { timer = setInterval(() => goTo(current + 1), 6000); });
+  }
+
+  // ── Модалка и корзина ──
+  const overlay = document.getElementById('overlay');
+  const authModal = document.getElementById('authModal');
+  const cartDrawer = document.getElementById('cartDrawer');
+  function openLayer(el) { overlay.classList.add('open'); el.classList.add('open'); el.querySelector('input, button')?.focus(); }
+  function closeLayers() { overlay.classList.remove('open'); authModal.classList.remove('open'); cartDrawer.classList.remove('open'); }
+  document.getElementById('loginBtn').addEventListener('click', () => openLayer(authModal));
+  document.getElementById('cartBtn').addEventListener('click', () => openLayer(cartDrawer));
+  overlay.addEventListener('click', closeLayers);
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeLayers));
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeLayers(); });
+
+  // ── Табы входа/регистрации ──
+  const tabLogin = document.getElementById('tabLogin'), tabReg = document.getElementById('tabReg');
+  const loginForm = document.getElementById('loginForm'), regForm = document.getElementById('regForm');
+  function switchTab(reg) {
+    tabLogin.classList.toggle('active', !reg); tabReg.classList.toggle('active', reg);
+    tabLogin.setAttribute('aria-selected', String(!reg)); tabReg.setAttribute('aria-selected', String(reg));
+    loginForm.hidden = reg; regForm.hidden = !reg;
+  }
+  tabLogin.addEventListener('click', () => switchTab(false));
+  tabReg.addEventListener('click', () => switchTab(true));
+
+  // ── Фолбэк фото: локальный файл → оригинал с momo-eq.ru → пустая плитка ──
+  document.querySelectorAll('.card-img img, .cart-thumb img').forEach(img => {
+    img.addEventListener('error', () => {
+      const remote = img.dataset.remote;
+      if (remote && img.src !== remote) { img.src = remote; }
+      else { img.style.display = 'none'; }
+    });
+    if (img.complete && img.naturalWidth === 0) { img.dispatchEvent(new Event('error')); }
+  });
+</script>
+</body>
+</html>
