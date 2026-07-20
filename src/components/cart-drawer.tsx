@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, splitPayment, productImageUrl, siteConfig } from "@/lib/data";
+import { isPhoneComplete } from "@/lib/phone";
 import { ProductImage } from "./product-image";
+import { PhoneInput } from "./phone-input";
 import { cn } from "@/lib/utils";
+
+// Данные получателя запоминаем — при повторном заказе не вводить заново.
+const RECIPIENT_KEY = "momo-recipient";
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -21,6 +26,18 @@ export function CartDrawer() {
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
 
+  // Подставляем сохранённые данные получателя при первом открытии
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(RECIPIENT_KEY);
+      if (!saved) return;
+      const d = JSON.parse(saved);
+      if (d.name) setName(d.name);
+      if (d.phone) setPhone(d.phone);
+      if (d.address) setAddress(d.address);
+    } catch {}
+  }, []);
+
   const total = cartTotal(items);
   // Апсейл: сколько не хватает до бесплатной доставки.
   const freeFrom = siteConfig.trust.freeShippingFrom;
@@ -32,7 +49,19 @@ export function CartDrawer() {
       setError("Заполните ФИО, телефон и адрес доставки.");
       return;
     }
+    if (!isPhoneComplete(phone)) {
+      setError("Проверьте телефон — в номере должно быть 10 цифр после +7.");
+      return;
+    }
     setError("");
+
+    // Запоминаем получателя для следующего заказа
+    try {
+      localStorage.setItem(
+        RECIPIENT_KEY,
+        JSON.stringify({ name: name.trim(), phone, address: address.trim() }),
+      );
+    } catch {}
     const lines = [
       "Заказ с сайта MOMO:",
       ...items.map(
@@ -213,13 +242,10 @@ export function CartDrawer() {
                 <label className={labelCls} htmlFor="rc-phone">
                   Телефон
                 </label>
-                <input
+                <PhoneInput
                   id="rc-phone"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="+7 ___ ___-__-__"
+                  onChange={setPhone}
                   className={inputCls}
                 />
               </div>

@@ -10,8 +10,9 @@ export function Toaster() {
   const toasts = useToast((s) => s.toasts);
   const dismiss = useToast((s) => s.dismiss);
 
+  // Отступ снизу — чтобы тосты вставали над плавающей кнопкой WhatsApp
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[120] flex flex-col items-center gap-2.5 p-4 sm:inset-x-auto sm:right-5 sm:items-end">
+    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[120] flex flex-col items-center gap-2.5 p-4 sm:inset-x-auto sm:right-5 sm:items-end">
       <AnimatePresence>
         {toasts.map((t) => (
           <motion.div

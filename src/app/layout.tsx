@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/toaster";
+import { WhatsAppFab } from "@/components/whatsapp-fab";
 
 const unbounded = Unbounded({
   subsets: ["latin", "cyrillic"],
@@ -72,6 +73,7 @@ export default async function RootLayout({
         </ClickSpark>
         <CartDrawer />
         <Toaster />
+        <WhatsAppFab />
       </body>
     </html>
   );

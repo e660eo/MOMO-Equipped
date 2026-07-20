@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PhoneInput } from "./phone-input";
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -17,6 +18,7 @@ export function AuthModal({
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<"login" | "register">("login");
+  const [regPhone, setRegPhone] = useState("");
 
   return (
     <>
@@ -123,11 +125,10 @@ export function AuthModal({
               <label className={labelCls} htmlFor="rg-phone">
                 Телефон
               </label>
-              <input
+              <PhoneInput
                 id="rg-phone"
-                type="tel"
-                autoComplete="tel"
-                placeholder="+7 ___ ___-__-__"
+                value={regPhone}
+                onChange={setRegPhone}
                 className={inputCls}
               />
             </div>

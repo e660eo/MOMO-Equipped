@@ -11,6 +11,7 @@ import { AuthModal } from "./auth-modal";
 import { CatalogMenu } from "./catalog-menu";
 import { HeaderExtras, CityPicker } from "./header-extras";
 import { AnimatedGlowingSearch } from "./ui/animated-glowing-search-bar";
+import { SearchSuggestions } from "./search-suggestions";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -27,6 +28,7 @@ export function SiteHeader() {
   const [authOpen, setAuthOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [hintsOpen, setHintsOpen] = useState(false);
   const count = cartCount(items);
 
   function submitSearch(e: React.FormEvent) {
@@ -34,6 +36,7 @@ export function SiteHeader() {
     const q = query.trim();
     router.push(q ? `/catalog?search=${encodeURIComponent(q)}` : "/catalog");
     setMenuOpen(false);
+    setHintsOpen(false);
   }
 
   return (
@@ -52,10 +55,10 @@ export function SiteHeader() {
           <CatalogMenu />
         </div>
 
-        {/* Поиск */}
+        {/* Поиск с живыми подсказками */}
         <form
           onSubmit={submitSearch}
-          className="hidden flex-1 md:block"
+          className="relative hidden flex-1 md:block"
           role="search"
         >
           <AnimatedGlowingSearch className="w-full">
@@ -66,13 +69,23 @@ export function SiteHeader() {
               />
               <input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setHintsOpen(true);
+                }}
+                onFocus={() => setHintsOpen(true)}
                 placeholder="Найти товары…"
                 aria-label="Поиск товаров"
+                autoComplete="off"
                 className="w-full rounded-full bg-surface py-2.5 pl-11 pr-4 text-sm text-foreground focus:outline-none"
               />
             </div>
           </AnimatedGlowingSearch>
+          <SearchSuggestions
+            query={query}
+            open={hintsOpen}
+            onClose={() => setHintsOpen(false)}
+          />
         </form>
 
         <div className="ml-auto flex items-center gap-2.5 md:ml-0">
