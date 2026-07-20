@@ -72,6 +72,9 @@ export function getNews(): NewsItem[] {
 }
 
 export function productImageUrl(image: string): string {
+  // Фото, выгруженные из прайса, лежат в public/ и уже абсолютны —
+  // им база со старого сайта не нужна.
+  if (image.startsWith("/")) return image;
   return `${site.imageBase}${image}`;
 }
 

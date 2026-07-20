@@ -50,9 +50,10 @@
     "brand": "MOMO",
     "category": "multimedia",
     "price": 5399,
-    "image": "k_1a5700384c1442e2919750287f13f16f.jpg",
+    "image": "/products/avtomagnitola-android-10-2-16gb-wi-fi-gps-bt-806438.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_1a5700384c1442e2919750287f13f16f.jpg"
   },
   {
     "slug": "avtomagnitola-android-10-2-32gb-005959",
@@ -60,9 +61,10 @@
     "brand": "ANDROID",
     "category": "multimedia",
     "price": 5717,
-    "image": "k_2a88bc6d1545433790f7dfba53865837.jpg",
+    "image": "/products/avtomagnitola-android-10-2-32gb-005959.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_2a88bc6d1545433790f7dfba53865837.jpg"
   },
   {
     "slug": "avtomagnitola-android-10-2-32gb-4g-329610",
@@ -70,9 +72,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 8931,
-    "image": "k_e179146a88c54dcbbf098daa2c2fad6f.jpg",
+    "image": "/products/avtomagnitola-android-10-2-32gb-4g-329610.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_e179146a88c54dcbbf098daa2c2fad6f.jpg"
   },
   {
     "slug": "avtomagnitola-android-9-2-32gb-4g-702453",
@@ -80,9 +83,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 7526,
-    "image": "k_17b778f321b740a1832c77e84ba060cd.jpg",
+    "image": "/products/avtomagnitola-android-9-2-32gb-4g-702453.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_17b778f321b740a1832c77e84ba060cd.jpg"
   },
   {
     "slug": "avtomagnitola-deh-4850-097139",
@@ -90,12 +94,13 @@
     "brand": "MOMO",
     "category": "multimedia",
     "price": 1135,
-    "image": "k_a51c5aa6431344c89e390a97e0db0cbf.jpg",
+    "image": "/products/avtomagnitola-deh-4850-097139.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Автомобильный MP3 проигрыватель с блютузом 4х45вт с пультом"
-    ]
+    ],
+    "imageLegacy": "k_a51c5aa6431344c89e390a97e0db0cbf.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-android-10-2-32gb-4g-310212",
@@ -103,9 +108,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 10010,
-    "image": "k_1d04b32836f64e4aaa4a43a61237a30c.jpg",
+    "image": "/products/avtomagnitola-zeus-android-10-2-32gb-4g-310212.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_1d04b32836f64e4aaa4a43a61237a30c.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-android-7-4-64gb-4g-169671",
@@ -113,9 +119,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 11091,
-    "image": "k_44d760cf9d9c4e5393053c98537cfb0d.jpg",
+    "image": "/products/avtomagnitola-zeus-android-7-4-64gb-4g-169671.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_44d760cf9d9c4e5393053c98537cfb0d.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-1-16gb-703833",
@@ -123,9 +130,10 @@
     "brand": "ANDROID",
     "category": "multimedia",
     "price": 5307,
-    "image": "k_5abdb09b08b146c69f13e16994e5f2d8.jpg",
+    "image": "/products/avtomagnitola-zeus-android-9-1-16gb-703833.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_5abdb09b08b146c69f13e16994e5f2d8.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-2-32gb-4g-668166",
@@ -133,9 +141,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 9438,
-    "image": "k_7e820440a9384f4e82a3d76c4e5823dd.jpg",
+    "image": "/products/avtomagnitola-zeus-android-9-2-32gb-4g-668166.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_7e820440a9384f4e82a3d76c4e5823dd.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040",
@@ -143,9 +152,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 13125,
-    "image": "k_372f7b5b9b92483782653ded122da9d7.jpg",
+    "image": "/products/avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_372f7b5b9b92483782653ded122da9d7.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302",
@@ -153,9 +163,10 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 10500,
-    "image": "k_ba10b6639b4443eca7160cf3ec3687bf.jpg",
+    "image": "/products/avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_ba10b6639b4443eca7160cf3ec3687bf.jpg"
   },
   {
     "slug": "avtomagnitola-zeus-z-1bt-472657",
@@ -163,12 +174,13 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 816,
-    "image": "k_4d58426b7d0f4dc78e4169667aec144e.jpg",
+    "image": "/products/avtomagnitola-zeus-z-1bt-472657.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Автомобильный MP3 проигрыватель с блютузом 4х10вт"
-    ]
+    ],
+    "imageLegacy": "k_4d58426b7d0f4dc78e4169667aec144e.jpg"
   },
   {
     "slug": "vynosnoy-regulyator-basa-v-mashinu-5m-186042",
@@ -185,12 +197,13 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 4035,
-    "image": "k_6db661c4d7e444438b2907411dee8f12.jpg",
+    "image": "/products/dinamiki-momo-estradnye-avtomobilnye-16sm-he-715-403655.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Динамики 6.5 С.Ч. (165 мм), 4Om, катушка 1.5 дюйма, RMS 150 ВТ, MAX 300 Вт, 96 Дб, 115 - 10 000 Гц"
-    ]
+    ],
+    "imageLegacy": "k_6db661c4d7e444438b2907411dee8f12.jpg"
   },
   {
     "slug": "dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461",
@@ -198,7 +211,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1390,
-    "image": "k_cde67747907d4fa7b738db3e753bbf4e.jpg",
+    "image": "/products/dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461.webp",
     "isClearance": false,
     "inStock": false,
     "description": [
@@ -209,7 +222,8 @@
       "Диапозон частот - 75-15 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
-    ]
+    ],
+    "imageLegacy": "k_cde67747907d4fa7b738db3e753bbf4e.jpg"
   },
   {
     "slug": "dinamiki-avtomobilnye-momo-us-310-v3-811784",
@@ -226,7 +240,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 1142,
-    "image": "k_f3087f40537f4e67b0c060e203b48d4c.jpg",
+    "image": "/products/dinamiki-koaksialnye-zeus-ac-165-517978.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -237,7 +251,8 @@
       "Диапозон частот - 55-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
-    ]
+    ],
+    "imageLegacy": "k_f3087f40537f4e67b0c060e203b48d4c.jpg"
   },
   {
     "slug": "dinamiki-koaksialnye-ovaly-sbs-690-648108",
@@ -254,7 +269,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 982,
-    "image": "k_b4b65604ce0948f4bcc5271de13e7e38.jpg",
+    "image": "/products/dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -265,7 +280,8 @@
       "Чувствительность 92 дб.",
       "Диапазон частот: 80-15000Гц.",
       "Звуковая катушка 1KCCAW VC"
-    ]
+    ],
+    "imageLegacy": "k_b4b65604ce0948f4bcc5271de13e7e38.jpg"
   },
   {
     "slug": "dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265",
@@ -273,7 +289,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 2520,
-    "image": "k_ac8c03c67dd94dd0a6d4d614f99bc87b.jpg",
+    "image": "/products/dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -284,7 +300,8 @@
       "Диапозон частот - 75-15 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
-    ]
+    ],
+    "imageLegacy": "k_ac8c03c67dd94dd0a6d4d614f99bc87b.jpg"
   },
   {
     "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-017173",
@@ -292,7 +309,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1442,
-    "image": "k_83e157f2d5b647328d1418d04423a864.jpg",
+    "image": "/products/dinamiki-rupornye-100mm-avtomobilnye-he-290-017173.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -303,7 +320,8 @@
       "Диапозон частот- 2 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм"
-    ]
+    ],
+    "imageLegacy": "k_83e157f2d5b647328d1418d04423a864.jpg"
   },
   {
     "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-707836",
@@ -347,7 +365,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1499,
-    "image": "k_718875e89daf4badb3a681a7cc941a1c.jpg",
+    "image": "/products/dinamiki-estradnye-13sm-v-mashinu-mr-130-056376.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -358,7 +376,8 @@
       "Диапозон частот- 120-12000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - Каптон 1 Дюйм"
-    ]
+    ],
+    "imageLegacy": "k_718875e89daf4badb3a681a7cc941a1c.jpg"
   },
   {
     "slug": "dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399",
@@ -366,7 +385,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 1575,
-    "image": "k_ac7061bed9e64a868158560a7ff0a241.jpg",
+    "image": "/products/dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -377,7 +396,8 @@
       "Диапозон частот- 100-10 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюм KCCAW"
-    ]
+    ],
+    "imageLegacy": "k_ac7061bed9e64a868158560a7ff0a241.jpg"
   },
   {
     "slug": "dinamiki-estradnye-25sm-momo-he-1000-709600",
@@ -385,7 +405,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3563,
-    "image": "k_e4ef5c367ab54a9480bba114fe4330da.jpg",
+    "image": "/products/dinamiki-estradnye-25sm-momo-he-1000-709600.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -396,7 +416,8 @@
       "Диапозон частот- 60 - 20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1,5 Дюйма KSV"
-    ]
+    ],
+    "imageLegacy": "k_e4ef5c367ab54a9480bba114fe4330da.jpg"
   },
   {
     "slug": "dinamiki-estradnye-v-mashinu-16sm-he-610-096126",
@@ -849,9 +870,10 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 2550,
-    "image": "k_e5bf3d37aa0942bf83bb627e9f76938a.jpg",
+    "image": "/products/kolonki-avtomobilnye-koaksialnye-165mm-zeus-us-650-754789.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_e5bf3d37aa0942bf83bb627e9f76938a.jpg"
   },
   {
     "slug": "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173",
@@ -859,7 +881,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3435,
-    "image": "k_b6e15687488443eea9085ef0c2f076f1.jpg",
+    "image": "/products/kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -869,7 +891,8 @@
       "Диапазон частот: 70–10 000 Гц",
       "Звуковая катушка: 1,5 дюйма",
       "Материал диффузора: целлюлоза, армированная стекловолокном"
-    ]
+    ],
+    "imageLegacy": "k_b6e15687488443eea9085ef0c2f076f1.jpg"
   },
   {
     "slug": "kolonki-avtomobilnye-estradnye-165mm-momo-he-612-783658",
@@ -912,7 +935,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3299,
-    "image": "k_5b29d33dc38443aaaf71f32d437c3e4c.jpg",
+    "image": "/products/kolonki-rupora-10sm-v-mashinu-he-400-009725.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -923,7 +946,8 @@
       "Диапозон частот - 3 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1.2 Дюйм KSV"
-    ]
+    ],
+    "imageLegacy": "k_5b29d33dc38443aaaf71f32d437c3e4c.jpg"
   },
   {
     "slug": "kolonki-estradnye-130mm-dlya-avtomobilya-he-130-053896",
@@ -994,7 +1018,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 17700,
-    "image": "k_43409182797948968e68c9c6b5816152.jpg",
+    "image": "/products/monoblok-avtomobilnyy-bd-5000-1-803288.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1011,7 +1035,8 @@
       "Выходной терминал, Ga8",
       "Рабочее напряжение, В10-15В",
       "Сигнал/Шум, Дб 90"
-    ]
+    ],
+    "imageLegacy": "k_43409182797948968e68c9c6b5816152.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-bm-1-1500-655537",
@@ -1019,7 +1044,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 8511,
-    "image": "k_38e682f1014148e4bd61f6ab5c4e1442.jpg",
+    "image": "/products/monoblok-avtomobilnyy-bm-1-1500-655537.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1031,7 +1056,8 @@
       "Фильтр низких частот (LPF): 10 Гц – 1 кГц",
       "Фильтр высоких частот (HPF): 50 Гц – 20 кГц",
       "Соотношение сигнал/шум: 85 дБ"
-    ]
+    ],
+    "imageLegacy": "k_38e682f1014148e4bd61f6ab5c4e1442.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-d-1000-356531",
@@ -1039,7 +1065,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 8373,
-    "image": "k_aba6d9956fac4a178e471f2fdbdec0d5.jpg",
+    "image": "/products/monoblok-avtomobilnyy-d-1000-356531.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1054,7 +1080,8 @@
       "Соотношение сигнал/шум: >90 дБ",
       "Предохранители: 3 шт (номинал не указан)",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ]
+    ],
+    "imageLegacy": "k_aba6d9956fac4a178e471f2fdbdec0d5.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-d-500-147152",
@@ -1062,7 +1089,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4785,
-    "image": "k_9eac6eea764c47499960984ffb053489.jpg",
+    "image": "/products/monoblok-avtomobilnyy-d-500-147152.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1080,7 +1107,8 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 30 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ]
+    ],
+    "imageLegacy": "k_9eac6eea764c47499960984ffb053489.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-fr-500-138116",
@@ -1088,7 +1116,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4485,
-    "image": "k_0937ab5020514cdd96db24dfb32e944e.jpg",
+    "image": "/products/monoblok-avtomobilnyy-fr-500-138116.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1105,7 +1133,8 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 30 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ]
+    ],
+    "imageLegacy": "k_0937ab5020514cdd96db24dfb32e944e.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-fr-500-tovar-ucenennyy-421166",
@@ -1122,7 +1151,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5850,
-    "image": "k_85ca3fa5b23e4aaa903c4cc621fade0e.jpg",
+    "image": "/products/monoblok-avtomobilnyy-m-1-800-361333.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1138,7 +1167,8 @@
       "Выносной регулятор: в комплекте",
       "Защиты: от перегрузки, короткого замыкания, перегрева",
       "Размеры (Д×Ш×В): 320 × 220 × 50 мм"
-    ]
+    ],
+    "imageLegacy": "k_85ca3fa5b23e4aaa903c4cc621fade0e.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-m-1000-533001",
@@ -1146,7 +1176,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6530,
-    "image": "k_aa10edfa78b34eebbb3c87ccdfd4b001.jpg",
+    "image": "/products/monoblok-avtomobilnyy-m-1000-533001.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1161,7 +1191,8 @@
       "Соотношение сигнал/шум: 95 дБ",
       "Входная чувствительность: 0,2 – 6 В",
       "Выносной регулятор: Да Размеры (Д×Ш×В): 340 × 230 × 50 мм"
-    ]
+    ],
+    "imageLegacy": "k_aa10edfa78b34eebbb3c87ccdfd4b001.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-momo-bd-3000-1-640730",
@@ -1169,7 +1200,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 11665,
-    "image": "k_4f5a6de6216b49ab88bb9f5820f86c04.jpg",
+    "image": "/products/monoblok-avtomobilnyy-momo-bd-3000-1-640730.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1179,7 +1210,8 @@
       "Фильтр высоких частот (HIGH Pass), Гц15 - 80",
       "Диапазон воспроизводимых частот, Гц10 - 20000",
       "Отношение сигнал/шум, дБ90."
-    ]
+    ],
+    "imageLegacy": "k_4f5a6de6216b49ab88bb9f5820f86c04.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-zeus-m-1-1200-653712",
@@ -1187,7 +1219,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6887,
-    "image": "k_696a9a47aed8482895be5b90983f0ce5.jpg",
+    "image": "/products/monoblok-avtomobilnyy-zeus-m-1-1200-653712.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1199,7 +1231,8 @@
       "Диапазон воспроизводимых частот: 10 Гц – 250 Гц",
       "Фильтр низких частот (LPF): 50 Гц – 250 Гц",
       "Соотношение сигнал/шум: 85 дБ"
-    ]
+    ],
+    "imageLegacy": "k_696a9a47aed8482895be5b90983f0ce5.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-zeus-m-600-611614",
@@ -1207,7 +1240,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5333,
-    "image": "k_8dad995ae6944d9b937f75dcfb86d086.jpg",
+    "image": "/products/monoblok-avtomobilnyy-zeus-m-600-611614.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1218,7 +1251,8 @@
       "Диапазон воспроизводимых частот: 10 Гц – 250 Гц",
       "Фильтр низких частот (LPF): 50 Гц – 250 Гц",
       "Соотношение сигнал/шум: 85 дБ"
-    ]
+    ],
+    "imageLegacy": "k_8dad995ae6944d9b937f75dcfb86d086.jpg"
   },
   {
     "slug": "monoblok-avtomobilnyy-dlya-sabvufera-bd-2000-1-046476",
@@ -1343,9 +1377,10 @@
     "brand": "ZEUS",
     "category": "sabvufery",
     "price": 4920,
-    "image": "k_f641a17a37894ac58583cc774999861f.jpg",
+    "image": "/products/sabvufer-avtomobilnyy-b-12-450-12-dyuymov-839456.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "imageLegacy": "k_f641a17a37894ac58583cc774999861f.jpg"
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
@@ -1362,7 +1397,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 5367,
-    "image": "k_70d7c83a54b1493599f9e70c98a03770.jpg",
+    "image": "/products/sabvufer-avtomobilnyy-ts-10-600-10-dyuymov-182054.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1372,7 +1407,8 @@
       "Чувствительность ДБ - 88",
       "Диапозон частот - 32-1 200 Гц",
       "Звуковая катушка - двойная 2.5 черный алюминий"
-    ]
+    ],
+    "imageLegacy": "k_70d7c83a54b1493599f9e70c98a03770.jpg"
   },
   {
     "slug": "sabvufer-avtomobilnyy-ts-15-1100-15-dyuymov-064255",
@@ -1453,7 +1489,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 2774,
-    "image": "k_13a04ca57881481491a179d937de6d82.jpg",
+    "image": "/products/usilitel-avtomobilnyy-ab-2-60-617369.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1465,7 +1501,8 @@
       "Фильтр низких частот (LPF): 50 Гц – 200 Гц",
       "Фильтр высоких частот (HPF): 50 Гц – 8 кГц",
       "Соотношение сигнал/шум: 90 дБ"
-    ]
+    ],
+    "imageLegacy": "k_13a04ca57881481491a179d937de6d82.jpg"
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-4-120-159023",
@@ -1473,7 +1510,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6435,
-    "image": "k_27b75c539ba74890bbc75847c06dec7b.jpg",
+    "image": "/products/usilitel-avtomobilnyy-ab-4-120-159023.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1488,7 +1525,8 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 40 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ]
+    ],
+    "imageLegacy": "k_27b75c539ba74890bbc75847c06dec7b.jpg"
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-4-60-882001",
@@ -1519,7 +1557,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 9285,
-    "image": "k_3cb7f4bd2f0640aebd6037c95c14b28b.jpg",
+    "image": "/products/usilitel-avtomobilnyy-d-4-400-288535.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1533,7 +1571,8 @@
       "Соотношение сигнал/шум: 90 дБ",
       "Коэффициент гармонических искажений (THD): не указан",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ]
+    ],
+    "imageLegacy": "k_3cb7f4bd2f0640aebd6037c95c14b28b.jpg"
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-1800-802013",
@@ -1581,7 +1620,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4335,
-    "image": "k_dde104b05b1c49ac8fe62d55699998dd.jpg",
+    "image": "/products/usilitel-avtomobilnyy-p-4-75-147050.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1597,7 +1636,8 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Номинал предохранителя: 40 А",
       "Размеры (Д×Ш×В): 365 × 220 × 56 мм"
-    ]
+    ],
+    "imageLegacy": "k_dde104b05b1c49ac8fe62d55699998dd.jpg"
   },
   {
     "slug": "usilitel-avtomobilnyy-zeus-ab-4-100-588525",
