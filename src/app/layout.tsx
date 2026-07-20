@@ -61,10 +61,23 @@ export default async function RootLayout({
       className={`${unbounded.variable} ${manrope.variable} ${syne.variable}`}
     >
       <body>
-        <ClickSpark sparkColor="#ff5500" sparkSize={11} sparkRadius={18} sparkCount={8} duration={450}>
+        {/*
+          Колонка на всю высоту окна: если контента мало (короткая страница,
+          пустой результат фильтра, высокий монитор), растягивается обёртка
+          вокруг children, а тёмный футер остаётся прижатым к низу. Без этого
+          под футером проступала светлая полоса фона body.
+        */}
+        <ClickSpark
+          className="flex min-h-screen flex-col"
+          sparkColor="#ff5500"
+          sparkSize={11}
+          sparkRadius={18}
+          sparkCount={8}
+          duration={450}
+        >
           <AnnouncementBar />
           <SiteHeader />
-          {children}
+          <div className="flex-1">{children}</div>
           <SiteFooter />
         </ClickSpark>
         <CartDrawer />
