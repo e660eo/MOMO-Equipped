@@ -1,0 +1,57 @@
+# Nginx как reverse proxy: принимает 80/443 и отдаёт запросы Next.js на 127.0.0.1:3000.
+#
+# Установка на сервере:
+#   sudo cp deploy/nginx.conf.example /etc/nginx/sites-available/momo
+#   sudo ln -s /etc/nginx/sites-available/momo /etc/nginx/sites-enabled/momo
+#   sudo rm -f /etc/nginx/sites-enabled/default        # убрать заглушку Nginx
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# SSL добавит certbot автоматически (см. DEPLOY.md) — он допишет секцию 443
+# и редирект с 80. Этот файл — стартовая конфигурация до выпуска сертификата.
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    # ЗАМЕНИТЕ на свой домен. Пока домен не переключён — можно указать IP сервера.
+    server_name momo-eq.ru www.momo-eq.ru;
+
+    # Загрузка фото товаров и прочих файлов
+    client_max_body_size 20M;
+
+    # Статика Next.js неизменяема (в именах файлов хеш) — кэшируем надолго
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_cache_valid 200 365d;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Картинки и файлы из public/
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:3000;
+        add_header Cache-Control "public, max-age=2592000";
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+
+        # Заголовки, без которых Next не узнает реальный протокол и хост
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Поддержка websocket (нужна для HMR и на будущее)
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 60s;
+    }
+
+    # Сжатие — заметно ускоряет отдачу HTML/JS/CSS
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript
+               application/xml image/svg+xml;
+    gzip_min_length 1024;
+}
