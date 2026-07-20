@@ -15,10 +15,10 @@ const cols = [
   {
     title: "Покупателям",
     links: [
+      { href: "/sale", label: "Уценка" },
       { href: "/#promo", label: "Акции и сплит" },
       { href: "/news", label: "Новости" },
       { href: "/contacts", label: "Контакты" },
-      { href: "/requisites", label: "Реквизиты" },
     ],
   },
 ];
@@ -26,7 +26,7 @@ const cols = [
 export function SiteFooter() {
   const { contacts, requisites } = siteConfig;
   return (
-    <footer className="border-t border-border pb-10 pt-16">
+    <footer className="border-t border-border pt-16">
       <div className="mx-auto max-w-[1200px] px-6">
         <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr_1.4fr]">
           <div>
@@ -95,12 +95,40 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap justify-between gap-4 border-t border-border pt-6 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-          <span>
-            {requisites.shortName} · ИНН {requisites.inn} · ОГРНИП{" "}
-            {requisites.ogrnip}
-          </span>
-          <span>© 2026 MOMO</span>
+      </div>
+
+      {/*
+        Нижняя плашка — тёмная, в том же градиентном языке, что баннер
+        «Сплит 0%» и карточка консультации. Логотип парит той же анимацией,
+        что и на главном экране (класс hero-logo-float — чистый CSS,
+        клиентский компонент здесь не нужен).
+      */}
+      <div className="mt-14 border-t border-border">
+        <div className="relative overflow-hidden text-[#f5f3ef] [background:radial-gradient(120%_180%_at_88%_10%,rgba(255,85,0,0.22),transparent_55%),linear-gradient(115deg,#0d0d0f_0%,#1b1b1f_62%,#232327_100%)]">
+          <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-6 px-6 py-10 md:flex-row md:justify-between">
+            <Image
+              src="/logo-3d.png"
+              alt="MOMO Equipped"
+              width={1500}
+              height={985}
+              sizes="220px"
+              className="hero-logo-float h-auto w-[190px] shrink-0 invert md:w-[210px]"
+            />
+
+            <div className="flex flex-col items-center gap-2 text-center md:items-end md:text-right">
+              <p className="text-[0.72rem] tracking-wide text-white/55 tabular-nums">
+                {requisites.shortName} · ИНН {requisites.inn} · ОГРНИП{" "}
+                {requisites.ogrnip}
+              </p>
+              <Link
+                href="/requisites"
+                className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/75 underline-offset-4 transition-colors hover:text-signal hover:underline"
+              >
+                Реквизиты и информационная карта
+              </Link>
+              <p className="mt-1 text-[0.72rem] text-white/40">© 2026 MOMO</p>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

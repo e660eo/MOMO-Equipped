@@ -115,9 +115,6 @@ export default function Home() {
         <div className="border-t border-border">
           <div className="mx-auto flex max-w-[1200px] flex-wrap justify-between gap-x-8 gap-y-3 px-6 py-4 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground">
             <span>
-              <b className="font-medium text-foreground">{trust.skuCount}</b> позиций
-            </span>
-            <span>
               гарантия{" "}
               <b className="font-medium text-foreground">
                 {trust.warrantyMonths} месяцев

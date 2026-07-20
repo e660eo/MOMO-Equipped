@@ -14,11 +14,12 @@ import { AnimatedGlowingSearch } from "./ui/animated-glowing-search-bar";
 import { SearchSuggestions } from "./search-suggestions";
 import { cn } from "@/lib/utils";
 
+// Реквизиты намеренно не здесь — они живут в нижней плашке футера,
+// это служебная информация, а не пункт основной навигации.
 const nav = [
   { href: "/sale", label: "Уценка" },
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
-  { href: "/requisites", label: "Реквизиты" },
 ];
 
 export function SiteHeader() {

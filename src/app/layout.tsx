@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Unbounded, Manrope, JetBrains_Mono, Syne } from "next/font/google";
+import { Onest, Manrope, Syne } from "next/font/google";
 import "./globals.css";
 import ClickSpark from "@/components/ui/ClickSpark";
 import { AnnouncementBar } from "@/components/announcement-bar";
@@ -10,22 +10,19 @@ import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/toaster";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
 
-const unbounded = Unbounded({
+// Заголовки: Onest — современный гротеск с сильной кириллицей.
+// Взят вместо Unbounded: тот заметно шире и «характернее», из-за чего
+// крупные заголовки выглядели декоративно, а не премиально.
+const onest = Onest({
   subsets: ["latin", "cyrillic"],
-  weight: ["500", "700"],
-  variable: "--font-unbounded",
+  weight: ["600", "700", "800"],
+  variable: "--font-display-src",
 });
 
 const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-manrope",
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500"],
-  variable: "--font-jetbrains",
 });
 
 // Вордмарк «MOMO Equipped» в шапке
@@ -62,7 +59,7 @@ export default async function RootLayout({
     <html
       lang="ru"
       data-theme={theme === "dark" ? "dark" : undefined}
-      className={`${unbounded.variable} ${manrope.variable} ${jetbrains.variable} ${syne.variable}`}
+      className={`${onest.variable} ${manrope.variable} ${syne.variable}`}
     >
       <body>
         <ClickSpark sparkColor="#ff5500" sparkSize={11} sparkRadius={18} sparkCount={8} duration={450}>

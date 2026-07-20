@@ -35,9 +35,17 @@
   --color-input: var(--line);
   --color-ring: #ff5500;
 
-  --font-display: var(--font-unbounded);
+  --font-display: var(--font-display-src);
   --font-body: var(--font-manrope);
-  --font-mono: var(--font-jetbrains);
+  /*
+    «Моно» здесь — роль, а не гарнитура: это мелкие подписи-надзаголовки.
+    Раньше их набирал JetBrains Mono, из-за чего они читались как вывод
+    терминала. Теперь тот же Manrope капслоком с разрядкой — спокойнее
+    и дороже. Ровные цифры там, где важно, даёт класс tabular-nums.
+  */
+  --font-mono: var(--font-manrope);
+  /* Явное имя для мелких надзаголовков-подписей */
+  --font-label: var(--font-manrope);
   --font-wordmark: var(--font-syne);
 }
 
