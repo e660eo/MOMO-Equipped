@@ -1,0 +1,41 @@
+[
+  {
+    "slug": "pervyy-bas",
+    "title": "Первый бас",
+    "tagline": "Стартовый комплект",
+    "description": "Всё, чтобы впервые услышать нижний бас: сабвуфер, усилитель под него и провода. Собирается за вечер, ничего докупать не нужно.",
+    "discountPercent": 7,
+    "items": [
+      "sabvufer-avtomobilnyy-ub-10-250-10-dyuymov-328303",
+      "usilitel-avtomobilnyy-ab-2-60-617369",
+      "rca-2-1-kabel-5m-med-123754",
+      "klemma-akkumulyatora-dlya-avtomobilya-656147"
+    ]
+  },
+  {
+    "slug": "gromche-vseh",
+    "title": "Громче всех",
+    "tagline": "SPL · давление",
+    "description": "Связка для тех, кто меряет звук в децибелах: 12-дюймовый ACHILLES, моноблок на 5000 и силовая обвязка под серьёзный ток.",
+    "discountPercent": 8,
+    "items": [
+      "sabvufer-avtomobilnyy-achilles-12-dyuymov-902295",
+      "monoblok-avtomobilnyy-bd-5000-1-803288",
+      "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-5m-otr-473784",
+      "obzhimnaya-klemma-0-ga-962354"
+    ]
+  },
+  {
+    "slug": "chistyy-zvuk",
+    "title": "Чистый звук",
+    "tagline": "Эстрада · SQ",
+    "description": "Для тех, кому важна середина и вокал, а не только бас: эстрадные 165 мм, двухканальник FR-2.1800 и медные межблочники.",
+    "discountPercent": 7,
+    "items": [
+      "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149",
+      "usilitel-avtomobilnyy-fr-2-1800-802013",
+      "rca-2-1-kabel-5m-med-123754",
+      "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-5m-otreznoy-236646"
+    ]
+  }
+]

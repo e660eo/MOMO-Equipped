@@ -21,6 +21,24 @@ export interface Brand {
   house: boolean;
 }
 
+/** Готовая сборка: набор товаров с пакетной ценой. */
+export interface Bundle {
+  slug: string;
+  title: string;
+  tagline: string;
+  description: string;
+  discountPercent: number;
+  items: string[];
+}
+
+/** Сборка с подтянутыми товарами и посчитанной выгодой. */
+export interface ResolvedBundle extends Omit<Bundle, "items"> {
+  products: Product[];
+  fullPrice: number;
+  price: number;
+  saving: number;
+}
+
 export interface NewsItem {
   slug: string;
   title: string;

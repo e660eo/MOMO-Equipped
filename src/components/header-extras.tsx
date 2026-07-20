@@ -16,8 +16,8 @@ const cities = [
   "Новосибирск",
 ];
 
-export function HeaderExtras() {
-  const router = useRouter();
+// Выбор города — стоит слева в нав-ряду, рядом с пунктами меню.
+export function CityPicker() {
   const [city, setCity] = useState("Москва");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -47,40 +47,43 @@ export function HeaderExtras() {
   }
 
   return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 text-[0.82rem] font-medium text-muted-foreground transition-colors hover:text-signal"
+        aria-expanded={open}
+      >
+        <MapPin size={15} className="text-signal" />
+        {city}
+        <ChevronDown
+          size={14}
+          className={open ? "rotate-180 transition-transform" : "transition-transform"}
+        />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+          {cities.map((c) => (
+            <button
+              key={c}
+              onClick={() => choose(c)}
+              className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors hover:text-signal"
+            >
+              {c}
+              {c === city && <Check size={15} className="text-signal" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Плашки справа в нав-ряду — с эффектом SpecularButton.
+export function HeaderExtras() {
+  const router = useRouter();
+
+  return (
     <div className="flex items-center gap-3">
-      {/* Выбор города */}
-      <div ref={ref} className="relative">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="inline-flex items-center gap-1.5 text-[0.82rem] font-medium text-muted-foreground transition-colors hover:text-signal"
-          aria-expanded={open}
-        >
-          <MapPin size={15} className="text-signal" />
-          {city}
-          <ChevronDown
-            size={14}
-            className={open ? "rotate-180 transition-transform" : "transition-transform"}
-          />
-        </button>
-        {open && (
-          <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-            {cities.map((c) => (
-              <button
-                key={c}
-                onClick={() => choose(c)}
-                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors hover:text-signal"
-              >
-                {c}
-                {c === city && <Check size={15} className="text-signal" />}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <span className="h-4 w-px bg-border" />
-
-      {/* Плашки с эффектом SpecularButton */}
       <SpecularButton
         size="sm"
         radius={9}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Minus, Plus, Trash2 } from "lucide-react";
+import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, splitPayment, productImageUrl, siteConfig } from "@/lib/data";
 import { ProductImage } from "./product-image";
@@ -22,6 +22,10 @@ export function CartDrawer() {
   const [sent, setSent] = useState(false);
 
   const total = cartTotal(items);
+  // Апсейл: сколько не хватает до бесплатной доставки.
+  const freeFrom = siteConfig.trust.freeShippingFrom;
+  const remaining = Math.max(0, freeFrom - total);
+  const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
   function submit() {
     if (!name.trim() || !phone.trim() || !address.trim()) {
@@ -157,6 +161,36 @@ export function CartDrawer() {
                 </li>
               ))}
             </ul>
+
+            {/* Прогресс до бесплатной доставки */}
+            <div className="mt-5 rounded-xl border border-border bg-bg p-4">
+              {remaining > 0 ? (
+                <p className="text-[0.82rem]">
+                  До бесплатной доставки{" "}
+                  <b className="font-semibold text-[var(--signal-text)]">
+                    {formatPrice(remaining)}
+                  </b>
+                </p>
+              ) : (
+                <p className="flex items-center gap-2 text-[0.82rem] font-semibold text-[var(--signal-text)]">
+                  <Truck size={15} />
+                  Доставка бесплатно
+                </p>
+              )}
+              <div
+                className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-border"
+                role="progressbar"
+                aria-valuenow={Math.round(shippingPct)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Прогресс до бесплатной доставки"
+              >
+                <div
+                  className="h-full rounded-full bg-signal transition-[width] duration-500"
+                  style={{ width: `${shippingPct}%` }}
+                />
+              </div>
+            </div>
 
             <p className="mb-4 mt-6 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground">
               Данные получателя

@@ -11,9 +11,12 @@ import {
   productImageUrl,
   siteConfig,
 } from "@/lib/data";
+import { getRating, getReviews, pluralReviews } from "@/lib/reviews";
+import { parseSpecs } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { Stars } from "@/components/stars";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -48,6 +51,9 @@ export default async function ProductPage({
     .slice(0, 4);
 
   const split = splitPayment(product.price);
+  const rating = getRating(product.slug);
+  const reviews = getReviews(product.slug);
+  const specs = parseSpecs(product.title);
 
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-12">
@@ -103,6 +109,18 @@ export default async function ProductPage({
             {product.title}
           </h1>
 
+          {/* Рейтинг */}
+          <a
+            href="#reviews"
+            className="mt-3 inline-flex items-center gap-2 transition-colors hover:text-signal"
+          >
+            <Stars value={rating.value} size={16} />
+            <span className="font-mono text-[0.78rem] text-muted-foreground">
+              {rating.value.toFixed(1)} · {rating.count}{" "}
+              {pluralReviews(rating.count)}
+            </span>
+          </a>
+
           <div className="mt-7 flex items-baseline gap-4">
             <span className="font-display text-4xl font-bold">
               {formatPrice(product.price)}
@@ -135,6 +153,30 @@ export default async function ProductPage({
             </a>
           </div>
 
+          {/* Характеристики, распознанные из названия */}
+          {specs.length > 0 && (
+            <div className="mt-8 border-t border-border pt-6">
+              <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Характеристики
+              </h2>
+              <dl className="mt-3 divide-y divide-border">
+                {specs.map((s) => (
+                  <div
+                    key={s.label + s.value}
+                    className="flex items-baseline justify-between gap-6 py-2.5"
+                  >
+                    <dt className="text-[0.85rem] text-muted-foreground">
+                      {s.label}
+                    </dt>
+                    <dd className="text-right font-mono text-[0.85rem] font-medium">
+                      {s.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           {/* Гарантии */}
           <div className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6 text-center">
             <div>
@@ -156,6 +198,56 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
+
+      {/* Отзывы */}
+      <section id="reviews" className="mt-20 scroll-mt-28">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <h2 className="font-display text-xl font-medium uppercase">Отзывы</h2>
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-2.5">
+            <span className="font-display text-2xl font-bold leading-none">
+              {rating.value.toFixed(1)}
+            </span>
+            <span>
+              <Stars value={rating.value} size={14} />
+              <span className="mt-1 block font-mono text-[0.68rem] text-muted-foreground">
+                {rating.count} {pluralReviews(rating.count)}
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {reviews.map((r, i) => (
+            <article
+              key={i}
+              className="rounded-xl border border-border bg-surface p-6"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted font-display text-sm font-medium">
+                    {r.author.charAt(0)}
+                  </span>
+                  <span className="text-[0.9rem] font-medium">{r.author}</span>
+                </div>
+                <Stars value={r.rating} size={13} />
+              </div>
+              <p className="mt-4 text-[0.9rem] leading-relaxed text-muted-foreground">
+                {r.text}
+              </p>
+              <time
+                dateTime={r.date}
+                className="mt-3 block font-mono text-[0.68rem] uppercase tracking-wider text-muted-foreground"
+              >
+                {new Date(r.date).toLocaleDateString("ru-RU", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </time>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {/* Похожие */}
       {related.length > 0 && (

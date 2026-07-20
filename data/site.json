@@ -15,7 +15,8 @@
     "warrantyMonths": 12,
     "returnDays": 14,
     "processingDays": 1,
-    "skuCount": "300+"
+    "skuCount": "300+",
+    "freeShippingFrom": 5000
   },
   "requisites": {
     "fullName": "Индивидуальный предприниматель Махмудов Заур Фархадович",

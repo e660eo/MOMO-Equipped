@@ -58,7 +58,7 @@ export function BannerCarousel() {
   }
 
   return (
-    <div>
+    <div className="banner-carousel">
       <div
         ref={trackRef}
         onScroll={onScroll}

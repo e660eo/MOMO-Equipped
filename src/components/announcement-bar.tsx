@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Truck, ShieldCheck, Clock, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/data";
-import { WebGLShader } from "@/components/ui/web-gl-shader";
 
 const items = [
   { icon: Truck, text: "Бесплатная доставка от 5000 ₽" },
@@ -27,11 +26,6 @@ export function AnnouncementBar() {
 
   return (
     <div className="relative overflow-hidden bg-black text-white">
-      {/* Анимированная звуковая линия — одна белая линия на чёрном */}
-      <div className="pointer-events-none absolute inset-0">
-        <WebGLShader variant="dark" mono className="opacity-70" />
-      </div>
-
       <div className="relative z-10 mx-auto flex h-10 max-w-[1200px] items-center justify-between gap-4 px-6 text-[0.8rem] font-semibold">
         {/* Ротация сообщений */}
         <div className="relative h-5 flex-1 overflow-hidden">
