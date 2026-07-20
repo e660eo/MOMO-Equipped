@@ -6,6 +6,10 @@ export interface Product {
   price: number;
   image: string;
   isClearance: boolean;
+  /** true — есть на складе, false — под заказ; поля нет — статус неизвестен. */
+  inStock?: boolean;
+  /** Описание из прайса поставщика, построчно. */
+  description?: string[];
 }
 
 export interface Category {

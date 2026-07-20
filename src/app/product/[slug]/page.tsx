@@ -121,10 +121,27 @@ export default async function ProductPage({
             </span>
           </a>
 
-          <div className="mt-7 flex items-baseline gap-4">
+          <div className="mt-7 flex flex-wrap items-baseline gap-x-5 gap-y-2">
             <span className="font-display text-4xl font-extrabold">
               {formatPrice(product.price)}
             </span>
+            {/* Статус наличия из прайса; если поля нет — не утверждаем ничего */}
+            {product.inStock !== undefined && (
+              <span className="inline-flex items-center gap-2 font-label text-[0.7rem] font-semibold uppercase tracking-[0.16em]">
+                <span
+                  className={
+                    product.inStock
+                      ? "h-1.5 w-1.5 rounded-full bg-signal"
+                      : "h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
+                  }
+                />
+                {product.inStock ? (
+                  "В наличии"
+                ) : (
+                  <span className="text-muted-foreground">Под заказ</span>
+                )}
+              </span>
+            )}
           </div>
 
           {/* Сплит */}
@@ -174,6 +191,25 @@ export default async function ProductPage({
                   </div>
                 ))}
               </dl>
+            </div>
+          )}
+
+          {/* Описание из прайса поставщика */}
+          {product.description && product.description.length > 0 && (
+            <div className="mt-8 border-t border-border pt-6">
+              <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Описание
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {product.description.map((line, i) => (
+                  <li
+                    key={i}
+                    className="border-l border-border pl-4 text-[0.88rem] leading-relaxed text-muted-foreground"
+                  >
+                    {line}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
