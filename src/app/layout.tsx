@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Onest, Manrope, Syne } from "next/font/google";
+import { Unbounded, Manrope, Syne } from "next/font/google";
 import "./globals.css";
 import ClickSpark from "@/components/ui/ClickSpark";
 import { AnnouncementBar } from "@/components/announcement-bar";
@@ -10,12 +10,11 @@ import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/toaster";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
 
-// Заголовки: Onest — современный гротеск с сильной кириллицей.
-// Взят вместо Unbounded: тот заметно шире и «характернее», из-за чего
-// крупные заголовки выглядели декоративно, а не премиально.
-const onest = Onest({
+// Заголовки — фирменный Unbounded. Вес 800 добавлен к исходным 500/700
+// для акцентных заголовков вроде «Реквизиты».
+const unbounded = Unbounded({
   subsets: ["latin", "cyrillic"],
-  weight: ["600", "700", "800"],
+  weight: ["500", "700", "800"],
   variable: "--font-display-src",
 });
 
@@ -59,7 +58,7 @@ export default async function RootLayout({
     <html
       lang="ru"
       data-theme={theme === "dark" ? "dark" : undefined}
-      className={`${onest.variable} ${manrope.variable} ${syne.variable}`}
+      className={`${unbounded.variable} ${manrope.variable} ${syne.variable}`}
     >
       <body>
         <ClickSpark sparkColor="#ff5500" sparkSize={11} sparkRadius={18} sparkCount={8} duration={450}>
