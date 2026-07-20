@@ -28,7 +28,7 @@ export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
         </span>
       </div>
 
-      <h3 className="relative z-[1] mt-3 font-display text-[1.35rem] font-medium uppercase leading-tight">
+      <h3 className="relative z-[1] mt-3 font-display text-[1.35rem] font-semibold uppercase leading-tight">
         {bundle.title}
       </h3>
       <p className="relative z-[1] mt-2.5 text-[0.88rem] leading-relaxed text-muted-foreground">
@@ -64,7 +64,7 @@ export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
       {/* Цена и добавление */}
       <div className="relative z-[1] mt-auto pt-5">
         <div className="flex items-baseline gap-3">
-          <span className="font-display text-2xl font-bold">
+          <span className="font-display text-2xl font-extrabold">
             {formatPrice(bundle.price)}
           </span>
           <span className="font-mono text-[0.8rem] text-muted-foreground line-through">

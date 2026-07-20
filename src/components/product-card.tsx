@@ -78,7 +78,7 @@ export function ProductCard({ product }: { product: Product }) {
       )}
 
       <div className="mt-3.5 flex items-baseline justify-between gap-2 border-t border-border pt-3.5">
-        <span className="font-display text-[1.05rem] font-medium">
+        <span className="font-display text-[1.05rem] font-semibold">
           {formatPrice(product.price)}
         </span>
         <span className="font-mono text-[0.68rem] text-muted-foreground">

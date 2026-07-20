@@ -19,7 +19,7 @@ export function SectionHead({
             {eyebrow}
           </p>
         )}
-        <h2 className="font-display text-[clamp(1.4rem,2.6vw,2rem)] font-medium uppercase leading-[1.05]">
+        <h2 className="font-display text-[clamp(1.4rem,2.6vw,2rem)] font-semibold uppercase leading-[1.05]">
           {title}
         </h2>
       </div>

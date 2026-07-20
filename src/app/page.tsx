@@ -83,7 +83,7 @@ export default function Home() {
               и работает фоновой типографикой позади него.
             */}
             <div className="relative mt-4 flex items-center justify-center">
-              <h1 className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center font-display text-[clamp(1.9rem,7.6vw,5.6rem)] font-bold uppercase leading-[0.94] tracking-tight text-zinc-900/[0.13]">
+              <h1 className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center font-display text-[clamp(1.9rem,7.6vw,5.6rem)] font-extrabold uppercase leading-[0.94] tracking-tight text-zinc-900/[0.13]">
                 <span>Звук, который</span>
                 <span className="text-signal/25">чувствуешь.</span>
               </h1>
@@ -166,7 +166,7 @@ export default function Home() {
                   <span
                     aria-hidden
                     className={cn(
-                      "pointer-events-none absolute -bottom-7 -right-2 z-0 select-none font-display font-bold leading-none tabular-nums text-foreground/[0.045] transition-colors duration-300 group-hover:text-signal/10",
+                      "pointer-events-none absolute -bottom-7 -right-2 z-0 select-none font-display font-extrabold leading-none tabular-nums text-foreground/[0.045] transition-colors duration-300 group-hover:text-signal/10",
                       feature ? "text-[11rem]" : "text-[7rem]",
                     )}
                   >
@@ -192,7 +192,7 @@ export default function Home() {
                   <div className="relative z-[1]">
                     <h3
                       className={cn(
-                        "font-display font-medium uppercase leading-[1.05] transition-colors duration-300 group-hover:text-signal",
+                        "font-display font-semibold uppercase leading-[1.05] transition-colors duration-300 group-hover:text-signal",
                         feature
                           ? "text-[clamp(1.5rem,2.6vw,2.1rem)]"
                           : "text-[1.05rem]",
@@ -269,7 +269,7 @@ export default function Home() {
             <p className="mb-2.5 inline-flex items-center gap-2.5 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground before:h-px before:w-6 before:bg-signal before:content-['']">
               Манифест
             </p>
-            <h2 className="font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-medium leading-[1.15]">
+            <h2 className="font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold leading-[1.15]">
               Свой звук.
               <br />
               <span className="text-signal">Свой бренд.</span>
@@ -313,7 +313,7 @@ export default function Home() {
 
             <a
               href={`tel:${siteConfig.contacts.phone.replace(/[^+\d]/g, "")}`}
-              className="relative z-[1] mt-4 block font-display text-[clamp(1.5rem,2.6vw,2rem)] font-medium leading-none tracking-tight transition-colors hover:text-signal"
+              className="relative z-[1] mt-4 block font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold leading-none tracking-tight transition-colors hover:text-signal"
             >
               {siteConfig.contacts.phone}
             </a>
@@ -385,7 +385,7 @@ export default function Home() {
                 {/* призрачный индекс — типографическая текстура */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -bottom-8 -right-1 z-0 select-none font-display text-[7rem] font-bold leading-none tabular-nums text-foreground/[0.045] transition-colors duration-300 group-hover:text-signal/10"
+                  className="pointer-events-none absolute -bottom-8 -right-1 z-0 select-none font-display text-[7rem] font-extrabold leading-none tabular-nums text-foreground/[0.045] transition-colors duration-300 group-hover:text-signal/10"
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -397,7 +397,7 @@ export default function Home() {
                     year: "numeric",
                   })}
                 </span>
-                <h3 className="relative z-[1] mt-3 font-display text-[1.05rem] font-medium leading-snug transition-colors duration-300 group-hover:text-signal">
+                <h3 className="relative z-[1] mt-3 font-display text-[1.05rem] font-semibold leading-snug transition-colors duration-300 group-hover:text-signal">
                   {n.title}
                 </h3>
                 <p className="relative z-[1] mt-3 text-[0.9rem] text-muted-foreground">

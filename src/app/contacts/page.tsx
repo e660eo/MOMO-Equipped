@@ -23,7 +23,7 @@ export default function ContactsPage() {
   const c = siteConfig.contacts;
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-14">
-      <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-bold uppercase">
+      <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-extrabold uppercase">
         Контакты
       </h1>
       <p className="mt-3 max-w-[52ch] text-muted-foreground">
@@ -59,7 +59,7 @@ export default function ContactsPage() {
         </div>
 
         <div className="rounded border border-border bg-surface p-8">
-          <h2 className="font-display text-lg font-medium uppercase">
+          <h2 className="font-display text-lg font-semibold uppercase">
             Написать сообщение
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">

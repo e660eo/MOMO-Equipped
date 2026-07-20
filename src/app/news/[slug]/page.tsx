@@ -41,7 +41,7 @@ export default async function NewsItemPage({
           year: "numeric",
         })}
       </span>
-      <h1 className="mt-3 font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-medium leading-tight">
+      <h1 className="mt-3 font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold leading-tight">
         {item.title}
       </h1>
       <p className="mt-6 text-[1.05rem] leading-relaxed text-muted-foreground">

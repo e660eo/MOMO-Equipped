@@ -19,7 +19,7 @@ export default function InstallPage() {
       <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
         Установка
       </p>
-      <h1 className="mt-4 font-display text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold uppercase leading-tight">
+      <h1 className="mt-4 font-display text-[clamp(1.8rem,3.6vw,2.8rem)] font-extrabold uppercase leading-tight">
         Где установить <span className="text-signal">акустику</span>
       </h1>
       <p className="mt-5 max-w-[56ch] text-[1.05rem] text-muted-foreground">
@@ -34,9 +34,9 @@ export default function InstallPage() {
             key={s.n}
             className="grid grid-cols-[auto_1fr] gap-6 border-b border-border py-7"
           >
-            <span className="font-display text-2xl font-bold text-signal">{s.n}</span>
+            <span className="font-display text-2xl font-extrabold text-signal">{s.n}</span>
             <div>
-              <h2 className="font-display text-lg font-medium">{s.title}</h2>
+              <h2 className="font-display text-lg font-semibold">{s.title}</h2>
               <p className="mt-2 max-w-[52ch] text-sm text-muted-foreground">
                 {s.text}
               </p>

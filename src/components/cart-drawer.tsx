@@ -106,7 +106,7 @@ export function CartDrawer() {
           <X size={15} />
         </button>
 
-        <h3 className="mb-6 font-display text-lg font-medium uppercase">
+        <h3 className="mb-6 font-display text-lg font-semibold uppercase">
           Корзина
         </h3>
 
@@ -184,7 +184,7 @@ export function CartDrawer() {
                       </button>
                     </span>
                   </span>
-                  <span className="font-display text-sm font-medium">
+                  <span className="font-display text-sm font-semibold">
                     {formatPrice(i.price * i.qty)}
                   </span>
                 </li>
@@ -286,7 +286,7 @@ export function CartDrawer() {
 
             <div className="mt-5 flex items-baseline justify-between">
               <span className="text-sm">Итого</span>
-              <span className="font-display text-xl font-bold">
+              <span className="font-display text-xl font-extrabold">
                 {formatPrice(total)}
               </span>
             </div>

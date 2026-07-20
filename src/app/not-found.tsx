@@ -56,7 +56,7 @@ export default function NotFound() {
       <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground">
         Ошибка 404
       </p>
-      <h1 className="mt-4 font-display text-[clamp(2rem,6vw,3.6rem)] font-bold uppercase leading-[1.02]">
+      <h1 className="mt-4 font-display text-[clamp(2rem,6vw,3.6rem)] font-extrabold uppercase leading-[1.02]">
         Сигнал <span className="text-signal">потерян</span>
       </h1>
       <p className="mx-auto mt-5 max-w-[46ch] text-muted-foreground">

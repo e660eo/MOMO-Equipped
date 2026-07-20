@@ -134,7 +134,7 @@ export function CatalogView({
   return (
     <div className="mx-auto max-w-[1200px] px-6 py-14">
       <div className="mb-1 flex flex-wrap items-baseline justify-between gap-4">
-        <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-bold uppercase">
+        <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-extrabold uppercase">
           {activeCategory ? activeCategory.title : brand ? brand : "Каталог"}
         </h1>
         <span className="font-mono text-sm text-muted-foreground">
@@ -312,7 +312,7 @@ export function CatalogView({
             </>
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface p-14 text-center">
-              <p className="font-display text-lg font-medium">
+              <p className="font-display text-lg font-semibold">
                 Ничего не нашлось
               </p>
               <p className="max-w-[44ch] text-sm text-muted-foreground">

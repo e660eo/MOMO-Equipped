@@ -46,7 +46,7 @@ export function AuthModal({
           <X size={15} />
         </button>
 
-        <h3 className="font-display text-lg font-medium uppercase">
+        <h3 className="font-display text-lg font-semibold uppercase">
           Личный кабинет
         </h3>
 

@@ -14,7 +14,7 @@ import { WhatsAppFab } from "@/components/whatsapp-fab";
 // для акцентных заголовков вроде «Реквизиты».
 const unbounded = Unbounded({
   subsets: ["latin", "cyrillic"],
-  weight: ["500", "700", "800"],
+  weight: ["600", "700", "800"],
   variable: "--font-display-src",
 });
 

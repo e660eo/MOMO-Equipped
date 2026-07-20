@@ -46,7 +46,7 @@ export default function RequisitesPage() {
       </p>
 
       {/* Организация */}
-      <h2 className="mt-12 font-display text-lg font-bold uppercase">
+      <h2 className="mt-12 font-display text-lg font-extrabold uppercase">
         Организация
       </h2>
       <dl className="mt-5 divide-y divide-border border-y border-border">
@@ -61,7 +61,7 @@ export default function RequisitesPage() {
       </dl>
 
       {/* Контакты */}
-      <h2 className="mt-12 font-display text-lg font-bold uppercase">
+      <h2 className="mt-12 font-display text-lg font-extrabold uppercase">
         Контакты
       </h2>
       <dl className="mt-5 divide-y divide-border border-y border-border">
@@ -114,7 +114,7 @@ export default function RequisitesPage() {
       </dl>
 
       {/* Виды деятельности */}
-      <h2 className="mt-12 font-display text-lg font-bold uppercase">
+      <h2 className="mt-12 font-display text-lg font-extrabold uppercase">
         Виды деятельности
       </h2>
       <dl className="mt-5 divide-y divide-border border-y border-border">
@@ -139,7 +139,7 @@ export default function RequisitesPage() {
       </dl>
 
       {/* Банк */}
-      <h2 className="mt-12 font-display text-lg font-bold uppercase">
+      <h2 className="mt-12 font-display text-lg font-extrabold uppercase">
         Банковские реквизиты
       </h2>
       <dl className="mt-5 divide-y divide-border border-y border-border">

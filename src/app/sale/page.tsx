@@ -43,7 +43,7 @@ export default function SalePage() {
         <p className="relative z-[1] inline-flex items-center gap-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-white/60 before:h-px before:w-6 before:bg-signal before:content-['']">
           Выгода
         </p>
-        <h1 className="relative z-[1] mt-3 font-display text-[clamp(2rem,5vw,3.4rem)] font-bold uppercase leading-[1.02]">
+        <h1 className="relative z-[1] mt-3 font-display text-[clamp(2rem,5vw,3.4rem)] font-extrabold uppercase leading-[1.02]">
           Уценка&nbsp;<span className="text-signal">·</span> распродажа
         </h1>
         <p className="relative z-[1] mt-4 max-w-[54ch] text-[0.98rem] text-white/75">
@@ -71,7 +71,7 @@ export default function SalePage() {
         </div>
       ) : (
         <div className="mt-10 flex flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface p-14 text-center">
-          <p className="font-display text-lg font-medium">
+          <p className="font-display text-lg font-semibold">
             Сейчас уценённых товаров нет
           </p>
           <p className="max-w-[46ch] text-sm text-muted-foreground">

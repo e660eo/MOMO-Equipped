@@ -79,7 +79,7 @@ export function SearchSuggestions({
                   {h.brand}
                 </span>
               </span>
-              <span className="shrink-0 font-display text-[0.9rem] font-medium">
+              <span className="shrink-0 font-display text-[0.9rem] font-semibold">
                 {formatPrice(h.price)}
               </span>
             </Link>

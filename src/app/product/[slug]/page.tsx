@@ -105,7 +105,7 @@ export default async function ProductPage({
             )}
           </div>
 
-          <h1 className="mt-3 font-display text-[clamp(1.5rem,3vw,2.2rem)] font-medium leading-tight">
+          <h1 className="mt-3 font-display text-[clamp(1.5rem,3vw,2.2rem)] font-semibold leading-tight">
             {product.title}
           </h1>
 
@@ -122,7 +122,7 @@ export default async function ProductPage({
           </a>
 
           <div className="mt-7 flex items-baseline gap-4">
-            <span className="font-display text-4xl font-bold">
+            <span className="font-display text-4xl font-extrabold">
               {formatPrice(product.price)}
             </span>
           </div>
@@ -180,17 +180,17 @@ export default async function ProductPage({
           {/* Гарантии */}
           <div className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6 text-center">
             <div>
-              <p className="font-display text-sm font-medium">Доставка</p>
+              <p className="font-display text-sm font-semibold">Доставка</p>
               <p className="mt-1 text-xs text-muted-foreground">По России</p>
             </div>
             <div>
-              <p className="font-display text-sm font-medium">Гарантия</p>
+              <p className="font-display text-sm font-semibold">Гарантия</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {siteConfig.trust.warrantyMonths} месяцев
               </p>
             </div>
             <div>
-              <p className="font-display text-sm font-medium">Возврат</p>
+              <p className="font-display text-sm font-semibold">Возврат</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {siteConfig.trust.returnDays} дней
               </p>
@@ -202,9 +202,9 @@ export default async function ProductPage({
       {/* Отзывы */}
       <section id="reviews" className="mt-20 scroll-mt-28">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <h2 className="font-display text-xl font-medium uppercase">Отзывы</h2>
+          <h2 className="font-display text-xl font-semibold uppercase">Отзывы</h2>
           <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-2.5">
-            <span className="font-display text-2xl font-bold leading-none">
+            <span className="font-display text-2xl font-extrabold leading-none">
               {rating.value.toFixed(1)}
             </span>
             <span>
@@ -224,7 +224,7 @@ export default async function ProductPage({
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted font-display text-sm font-medium">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted font-display text-sm font-semibold">
                     {r.author.charAt(0)}
                   </span>
                   <span className="text-[0.9rem] font-medium">{r.author}</span>
@@ -253,7 +253,7 @@ export default async function ProductPage({
       {related.length > 0 && (
         <section className="mt-20">
           <div className="mb-8 flex items-baseline justify-between">
-            <h2 className="font-display text-xl font-medium uppercase">
+            <h2 className="font-display text-xl font-semibold uppercase">
               Похожие товары
             </h2>
             {category && (

@@ -89,7 +89,7 @@ export function BannerCarousel() {
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] opacity-75">
               Оплата частями
             </p>
-            <p className="mt-3 font-display text-[clamp(1.3rem,3.4vw,2.4rem)] font-bold uppercase leading-tight">
+            <p className="mt-3 font-display text-[clamp(1.3rem,3.4vw,2.4rem)] font-extrabold uppercase leading-tight">
               Сплит 0% — 4 платежа
             </p>
             <p className="mt-3 max-w-[42ch] text-[0.95rem] opacity-85">
@@ -111,7 +111,7 @@ export function BannerCarousel() {
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] opacity-75">
               Новинки 2026
             </p>
-            <p className="mt-3 font-display text-[clamp(1.3rem,3.4vw,2.4rem)] font-bold uppercase leading-tight">
+            <p className="mt-3 font-display text-[clamp(1.3rem,3.4vw,2.4rem)] font-extrabold uppercase leading-tight">
               Новая линейка MOMO
             </p>
             <p className="mt-3 max-w-[42ch] text-[0.95rem] opacity-90">

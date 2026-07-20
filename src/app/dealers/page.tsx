@@ -20,7 +20,7 @@ export default function DealersPage() {
       <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
         Дилерская программа
       </p>
-      <h1 className="mt-4 font-display text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold uppercase leading-tight">
+      <h1 className="mt-4 font-display text-[clamp(1.8rem,3.6vw,2.8rem)] font-extrabold uppercase leading-tight">
         Стать дилером <span className="text-signal">MOMO</span>
       </h1>
       <p className="mt-5 max-w-[56ch] text-[1.05rem] text-muted-foreground">
@@ -32,7 +32,7 @@ export default function DealersPage() {
       <div className="mt-12 grid gap-4 sm:grid-cols-2">
         {perks.map((p) => (
           <div key={p.title} className="rounded-xl border border-border bg-surface p-6">
-            <h2 className="font-display text-lg font-medium">{p.title}</h2>
+            <h2 className="font-display text-lg font-semibold">{p.title}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
           </div>
         ))}

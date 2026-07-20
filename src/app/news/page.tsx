@@ -12,7 +12,7 @@ export default function NewsPage() {
   const news = getNews();
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-14">
-      <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-bold uppercase">
+      <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-extrabold uppercase">
         Новости
       </h1>
       <p className="mt-3 max-w-[52ch] text-muted-foreground">
@@ -34,7 +34,7 @@ export default function NewsPage() {
                 year: "numeric",
               })}
             </span>
-            <h2 className="mt-3 font-display text-[1.05rem] font-medium leading-snug transition-colors group-hover:text-signal">
+            <h2 className="mt-3 font-display text-[1.05rem] font-semibold leading-snug transition-colors group-hover:text-signal">
               {n.title}
             </h2>
             <p className="mt-3 text-[0.9rem] text-muted-foreground">
