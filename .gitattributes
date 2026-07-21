@@ -1,0 +1,4 @@
+# Скрипты уходят на Linux-сервер: перевод строк только LF,
+# иначе bash спотыкается о \r ("bad interpreter", "command not found").
+*.sh text eol=lf
+*.mjs text eol=lf
