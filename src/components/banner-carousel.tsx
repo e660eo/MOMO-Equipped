@@ -7,6 +7,12 @@ import { cn } from "@/lib/utils";
 
 const slides = 3;
 
+/*
+  Высота слайда — min-h, а не h: на узком экране заголовок с описанием
+  в 200px не помещался и обрезался краем overflow-hidden. Слайды лежат
+  во flex-треке и тянутся до общей высоты, поэтому карусель не прыгает.
+*/
+
 export function BannerCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
@@ -67,7 +73,7 @@ export function BannerCarousel() {
         aria-label="Акции и подборки"
       >
         {/* Слайд 1: родной баннер бренда */}
-        <div className="relative flex h-[clamp(200px,26vw,340px)] w-full shrink-0 snap-start items-center overflow-hidden rounded-md border border-border">
+        <div className="relative flex min-h-[clamp(200px,26vw,340px)] w-full shrink-0 snap-start items-center overflow-hidden rounded-md border border-border">
           <Image
             src="/banner1.jpg"
             alt="Сабвуферы MOMO"
@@ -84,8 +90,8 @@ export function BannerCarousel() {
         </div>
 
         {/* Слайд 2: сплит */}
-        <div className="relative flex h-[clamp(200px,26vw,340px)] w-full shrink-0 snap-start items-center overflow-hidden rounded-md border border-border text-[#f5f3ef] [background:radial-gradient(120%_180%_at_85%_20%,rgba(255,85,0,0.22),transparent_55%),linear-gradient(115deg,#101012_0%,#1b1b1f_60%,#232327_100%)]">
-          <div className="relative z-[2] max-w-[640px] px-12">
+        <div className="relative flex min-h-[clamp(200px,26vw,340px)] w-full shrink-0 snap-start items-center overflow-hidden rounded-md border border-border text-[#f5f3ef] [background:radial-gradient(120%_180%_at_85%_20%,rgba(255,85,0,0.22),transparent_55%),linear-gradient(115deg,#101012_0%,#1b1b1f_60%,#232327_100%)]">
+          <div className="relative z-[2] max-w-[640px] px-6 py-8 sm:px-12 sm:py-0">
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] opacity-75">
               Оплата частями
             </p>
@@ -106,8 +112,8 @@ export function BannerCarousel() {
         </div>
 
         {/* Слайд 3: новинки */}
-        <div className="relative flex h-[clamp(200px,26vw,340px)] w-full shrink-0 snap-start items-center overflow-hidden rounded-md border border-border text-white [background:radial-gradient(140%_200%_at_15%_110%,rgba(0,0,0,0.28),transparent_60%),var(--color-signal)]">
-          <div className="relative z-[2] max-w-[640px] px-12">
+        <div className="relative flex min-h-[clamp(200px,26vw,340px)] w-full shrink-0 snap-start items-center overflow-hidden rounded-md border border-border text-white [background:radial-gradient(140%_200%_at_15%_110%,rgba(0,0,0,0.28),transparent_60%),var(--color-signal)]">
+          <div className="relative z-[2] max-w-[640px] px-6 py-8 sm:px-12 sm:py-0">
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] opacity-75">
               Новинки 2026
             </p>

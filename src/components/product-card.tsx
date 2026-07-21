@@ -47,6 +47,12 @@ export function ProductCard({ product }: { product: Product }) {
             Уценка
           </span>
         )}
+        {/* «В наличии» на каждой плитке — шум; предупреждаем только про ожидание */}
+        {product.inStock === false && (
+          <span className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-muted-foreground">
+            Под заказ
+          </span>
+        )}
       </div>
 
       <Link href={`/product/${product.slug}`} className="mt-1.5">

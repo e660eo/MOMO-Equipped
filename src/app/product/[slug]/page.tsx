@@ -17,6 +17,8 @@ import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Stars } from "@/components/stars";
+import { JsonLd } from "@/components/json-ld";
+import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -55,8 +57,20 @@ export default async function ProductPage({
   const reviews = getReviews(product.slug);
   const specs = parseSpecs(product.title);
 
+  // Крошки для разметки повторяют навигацию выше: Главная → Каталог → категория → товар
+  const crumbs = [
+    { name: "Главная", url: "/" },
+    { name: "Каталог", url: "/catalog" },
+    ...(category
+      ? [{ name: category.title, url: `/catalog?category=${category.slug}` }]
+      : []),
+    { name: product.title, url: `/product/${product.slug}` },
+  ];
+
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-12">
+      <JsonLd data={productSchema(product, category)} />
+      <JsonLd data={breadcrumbSchema(crumbs)} />
       {/* Хлебные крошки */}
       <nav className="mb-8 flex flex-wrap gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground">
         <Link href="/" className="hover:text-signal">
@@ -121,10 +135,27 @@ export default async function ProductPage({
             </span>
           </a>
 
-          <div className="mt-7 flex items-baseline gap-4">
+          <div className="mt-7 flex flex-wrap items-baseline gap-x-5 gap-y-2">
             <span className="font-display text-4xl font-extrabold">
               {formatPrice(product.price)}
             </span>
+            {/* Статус наличия из прайса; если поля нет — не утверждаем ничего */}
+            {product.inStock !== undefined && (
+              <span className="inline-flex items-center gap-2 font-label text-[0.7rem] font-semibold uppercase tracking-[0.16em]">
+                <span
+                  className={
+                    product.inStock
+                      ? "h-1.5 w-1.5 rounded-full bg-signal"
+                      : "h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
+                  }
+                />
+                {product.inStock ? (
+                  "В наличии"
+                ) : (
+                  <span className="text-muted-foreground">Под заказ</span>
+                )}
+              </span>
+            )}
           </div>
 
           {/* Сплит */}
@@ -174,6 +205,25 @@ export default async function ProductPage({
                   </div>
                 ))}
               </dl>
+            </div>
+          )}
+
+          {/* Описание из прайса поставщика */}
+          {product.description && product.description.length > 0 && (
+            <div className="mt-8 border-t border-border pt-6">
+              <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Описание
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {product.description.map((line, i) => (
+                  <li
+                    key={i}
+                    className="border-l border-border pl-4 text-[0.88rem] leading-relaxed text-muted-foreground"
+                  >
+                    {line}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

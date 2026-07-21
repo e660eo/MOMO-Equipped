@@ -2,12 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { X } from "lucide-react";
+import { X, SlidersHorizontal } from "lucide-react";
 import type { Product, Category, Brand } from "@/lib/types";
 import { formatPrice, siteConfig } from "@/lib/data";
 import { ProductCard } from "./product-card";
+import { cn } from "@/lib/utils";
 
-type Sort = "popular" | "price_asc" | "price_desc" | "title_asc" | "title_desc";
+type Sort =
+  | "popular"
+  | "availability"
+  | "price_asc"
+  | "price_desc"
+  | "title_asc"
+  | "title_desc";
 
 const selectCls =
   "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -42,6 +49,10 @@ export function CatalogView({
   const [sort, setSort] = useState<Sort>("popular");
   // Начальный поиск может прийти из шапки: /catalog?search=…
   const [query, setQuery] = useState(params.get("search") ?? "");
+  // Наличие известно не у всех товаров (у части статуса из прайса просто нет),
+  // поэтому фильтр показывает только подтверждённо доступные, а не «прячет
+  // распроданное»: неизвестный статус — не повод обещать наличие.
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   // Границы цены по всему каталогу (округляем до сотен).
   const priceBounds = useMemo(() => {
@@ -63,7 +74,27 @@ export function CatalogView({
   const [visible, setVisible] = useState(PAGE);
   useEffect(() => {
     setVisible(PAGE);
-  }, [category, brand, query, sort, price]);
+  }, [category, brand, query, sort, price, inStockOnly]);
+
+  /*
+    На узком экране фильтры занимали весь первый экран — до первой карточки
+    приходилось листать 855px. Поэтому там они уезжают в шторку, а на десктопе
+    остаются обычной колонкой слева: разметка одна, меняется только обёртка.
+  */
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFiltersOpen(false);
+    // Фон под шторкой не должен прокручиваться вместе с ней
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filtersOpen]);
 
   function setFilter(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
@@ -75,6 +106,7 @@ export function CatalogView({
   function resetAll() {
     setQuery("");
     setPrice([priceBounds.min, priceBounds.max]);
+    setInStockOnly(false);
     router.push(pathname, { scroll: false });
   }
 
@@ -84,10 +116,18 @@ export function CatalogView({
         (!category || p.category === category) &&
         (!brand || p.brand === brand) &&
         (!query || p.title.toLowerCase().includes(query.toLowerCase())) &&
+        (!inStockOnly || p.inStock === true) &&
         p.price >= price[0] &&
         p.price <= price[1],
     );
     switch (sort) {
+      case "availability": {
+        // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
+        const rank = (p: Product) =>
+          p.inStock === true ? 0 : p.inStock === false ? 2 : 1;
+        list = [...list].sort((a, b) => rank(a) - rank(b));
+        break;
+      }
       case "price_asc":
         list = [...list].sort((a, b) => a.price - b.price);
         break;
@@ -102,11 +142,13 @@ export function CatalogView({
         break;
     }
     return list;
-  }, [products, category, brand, query, price, sort]);
+  }, [products, category, brand, query, price, sort, inStockOnly]);
 
   const shown = filtered.slice(0, visible);
   const activeCategory = categories.find((c) => c.slug === category);
-  const hasFilters = Boolean(category || brand || query || priceActive);
+  const hasFilters = Boolean(
+    category || brand || query || priceActive || inStockOnly,
+  );
 
   // Чипы активных фильтров.
   const chips: { key: string; label: string; clear: () => void }[] = [];
@@ -126,13 +168,22 @@ export function CatalogView({
       label: `${formatPrice(price[0])} – ${formatPrice(price[1])}`,
       clear: () => setPrice([priceBounds.min, priceBounds.max]),
     });
+  if (inStockOnly)
+    chips.push({
+      key: "instock",
+      label: "В наличии",
+      clear: () => setInStockOnly(false),
+    });
+
+  // Счётчик на кнопке «Фильтры»: в свёрнутом виде иначе не видно, что они активны
+  const chipCount = chips.length;
 
   const range = priceBounds.max - priceBounds.min || 1;
   const fillLeft = ((price[0] - priceBounds.min) / range) * 100;
   const fillRight = ((priceBounds.max - price[1]) / range) * 100;
 
   return (
-    <div className="mx-auto max-w-[1200px] px-6 py-14">
+    <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
       <div className="mb-1 flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-extrabold uppercase">
           {activeCategory ? activeCategory.title : brand ? brand : "Каталог"}
@@ -144,9 +195,54 @@ export function CatalogView({
         </span>
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[240px_1fr]">
-        {/* Фильтры */}
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:h-fit">
+      {/* Вызов шторки фильтров — только на узком экране */}
+      <button
+        onClick={() => setFiltersOpen(true)}
+        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-sm border border-border bg-surface py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal lg:hidden"
+      >
+        <SlidersHorizontal size={15} />
+        Фильтры и сортировка
+        {chipCount > 0 && (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-signal px-1.5 text-[0.68rem] font-bold text-white">
+            {chipCount}
+          </span>
+        )}
+      </button>
+
+      <div className="mt-6 grid gap-8 sm:mt-8 lg:grid-cols-[240px_1fr]">
+        {/* Затемнение под шторкой */}
+        <div
+          onClick={() => setFiltersOpen(false)}
+          className={cn(
+            "fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm transition-opacity lg:hidden",
+            filtersOpen ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
+        />
+
+        {/* Фильтры: шторка снизу на мобильном, колонка слева на десктопе */}
+        <aside
+          aria-label="Фильтры каталога"
+          className={cn(
+            "flex flex-col gap-4",
+            "fixed inset-x-0 bottom-0 z-[101] max-h-[88vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface p-5 pb-8 transition-transform duration-300",
+            "lg:static lg:z-auto lg:max-h-none lg:translate-y-0 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:transition-none",
+            "lg:sticky lg:top-24 lg:h-fit",
+            filtersOpen ? "translate-y-0" : "translate-y-full",
+          )}
+        >
+          {/* Шапка шторки */}
+          <div className="mb-1 flex items-center justify-between lg:hidden">
+            <span className="font-display text-base font-semibold uppercase">
+              Фильтры
+            </span>
+            <button
+              onClick={() => setFiltersOpen(false)}
+              aria-label="Закрыть фильтры"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+            >
+              <X size={15} />
+            </button>
+          </div>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -164,6 +260,7 @@ export function CatalogView({
               className={selectCls}
             >
               <option value="popular">Сначала популярные</option>
+              <option value="availability">Сначала в наличии</option>
               <option value="price_asc">Цена: по возрастанию</option>
               <option value="price_desc">Цена: по убыванию</option>
               <option value="title_asc">Название: А‑Я</option>
@@ -251,6 +348,17 @@ export function CatalogView({
             </div>
           </div>
 
+          {/* Наличие */}
+          <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+            <input
+              type="checkbox"
+              checked={inStockOnly}
+              onChange={(e) => setInStockOnly(e.target.checked)}
+              className="h-[1.05rem] w-[1.05rem] shrink-0 cursor-pointer accent-[#FF5500]"
+            />
+            <span className="font-medium">Только в наличии</span>
+          </label>
+
           {hasFilters && (
             <button
               onClick={resetAll}
@@ -259,6 +367,14 @@ export function CatalogView({
               Сбросить фильтры
             </button>
           )}
+
+          {/* Итог шторки: сколько нашлось и выход к товарам */}
+          <button
+            onClick={() => setFiltersOpen(false)}
+            className="mt-1 rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f] lg:hidden"
+          >
+            Показать {filtered.length} {pluralItems(filtered.length)}
+          </button>
         </aside>
 
         {/* Сетка */}

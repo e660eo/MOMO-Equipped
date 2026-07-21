@@ -42,11 +42,11 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
-      <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-4 px-6">
+      <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-2 px-4 sm:gap-4 sm:px-6">
         <Link
           href="/"
           aria-label="MOMO Equipped — на главную"
-          className="shrink-0 font-wordmark text-lg font-extrabold uppercase leading-none tracking-tight sm:text-xl"
+          className="shrink-0 font-wordmark text-base font-extrabold uppercase leading-none tracking-tight sm:text-lg md:text-xl"
         >
           MOMO <span className="font-bold text-signal">Equipped</span>
         </Link>
@@ -89,11 +89,19 @@ export function SiteHeader() {
           />
         </form>
 
-        <div className="ml-auto flex items-center gap-2.5 md:ml-0">
-          <ThemeToggle />
+        {/*
+          На узком экране логотип и четыре кнопки в строку не помещались —
+          шапка расходилась на 483px при 375 и уносила за собой горизонтальный
+          скролл всей страницы. Тема и вход переехали в мобильное меню,
+          корзина ужалась до иконки со счётчиком-бейджем.
+        */}
+        <div className="ml-auto flex items-center gap-2 sm:gap-2.5 md:ml-0">
+          <span className="hidden sm:block">
+            <ThemeToggle />
+          </span>
           <button
             onClick={() => setAuthOpen(true)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+            className="hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal sm:inline-flex"
             aria-label="Войти"
           >
             <User size={16} />
@@ -101,13 +109,13 @@ export function SiteHeader() {
           <button
             onClick={openCart}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors hover:border-signal hover:text-signal",
+              "relative inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-colors hover:border-signal hover:text-signal sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2",
               count > 0 ? "border-signal/50 text-signal" : "border-border",
             )}
             aria-label={`Корзина, товаров: ${count}`}
           >
             <ShoppingCart size={15} />
-            <span className="relative inline-flex h-[1.2em] min-w-[0.7em] justify-center overflow-hidden tabular-nums">
+            <span className="relative hidden h-[1.2em] min-w-[0.7em] justify-center overflow-hidden tabular-nums sm:inline-flex">
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.span
                   key={count}
@@ -120,6 +128,15 @@ export function SiteHeader() {
                 </motion.span>
               </AnimatePresence>
             </span>
+            {/* Счётчик на мобильном — бейджем поверх иконки */}
+            {count > 0 && (
+              <span
+                aria-hidden
+                className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-signal px-1 text-[0.62rem] font-bold leading-none text-white sm:hidden"
+              >
+                {count}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setMenuOpen((v) => !v)}
@@ -162,7 +179,7 @@ export function SiteHeader() {
         )}
         style={{ transition: "max-height .25s ease" }}
       >
-        <div className="mx-auto max-w-[1200px] px-6 py-3">
+        <div className="mx-auto max-w-[1200px] px-4 py-3 sm:px-6">
           <form onSubmit={submitSearch} role="search" className="relative mb-2">
             <Search
               size={17}
@@ -189,11 +206,23 @@ export function SiteHeader() {
                 key={n.href}
                 href={n.href}
                 onClick={() => setMenuOpen(false)}
-                className="border-b border-border py-3.5 text-sm font-medium text-muted-foreground last:border-0"
+                className="border-b border-border py-3.5 text-sm font-medium text-muted-foreground"
               >
                 {n.label}
               </Link>
             ))}
+            {/* Вытеснены из шапки нехваткой места — см. комментарий выше */}
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setAuthOpen(true);
+              }}
+              className="flex items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-signal sm:hidden"
+            >
+              <User size={16} />
+              Личный кабинет
+            </button>
+            <ThemeToggle variant="row" className="border-0 sm:hidden" />
           </nav>
         </div>
       </div>
