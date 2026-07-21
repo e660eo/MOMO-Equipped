@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { User, ShoppingCart, Menu, Search } from "lucide-react";
 import { useCart, cartCount } from "@/lib/cart-store";
+import { useAccount } from "@/lib/account-store";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthModal } from "./auth-modal";
 import { CatalogMenu } from "./catalog-menu";
@@ -26,11 +27,24 @@ export function SiteHeader() {
   const router = useRouter();
   const items = useCart((s) => s.items);
   const openCart = useCart((s) => s.openCart);
-  const [authOpen, setAuthOpen] = useState(false);
+  const authed = useAccount((s) => s.authed);
+  const openAuth = useAccount((s) => s.openModal);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hintsOpen, setHintsOpen] = useState(false);
   const count = cartCount(items);
+
+  // Точка «вы вошли» рисуется только после маунта: серверный HTML про
+  // localStorage не знает, и до гидрации разметка должна совпадать.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // Вошедшего ведём в кабинет, остальным открываем вход
+  function accountAction() {
+    setMenuOpen(false);
+    if (authed) router.push("/profile");
+    else openAuth();
+  }
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -100,11 +114,17 @@ export function SiteHeader() {
             <ThemeToggle />
           </span>
           <button
-            onClick={() => setAuthOpen(true)}
-            className="hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal sm:inline-flex"
-            aria-label="Войти"
+            onClick={accountAction}
+            className="relative hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal sm:inline-flex"
+            aria-label="Личный кабинет"
           >
             <User size={16} />
+            {mounted && authed && (
+              <span
+                aria-hidden
+                className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-signal"
+              />
+            )}
           </button>
           <button
             onClick={openCart}
@@ -213,21 +233,21 @@ export function SiteHeader() {
             ))}
             {/* Вытеснены из шапки нехваткой места — см. комментарий выше */}
             <button
-              onClick={() => {
-                setMenuOpen(false);
-                setAuthOpen(true);
-              }}
+              onClick={accountAction}
               className="flex items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-signal sm:hidden"
             >
               <User size={16} />
               Личный кабинет
+              {mounted && authed && (
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-signal" />
+              )}
             </button>
             <ThemeToggle variant="row" className="border-0 sm:hidden" />
           </nav>
         </div>
       </div>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal />
     </header>
   );
 }

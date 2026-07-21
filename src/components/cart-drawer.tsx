@@ -5,6 +5,7 @@ import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, splitPayment, productImageUrl, siteConfig } from "@/lib/data";
 import { isPhoneComplete } from "@/lib/phone";
+import { recordOrder } from "@/lib/local-orders";
 import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
@@ -27,6 +28,7 @@ export function CartDrawer() {
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState("");
 
   // Подставляем сохранённые данные получателя при первом открытии
   useEffect(() => {
@@ -83,6 +85,17 @@ export function CartDrawer() {
     ].filter(Boolean);
     const url = `${siteConfig.contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
     window.open(url, "_blank", "noopener");
+    // Локальная квитанция для «Моих заказов» в кабинете
+    const order = recordOrder({
+      total,
+      items: items.map((i) => ({
+        slug: i.slug,
+        title: i.title,
+        price: i.price,
+        qty: i.qty,
+      })),
+    });
+    setLastOrderId(order.id);
     setSent(true);
     setConsent(false);
     clear();
@@ -121,8 +134,20 @@ export function CartDrawer() {
         {sent ? (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed">
-              Заказ сформирован и открыт в WhatsApp — отправьте сообщение, и
-              менеджер подтвердит заказ в течение рабочего дня.
+              Заказ {lastOrderId && <b className="font-mono">{lastOrderId}</b>}{" "}
+              сформирован и открыт в WhatsApp — отправьте сообщение, и менеджер
+              подтвердит заказ в течение рабочего дня.
+            </p>
+            <p className="font-mono text-[0.68rem] leading-relaxed text-muted-foreground">
+              Копия заказа — в{" "}
+              <a
+                href="/profile"
+                onClick={closeCart}
+                className="text-[var(--signal-text)] underline underline-offset-2 hover:no-underline"
+              >
+                личном кабинете
+              </a>{" "}
+              на этом устройстве.
             </p>
             <button
               onClick={() => {
