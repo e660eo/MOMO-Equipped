@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const rows = (c: typeof siteConfig.contacts) => [
-  { label: "Телефон", value: `${c.phone}\n${c.phoneSecondary}` },
+  { label: "Телефон", value: c.phone },
   { label: "Email", value: c.email },
   { label: "Адрес", value: c.address },
   { label: "Режим работы", value: c.hours },
