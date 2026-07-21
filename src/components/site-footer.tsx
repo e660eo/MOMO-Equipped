@@ -23,6 +23,12 @@ const cols = [
   },
 ];
 
+// Нижняя строка футера: обязательные по 152-ФЗ и обычаю оборота документы.
+const legal = [
+  { href: "/privacy", label: "Политика конфиденциальности" },
+  { href: "/requisites", label: "Реквизиты" },
+];
+
 /*
   Футер целиком на тёмном градиенте — в том же языке, что баннер «Сплит 0%»,
   карточка консультации и hero страницы уценки. Он всегда тёмный, независимо
@@ -108,12 +114,15 @@ export function SiteFooter() {
             {requisites.ogrnip}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-            <Link
-              href="/requisites"
-              className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/70 underline-offset-4 transition-colors hover:text-signal hover:underline"
-            >
-              Реквизиты и информационная карта
-            </Link>
+            {legal.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/70 underline-offset-4 transition-colors hover:text-signal hover:underline"
+              >
+                {l.label}
+              </Link>
+            ))}
             <span className="text-[0.74rem] text-white/35">© 2026 MOMO</span>
           </div>
         </div>

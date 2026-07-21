@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/data";
+import { ConsentCheckbox } from "@/components/consent-checkbox";
 
 export const metadata: Metadata = {
   title: "Контакты",
@@ -84,6 +85,7 @@ export default function ContactsPage() {
               </label>
               <textarea id="ct-msg" name="text" rows={4} className={inputCls} />
             </div>
+            <ConsentCheckbox id="ct-consent" className="pt-1" />
             <button
               type="submit"
               className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"

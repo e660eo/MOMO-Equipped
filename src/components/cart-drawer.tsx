@@ -7,6 +7,7 @@ import { formatPrice, splitPayment, productImageUrl, siteConfig } from "@/lib/da
 import { isPhoneComplete } from "@/lib/phone";
 import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
+import { ConsentCheckbox } from "./consent-checkbox";
 import { cn } from "@/lib/utils";
 
 // Данные получателя запоминаем — при повторном заказе не вводить заново.
@@ -23,6 +24,7 @@ export function CartDrawer() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [comment, setComment] = useState("");
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
 
@@ -53,6 +55,11 @@ export function CartDrawer() {
       setError("Проверьте телефон — в номере должно быть 10 цифр после +7.");
       return;
     }
+    // Согласие на обработку ПД не запоминаем — его дают заново на каждый заказ.
+    if (!consent) {
+      setError("Отметьте согласие на обработку персональных данных.");
+      return;
+    }
     setError("");
 
     // Запоминаем получателя для следующего заказа
@@ -77,6 +84,7 @@ export function CartDrawer() {
     const url = `${siteConfig.contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
     window.open(url, "_blank", "noopener");
     setSent(true);
+    setConsent(false);
     clear();
   }
 
@@ -297,6 +305,12 @@ export function CartDrawer() {
               </b>{" "}
               без процентов
             </p>
+            <ConsentCheckbox
+              id="rc-consent"
+              checked={consent}
+              onChange={setConsent}
+              className="mb-4"
+            />
             <button
               onClick={submit}
               className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"

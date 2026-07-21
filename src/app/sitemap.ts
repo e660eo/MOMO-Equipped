@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/dealers`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/install`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/requisites`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const categories: MetadataRoute.Sitemap = getCategories().map((c) => ({

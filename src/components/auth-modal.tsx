@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PhoneInput } from "./phone-input";
+import { ConsentCheckbox } from "./consent-checkbox";
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -156,6 +157,7 @@ export function AuthModal({
                 className={inputCls}
               />
             </div>
+            <ConsentCheckbox id="rg-consent" className="pt-1" />
             <button
               type="submit"
               className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
