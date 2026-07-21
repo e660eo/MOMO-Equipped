@@ -5,7 +5,7 @@
     "brand": "ZEUS",
     "category": "avtosvet",
     "price": 2786,
-    "image": "k_94937dbe6bc04758ac15776799ab47cc.jpg",
+    "image": "k_94937dbe6bc04758ac15776799ab47cc.webp",
     "isClearance": false
   },
   {
@@ -14,7 +14,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 434,
-    "image": "k_50f575a25e934514a8814615ce5f243f.jpg",
+    "image": "k_50f575a25e934514a8814615ce5f243f.webp",
     "isClearance": false
   },
   {
@@ -23,7 +23,7 @@
     "brand": "ZEUS",
     "category": "avtosvet",
     "price": 1354,
-    "image": "k_ea93aa71ceea468e9d98c8dd9816982a.jpg",
+    "image": "k_ea93aa71ceea468e9d98c8dd9816982a.webp",
     "isClearance": false
   },
   {
@@ -32,7 +32,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 237,
-    "image": "k_a96dcbb82ac440c79a0973dbf811c34f.jpg",
+    "image": "k_a96dcbb82ac440c79a0973dbf811c34f.webp",
     "isClearance": false
   },
   {
@@ -41,7 +41,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 236,
-    "image": "k_699ff125e76645e9b959d1e6da53059a.jpg",
+    "image": "k_699ff125e76645e9b959d1e6da53059a.webp",
     "isClearance": false
   },
   {
@@ -50,10 +50,9 @@
     "brand": "MOMO",
     "category": "multimedia",
     "price": 5399,
-    "image": "/products/avtomagnitola-android-10-2-16gb-wi-fi-gps-bt-806438.webp",
+    "image": "k_1a5700384c1442e2919750287f13f16f.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_1a5700384c1442e2919750287f13f16f.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-android-10-2-32gb-005959",
@@ -61,10 +60,9 @@
     "brand": "ANDROID",
     "category": "multimedia",
     "price": 5717,
-    "image": "/products/avtomagnitola-android-10-2-32gb-005959.webp",
+    "image": "k_2a88bc6d1545433790f7dfba53865837.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_2a88bc6d1545433790f7dfba53865837.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-android-10-2-32gb-4g-329610",
@@ -72,10 +70,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 8931,
-    "image": "/products/avtomagnitola-android-10-2-32gb-4g-329610.webp",
+    "image": "k_e179146a88c54dcbbf098daa2c2fad6f.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_e179146a88c54dcbbf098daa2c2fad6f.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-android-9-2-32gb-4g-702453",
@@ -83,10 +80,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 7526,
-    "image": "/products/avtomagnitola-android-9-2-32gb-4g-702453.webp",
+    "image": "k_17b778f321b740a1832c77e84ba060cd.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_17b778f321b740a1832c77e84ba060cd.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-deh-4850-097139",
@@ -94,13 +90,12 @@
     "brand": "MOMO",
     "category": "multimedia",
     "price": 1135,
-    "image": "/products/avtomagnitola-deh-4850-097139.webp",
+    "image": "k_a51c5aa6431344c89e390a97e0db0cbf.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Автомобильный MP3 проигрыватель с блютузом 4х45вт с пультом"
-    ],
-    "imageLegacy": "k_a51c5aa6431344c89e390a97e0db0cbf.jpg"
+    ]
   },
   {
     "slug": "avtomagnitola-zeus-android-10-2-32gb-4g-310212",
@@ -108,10 +103,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 10010,
-    "image": "/products/avtomagnitola-zeus-android-10-2-32gb-4g-310212.webp",
+    "image": "k_1d04b32836f64e4aaa4a43a61237a30c.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_1d04b32836f64e4aaa4a43a61237a30c.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-zeus-android-7-4-64gb-4g-169671",
@@ -119,10 +113,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 11091,
-    "image": "/products/avtomagnitola-zeus-android-7-4-64gb-4g-169671.webp",
+    "image": "k_44d760cf9d9c4e5393053c98537cfb0d.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_44d760cf9d9c4e5393053c98537cfb0d.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-zeus-android-9-1-16gb-703833",
@@ -130,10 +123,9 @@
     "brand": "ANDROID",
     "category": "multimedia",
     "price": 5307,
-    "image": "/products/avtomagnitola-zeus-android-9-1-16gb-703833.webp",
+    "image": "k_5abdb09b08b146c69f13e16994e5f2d8.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_5abdb09b08b146c69f13e16994e5f2d8.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-zeus-android-9-2-32gb-4g-668166",
@@ -141,10 +133,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 9438,
-    "image": "/products/avtomagnitola-zeus-android-9-2-32gb-4g-668166.webp",
+    "image": "k_7e820440a9384f4e82a3d76c4e5823dd.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_7e820440a9384f4e82a3d76c4e5823dd.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040",
@@ -152,10 +143,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 13125,
-    "image": "/products/avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040.webp",
+    "image": "k_372f7b5b9b92483782653ded122da9d7.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_372f7b5b9b92483782653ded122da9d7.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302",
@@ -163,10 +153,9 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 10500,
-    "image": "/products/avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302.webp",
+    "image": "k_ba10b6639b4443eca7160cf3ec3687bf.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_ba10b6639b4443eca7160cf3ec3687bf.jpg"
+    "inStock": true
   },
   {
     "slug": "avtomagnitola-zeus-z-1bt-472657",
@@ -174,13 +163,12 @@
     "brand": "ZEUS",
     "category": "multimedia",
     "price": 816,
-    "image": "/products/avtomagnitola-zeus-z-1bt-472657.webp",
+    "image": "k_4d58426b7d0f4dc78e4169667aec144e.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Автомобильный MP3 проигрыватель с блютузом 4х10вт"
-    ],
-    "imageLegacy": "k_4d58426b7d0f4dc78e4169667aec144e.jpg"
+    ]
   },
   {
     "slug": "vynosnoy-regulyator-basa-v-mashinu-5m-186042",
@@ -188,7 +176,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1249,
-    "image": "k_b83a0c6b2dfc48158a193db7a0f605a1.jpg",
+    "image": "k_b83a0c6b2dfc48158a193db7a0f605a1.webp",
     "isClearance": false
   },
   {
@@ -197,13 +185,12 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 4035,
-    "image": "/products/dinamiki-momo-estradnye-avtomobilnye-16sm-he-715-403655.webp",
+    "image": "k_6db661c4d7e444438b2907411dee8f12.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Динамики 6.5 С.Ч. (165 мм), 4Om, катушка 1.5 дюйма, RMS 150 ВТ, MAX 300 Вт, 96 Дб, 115 - 10 000 Гц"
-    ],
-    "imageLegacy": "k_6db661c4d7e444438b2907411dee8f12.jpg"
+    ]
   },
   {
     "slug": "dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461",
@@ -211,7 +198,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1390,
-    "image": "/products/dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461.webp",
+    "image": "k_cde67747907d4fa7b738db3e753bbf4e.webp",
     "isClearance": false,
     "inStock": false,
     "description": [
@@ -222,8 +209,7 @@
       "Диапозон частот - 75-15 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
-    ],
-    "imageLegacy": "k_cde67747907d4fa7b738db3e753bbf4e.jpg"
+    ]
   },
   {
     "slug": "dinamiki-avtomobilnye-momo-us-310-v3-811784",
@@ -231,7 +217,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3406,
-    "image": "k_2a8830c3854e48a29be610779496db57.jpg",
+    "image": "k_2a8830c3854e48a29be610779496db57.webp",
     "isClearance": false
   },
   {
@@ -240,7 +226,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 1142,
-    "image": "/products/dinamiki-koaksialnye-zeus-ac-165-517978.webp",
+    "image": "k_f3087f40537f4e67b0c060e203b48d4c.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -251,8 +237,7 @@
       "Диапозон частот - 55-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
-    ],
-    "imageLegacy": "k_f3087f40537f4e67b0c060e203b48d4c.jpg"
+    ]
   },
   {
     "slug": "dinamiki-koaksialnye-ovaly-sbs-690-648108",
@@ -260,7 +245,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 2633,
-    "image": "k_cdb5942ea6d745e1beb5eba825660467.jpg",
+    "image": "k_cdb5942ea6d745e1beb5eba825660467.webp",
     "isClearance": false
   },
   {
@@ -269,7 +254,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 982,
-    "image": "/products/dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938.webp",
+    "image": "k_b4b65604ce0948f4bcc5271de13e7e38.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -280,8 +265,7 @@
       "Чувствительность 92 дб.",
       "Диапазон частот: 80-15000Гц.",
       "Звуковая катушка 1KCCAW VC"
-    ],
-    "imageLegacy": "k_b4b65604ce0948f4bcc5271de13e7e38.jpg"
+    ]
   },
   {
     "slug": "dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265",
@@ -289,7 +273,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 2520,
-    "image": "/products/dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265.webp",
+    "image": "k_ac8c03c67dd94dd0a6d4d614f99bc87b.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -300,8 +284,7 @@
       "Диапозон частот - 75-15 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
-    ],
-    "imageLegacy": "k_ac8c03c67dd94dd0a6d4d614f99bc87b.jpg"
+    ]
   },
   {
     "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-017173",
@@ -309,7 +292,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1442,
-    "image": "/products/dinamiki-rupornye-100mm-avtomobilnye-he-290-017173.webp",
+    "image": "k_83e157f2d5b647328d1418d04423a864.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -320,8 +303,7 @@
       "Диапозон частот- 2 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм"
-    ],
-    "imageLegacy": "k_83e157f2d5b647328d1418d04423a864.jpg"
+    ]
   },
   {
     "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-707836",
@@ -329,7 +311,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1278,
-    "image": "k_7e593ec9b92b4595821e96e97749233b.jpg",
+    "image": "k_7e593ec9b92b4595821e96e97749233b.webp",
     "isClearance": true
   },
   {
@@ -338,7 +320,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1278,
-    "image": "k_58a842f455d3472ea3ae1d921a78e7be.jpg",
+    "image": "k_58a842f455d3472ea3ae1d921a78e7be.webp",
     "isClearance": true
   },
   {
@@ -347,7 +329,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1278,
-    "image": "k_d0434726c3544daa9215ba9b857fc3f3.jpg",
+    "image": "k_d0434726c3544daa9215ba9b857fc3f3.webp",
     "isClearance": true
   },
   {
@@ -356,7 +338,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1278,
-    "image": "k_9521dfc4c4634b14bcd54cb44e9f997b.jpg",
+    "image": "k_9521dfc4c4634b14bcd54cb44e9f997b.webp",
     "isClearance": true
   },
   {
@@ -365,7 +347,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1499,
-    "image": "/products/dinamiki-estradnye-13sm-v-mashinu-mr-130-056376.webp",
+    "image": "k_718875e89daf4badb3a681a7cc941a1c.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -376,8 +358,7 @@
       "Диапозон частот- 120-12000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - Каптон 1 Дюйм"
-    ],
-    "imageLegacy": "k_718875e89daf4badb3a681a7cc941a1c.jpg"
+    ]
   },
   {
     "slug": "dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399",
@@ -385,7 +366,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 1575,
-    "image": "/products/dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399.webp",
+    "image": "k_ac7061bed9e64a868158560a7ff0a241.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -396,8 +377,7 @@
       "Диапозон частот- 100-10 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюм KCCAW"
-    ],
-    "imageLegacy": "k_ac7061bed9e64a868158560a7ff0a241.jpg"
+    ]
   },
   {
     "slug": "dinamiki-estradnye-25sm-momo-he-1000-709600",
@@ -405,7 +385,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3563,
-    "image": "/products/dinamiki-estradnye-25sm-momo-he-1000-709600.webp",
+    "image": "k_e4ef5c367ab54a9480bba114fe4330da.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -416,8 +396,7 @@
       "Диапозон частот- 60 - 20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1,5 Дюйма KSV"
-    ],
-    "imageLegacy": "k_e4ef5c367ab54a9480bba114fe4330da.jpg"
+    ]
   },
   {
     "slug": "dinamiki-estradnye-v-mashinu-16sm-he-610-096126",
@@ -425,7 +404,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 2653,
-    "image": "k_9f655ed1652d4bb396ee3fd2e9a12a1a.jpg",
+    "image": "k_9f655ed1652d4bb396ee3fd2e9a12a1a.webp",
     "isClearance": false
   },
   {
@@ -434,7 +413,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 397,
-    "image": "k_d155fd2201224cc9b6e98cf25eedac7b.jpg",
+    "image": "k_d155fd2201224cc9b6e98cf25eedac7b.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -447,7 +426,7 @@
     "brand": "CAP",
     "category": "aksessuary",
     "price": 1244,
-    "image": "340be8e4-5b03-4311-861a-a2a7726e3418.jpg",
+    "image": "340be8e4-5b03-4311-861a-a2a7726e3418.webp",
     "isClearance": false
   },
   {
@@ -456,7 +435,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1660,
-    "image": "k_431798b992b84284a40899f63f2a783e.jpg",
+    "image": "k_431798b992b84284a40899f63f2a783e.webp",
     "isClearance": false
   },
   {
@@ -465,7 +444,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1680,
-    "image": "k_d9e68921e38d4a9a98a7ad907c62d4b4.jpg",
+    "image": "k_d9e68921e38d4a9a98a7ad907c62d4b4.webp",
     "isClearance": false
   },
   {
@@ -474,7 +453,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 837,
-    "image": "e367913d-ea18-4c86-8620-67ed2d2207c8.jpg",
+    "image": "e367913d-ea18-4c86-8620-67ed2d2207c8.webp",
     "isClearance": false
   },
   {
@@ -483,7 +462,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 4086,
-    "image": "k_9d584f23ed694252b9307b18af7550af.jpg",
+    "image": "k_9d584f23ed694252b9307b18af7550af.webp",
     "isClearance": false
   },
   {
@@ -492,7 +471,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 6753,
-    "image": "k_a961ebccba40459b835511f53deee62c.jpg",
+    "image": "k_a961ebccba40459b835511f53deee62c.webp",
     "isClearance": false
   },
   {
@@ -501,7 +480,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1378,
-    "image": "k_251f005121e746ccaff732b66cde69ed.jpg",
+    "image": "k_251f005121e746ccaff732b66cde69ed.webp",
     "isClearance": false
   },
   {
@@ -510,7 +489,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 36712,
-    "image": "k_edf86e33e7b34da79b9fb0f4a2bc5b82.jpg",
+    "image": "k_edf86e33e7b34da79b9fb0f4a2bc5b82.webp",
     "isClearance": false
   },
   {
@@ -519,7 +498,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 13114,
-    "image": "k_cc4b9541b8ce4a6789391f914e49689e.jpg",
+    "image": "k_cc4b9541b8ce4a6789391f914e49689e.webp",
     "isClearance": false
   },
   {
@@ -528,7 +507,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 18389,
-    "image": "k_05c8734a9d834979a3b84357c14efa2c.jpg",
+    "image": "k_05c8734a9d834979a3b84357c14efa2c.webp",
     "isClearance": false
   },
   {
@@ -537,7 +516,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 11508,
-    "image": "k_1b594f5c53514205ba4fe86a222ec5f9.jpg",
+    "image": "k_1b594f5c53514205ba4fe86a222ec5f9.webp",
     "isClearance": false
   },
   {
@@ -546,7 +525,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 13290,
-    "image": "k_481ef3a2ceb941d792339805cf1b22c5.jpg",
+    "image": "k_481ef3a2ceb941d792339805cf1b22c5.webp",
     "isClearance": false
   },
   {
@@ -555,7 +534,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2017,
-    "image": "k_d158215cb1c44c06b3c29d95e4128b67.jpg",
+    "image": "k_d158215cb1c44c06b3c29d95e4128b67.webp",
     "isClearance": false
   },
   {
@@ -564,7 +543,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 3307,
-    "image": "k_13d0af5cb0824e8295519b9145a884f9.jpg",
+    "image": "k_13d0af5cb0824e8295519b9145a884f9.webp",
     "isClearance": false
   },
   {
@@ -573,7 +552,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 6655,
-    "image": "k_8bd5aff42f4a4654bf3ba138541ca981.jpg",
+    "image": "k_8bd5aff42f4a4654bf3ba138541ca981.webp",
     "isClearance": false
   },
   {
@@ -582,7 +561,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 694,
-    "image": "k_b3d414ab730e42c68823f7d462bd9083.jpg",
+    "image": "k_b3d414ab730e42c68823f7d462bd9083.webp",
     "isClearance": false
   },
   {
@@ -591,7 +570,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 13629,
-    "image": "k_6902aaf4fff44bb3a77b5a44118e7924.jpg",
+    "image": "k_6902aaf4fff44bb3a77b5a44118e7924.webp",
     "isClearance": false
   },
   {
@@ -600,7 +579,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 3388,
-    "image": "k_f1c09b0d45f84bcd8ef8249536047179.jpg",
+    "image": "k_f1c09b0d45f84bcd8ef8249536047179.webp",
     "isClearance": false
   },
   {
@@ -609,7 +588,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 6831,
-    "image": "k_43f67cd86f5e4dff941769f575c673cb.jpg",
+    "image": "k_43f67cd86f5e4dff941769f575c673cb.webp",
     "isClearance": false
   },
   {
@@ -618,7 +597,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 712,
-    "image": "k_799eb3b429cd4d7f9e49681cf2c1490b.jpg",
+    "image": "k_799eb3b429cd4d7f9e49681cf2c1490b.webp",
     "isClearance": false
   },
   {
@@ -627,7 +606,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2065,
-    "image": "k_7c80d05e47ee435882bc5c006ccb2199.jpg",
+    "image": "k_7c80d05e47ee435882bc5c006ccb2199.webp",
     "isClearance": false
   },
   {
@@ -636,7 +615,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2618,
-    "image": "k_d52caf10c2f14b38a4516e82811ad7b1.jpg",
+    "image": "k_d52caf10c2f14b38a4516e82811ad7b1.webp",
     "isClearance": false
   },
   {
@@ -645,7 +624,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 11602,
-    "image": "k_560b4a0ed67a4eec8c8749d7b3f03330.jpg",
+    "image": "k_560b4a0ed67a4eec8c8749d7b3f03330.webp",
     "isClearance": false
   },
   {
@@ -654,7 +633,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 6814,
-    "image": "k_24f2567c70ce4132a5f67756ecdd02a8.jpg",
+    "image": "k_24f2567c70ce4132a5f67756ecdd02a8.webp",
     "isClearance": false
   },
   {
@@ -663,7 +642,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1738,
-    "image": "k_b2029b331927445084b12b2ea7819794.jpg",
+    "image": "k_b2029b331927445084b12b2ea7819794.webp",
     "isClearance": false
   },
   {
@@ -672,7 +651,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 3397,
-    "image": "k_3204cfc687f84cb6a91f66c1dea1e6be.jpg",
+    "image": "k_3204cfc687f84cb6a91f66c1dea1e6be.webp",
     "isClearance": false
   },
   {
@@ -681,7 +660,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 6966,
-    "image": "k_0d652abdbdd8427cb6a6547258f8331f.jpg",
+    "image": "k_0d652abdbdd8427cb6a6547258f8331f.webp",
     "isClearance": false
   },
   {
@@ -690,7 +669,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1777,
-    "image": "k_3858be59c8924c33afdb48dcd42ece23.jpg",
+    "image": "k_3858be59c8924c33afdb48dcd42ece23.webp",
     "isClearance": false
   },
   {
@@ -699,7 +678,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 3475,
-    "image": "k_380412afcbbb4f00928db52a50481a3b.jpg",
+    "image": "k_380412afcbbb4f00928db52a50481a3b.webp",
     "isClearance": false
   },
   {
@@ -708,7 +687,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2120,
-    "image": "2bc7e5d9-e0d1-4824-b8f2-a6e37cbc5ea8.jpg",
+    "image": "2bc7e5d9-e0d1-4824-b8f2-a6e37cbc5ea8.webp",
     "isClearance": false
   },
   {
@@ -717,7 +696,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 10768,
-    "image": "k_ca8e5ccfde984bd9a411a0f0839650c3.jpg",
+    "image": "k_ca8e5ccfde984bd9a411a0f0839650c3.webp",
     "isClearance": false
   },
   {
@@ -726,7 +705,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 3589,
-    "image": "k_3b4f0249cc694b0bbdf70aa211007c48.jpg",
+    "image": "k_3b4f0249cc694b0bbdf70aa211007c48.webp",
     "isClearance": false
   },
   {
@@ -735,7 +714,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1763,
-    "image": "k_effe8dc1cd734b96aa619437d5b54803.jpg",
+    "image": "k_effe8dc1cd734b96aa619437d5b54803.webp",
     "isClearance": false
   },
   {
@@ -744,7 +723,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2846,
-    "image": "k_a000f30b2c8948d8b609ea99f317657c.jpg",
+    "image": "k_a000f30b2c8948d8b609ea99f317657c.webp",
     "isClearance": false
   },
   {
@@ -753,7 +732,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 5844,
-    "image": "k_62d6145fcab74f3cbef06fbc7a851988.jpg",
+    "image": "k_62d6145fcab74f3cbef06fbc7a851988.webp",
     "isClearance": false
   },
   {
@@ -762,7 +741,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1810,
-    "image": "k_a6d8f170c28d49dd9d2803518677c748.jpg",
+    "image": "k_a6d8f170c28d49dd9d2803518677c748.webp",
     "isClearance": false
   },
   {
@@ -771,7 +750,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2925,
-    "image": "k_5939ba3bff9b47cd813f614bdb50e1ff.jpg",
+    "image": "k_5939ba3bff9b47cd813f614bdb50e1ff.webp",
     "isClearance": false
   },
   {
@@ -780,7 +759,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 5877,
-    "image": "k_acda115f45934873abd9f18ed6710517.jpg",
+    "image": "k_acda115f45934873abd9f18ed6710517.webp",
     "isClearance": false
   },
   {
@@ -789,7 +768,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 17901,
-    "image": "k_418c52585b2e4bfb97a10b1067ba24f6.jpg",
+    "image": "k_418c52585b2e4bfb97a10b1067ba24f6.webp",
     "isClearance": false
   },
   {
@@ -798,7 +777,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 11033,
-    "image": "k_3365d5ef67224a119feb8f035c274152.jpg",
+    "image": "k_3365d5ef67224a119feb8f035c274152.webp",
     "isClearance": false
   },
   {
@@ -807,7 +786,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 3688,
-    "image": "k_dd01e32093a1474a84929b8a31794e67.jpg",
+    "image": "k_dd01e32093a1474a84929b8a31794e67.webp",
     "isClearance": false
   },
   {
@@ -816,7 +795,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 6554,
-    "image": "k_3dfc32a72b99481f974a0cc5a23ddcef.jpg",
+    "image": "k_3dfc32a72b99481f974a0cc5a23ddcef.webp",
     "isClearance": false
   },
   {
@@ -825,7 +804,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1338,
-    "image": "k_b1a088113d2646b1b02b41bcd23a4946.jpg",
+    "image": "k_b1a088113d2646b1b02b41bcd23a4946.webp",
     "isClearance": false
   },
   {
@@ -834,7 +813,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 13502,
-    "image": "k_2f35b852a2e3457b84ad579d2d298dac.jpg",
+    "image": "k_2f35b852a2e3457b84ad579d2d298dac.webp",
     "isClearance": false
   },
   {
@@ -843,7 +822,7 @@
     "brand": "MOMO",
     "category": "multimedia",
     "price": 1031,
-    "image": "k_0404df9847694fabbfdbb778dc133351.jpg",
+    "image": "k_0404df9847694fabbfdbb778dc133351.webp",
     "isClearance": false
   },
   {
@@ -852,7 +831,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 265,
-    "image": "k_c96ae5fcdc8d421a961774f3390b2db8.jpg",
+    "image": "k_c96ae5fcdc8d421a961774f3390b2db8.webp",
     "isClearance": false
   },
   {
@@ -861,7 +840,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 226,
-    "image": "k_6a3e0014d71a426abb3a12410949d9f3.jpg",
+    "image": "k_6a3e0014d71a426abb3a12410949d9f3.webp",
     "isClearance": false
   },
   {
@@ -870,10 +849,9 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 2550,
-    "image": "/products/kolonki-avtomobilnye-koaksialnye-165mm-zeus-us-650-754789.webp",
+    "image": "k_e5bf3d37aa0942bf83bb627e9f76938a.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_e5bf3d37aa0942bf83bb627e9f76938a.jpg"
+    "inStock": true
   },
   {
     "slug": "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173",
@@ -881,7 +859,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3435,
-    "image": "/products/kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173.webp",
+    "image": "k_b6e15687488443eea9085ef0c2f076f1.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -891,8 +869,7 @@
       "Диапазон частот: 70–10 000 Гц",
       "Звуковая катушка: 1,5 дюйма",
       "Материал диффузора: целлюлоза, армированная стекловолокном"
-    ],
-    "imageLegacy": "k_b6e15687488443eea9085ef0c2f076f1.jpg"
+    ]
   },
   {
     "slug": "kolonki-avtomobilnye-estradnye-165mm-momo-he-612-783658",
@@ -900,7 +877,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3075,
-    "image": "k_d078c8e947c54dd8a2fe1811b48bf489.jpg",
+    "image": "k_d078c8e947c54dd8a2fe1811b48bf489.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -917,7 +894,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 4449,
-    "image": "k_aad6567788884d74bbf6a810fb92f739.jpg",
+    "image": "k_aad6567788884d74bbf6a810fb92f739.webp",
     "isClearance": false
   },
   {
@@ -926,7 +903,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3652,
-    "image": "k_e345edacbff949f9acfe9a464e64beb7.jpg",
+    "image": "k_e345edacbff949f9acfe9a464e64beb7.webp",
     "isClearance": false
   },
   {
@@ -935,7 +912,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3299,
-    "image": "/products/kolonki-rupora-10sm-v-mashinu-he-400-009725.webp",
+    "image": "k_5b29d33dc38443aaaf71f32d437c3e4c.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -946,8 +923,7 @@
       "Диапозон частот - 3 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1.2 Дюйм KSV"
-    ],
-    "imageLegacy": "k_5b29d33dc38443aaaf71f32d437c3e4c.jpg"
+    ]
   },
   {
     "slug": "kolonki-estradnye-130mm-dlya-avtomobilya-he-130-053896",
@@ -955,7 +931,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 2371,
-    "image": "d802ef52-8fa2-4400-95fb-8d5abcf28df7.jpg",
+    "image": "d802ef52-8fa2-4400-95fb-8d5abcf28df7.webp",
     "isClearance": false
   },
   {
@@ -964,7 +940,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 5255,
-    "image": "k_9bbe36b334724916996b253fb6c1e3c5.jpg",
+    "image": "k_9bbe36b334724916996b253fb6c1e3c5.webp",
     "isClearance": false
   },
   {
@@ -973,7 +949,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2141,
-    "image": "k_0dea21c2a8f947b0923917ca276e92a8.jpg",
+    "image": "k_0dea21c2a8f947b0923917ca276e92a8.webp",
     "isClearance": false
   },
   {
@@ -982,7 +958,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 305,
-    "image": "k_2fddcb01d76e41c89f65e964baa92171.jpg",
+    "image": "k_2fddcb01d76e41c89f65e964baa92171.webp",
     "isClearance": false
   },
   {
@@ -991,7 +967,7 @@
     "brand": "MOMO",
     "category": "multimedia",
     "price": 335,
-    "image": "k_f6454cb7f75b404fa508d205c6b59661.jpg",
+    "image": "k_f6454cb7f75b404fa508d205c6b59661.webp",
     "isClearance": false
   },
   {
@@ -1000,7 +976,7 @@
     "brand": "STARLIGHT",
     "category": "avtosvet",
     "price": 761,
-    "image": "k_cbab685d84844f45b091cb5bf5a52322.jpg",
+    "image": "k_cbab685d84844f45b091cb5bf5a52322.webp",
     "isClearance": false
   },
   {
@@ -1009,7 +985,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 392,
-    "image": "k_fa88716eadc243baa018a8031487c1e6.jpg",
+    "image": "k_fa88716eadc243baa018a8031487c1e6.webp",
     "isClearance": false
   },
   {
@@ -1018,7 +994,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 17700,
-    "image": "/products/monoblok-avtomobilnyy-bd-5000-1-803288.webp",
+    "image": "k_43409182797948968e68c9c6b5816152.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1035,8 +1011,7 @@
       "Выходной терминал, Ga8",
       "Рабочее напряжение, В10-15В",
       "Сигнал/Шум, Дб 90"
-    ],
-    "imageLegacy": "k_43409182797948968e68c9c6b5816152.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-bm-1-1500-655537",
@@ -1044,7 +1019,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 8511,
-    "image": "/products/monoblok-avtomobilnyy-bm-1-1500-655537.webp",
+    "image": "k_38e682f1014148e4bd61f6ab5c4e1442.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1056,8 +1031,7 @@
       "Фильтр низких частот (LPF): 10 Гц – 1 кГц",
       "Фильтр высоких частот (HPF): 50 Гц – 20 кГц",
       "Соотношение сигнал/шум: 85 дБ"
-    ],
-    "imageLegacy": "k_38e682f1014148e4bd61f6ab5c4e1442.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-d-1000-356531",
@@ -1065,7 +1039,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 8373,
-    "image": "/products/monoblok-avtomobilnyy-d-1000-356531.webp",
+    "image": "k_aba6d9956fac4a178e471f2fdbdec0d5.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1080,8 +1054,7 @@
       "Соотношение сигнал/шум: >90 дБ",
       "Предохранители: 3 шт (номинал не указан)",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ],
-    "imageLegacy": "k_aba6d9956fac4a178e471f2fdbdec0d5.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-d-500-147152",
@@ -1089,7 +1062,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4785,
-    "image": "/products/monoblok-avtomobilnyy-d-500-147152.webp",
+    "image": "k_9eac6eea764c47499960984ffb053489.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1107,8 +1080,7 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 30 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ],
-    "imageLegacy": "k_9eac6eea764c47499960984ffb053489.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-fr-500-138116",
@@ -1116,7 +1088,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4485,
-    "image": "/products/monoblok-avtomobilnyy-fr-500-138116.webp",
+    "image": "k_0937ab5020514cdd96db24dfb32e944e.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1133,8 +1105,7 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 30 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ],
-    "imageLegacy": "k_0937ab5020514cdd96db24dfb32e944e.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-fr-500-tovar-ucenennyy-421166",
@@ -1142,7 +1113,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 3831,
-    "image": "k_57149074a7c44ebbb6ac223bff70677a.jpg",
+    "image": "k_57149074a7c44ebbb6ac223bff70677a.webp",
     "isClearance": true
   },
   {
@@ -1151,7 +1122,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5850,
-    "image": "/products/monoblok-avtomobilnyy-m-1-800-361333.webp",
+    "image": "k_85ca3fa5b23e4aaa903c4cc621fade0e.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1167,8 +1138,7 @@
       "Выносной регулятор: в комплекте",
       "Защиты: от перегрузки, короткого замыкания, перегрева",
       "Размеры (Д×Ш×В): 320 × 220 × 50 мм"
-    ],
-    "imageLegacy": "k_85ca3fa5b23e4aaa903c4cc621fade0e.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-m-1000-533001",
@@ -1176,7 +1146,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6530,
-    "image": "/products/monoblok-avtomobilnyy-m-1000-533001.webp",
+    "image": "k_aa10edfa78b34eebbb3c87ccdfd4b001.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1191,8 +1161,7 @@
       "Соотношение сигнал/шум: 95 дБ",
       "Входная чувствительность: 0,2 – 6 В",
       "Выносной регулятор: Да Размеры (Д×Ш×В): 340 × 230 × 50 мм"
-    ],
-    "imageLegacy": "k_aa10edfa78b34eebbb3c87ccdfd4b001.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-momo-bd-3000-1-640730",
@@ -1200,7 +1169,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 11665,
-    "image": "/products/monoblok-avtomobilnyy-momo-bd-3000-1-640730.webp",
+    "image": "k_4f5a6de6216b49ab88bb9f5820f86c04.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1210,8 +1179,7 @@
       "Фильтр высоких частот (HIGH Pass), Гц15 - 80",
       "Диапазон воспроизводимых частот, Гц10 - 20000",
       "Отношение сигнал/шум, дБ90."
-    ],
-    "imageLegacy": "k_4f5a6de6216b49ab88bb9f5820f86c04.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-zeus-m-1-1200-653712",
@@ -1219,7 +1187,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6887,
-    "image": "/products/monoblok-avtomobilnyy-zeus-m-1-1200-653712.webp",
+    "image": "k_696a9a47aed8482895be5b90983f0ce5.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1231,8 +1199,7 @@
       "Диапазон воспроизводимых частот: 10 Гц – 250 Гц",
       "Фильтр низких частот (LPF): 50 Гц – 250 Гц",
       "Соотношение сигнал/шум: 85 дБ"
-    ],
-    "imageLegacy": "k_696a9a47aed8482895be5b90983f0ce5.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-zeus-m-600-611614",
@@ -1240,7 +1207,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5333,
-    "image": "/products/monoblok-avtomobilnyy-zeus-m-600-611614.webp",
+    "image": "k_8dad995ae6944d9b937f75dcfb86d086.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1251,8 +1218,7 @@
       "Диапазон воспроизводимых частот: 10 Гц – 250 Гц",
       "Фильтр низких частот (LPF): 50 Гц – 250 Гц",
       "Соотношение сигнал/шум: 85 дБ"
-    ],
-    "imageLegacy": "k_8dad995ae6944d9b937f75dcfb86d086.jpg"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-dlya-sabvufera-bd-2000-1-046476",
@@ -1260,7 +1226,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 10050,
-    "image": "k_6a776709e0cb4a2fbaa332d09c4fc6bc.jpg",
+    "image": "k_6a776709e0cb4a2fbaa332d09c4fc6bc.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1278,7 +1244,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 824,
-    "image": "k_50780ffb434c435fafd62307a54ade4d.jpg",
+    "image": "k_50780ffb434c435fafd62307a54ade4d.webp",
     "isClearance": false
   },
   {
@@ -1287,7 +1253,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 3823,
-    "image": "9e7af2df-a5f7-44fb-b7f9-dec1dd4d3b0e.jpg",
+    "image": "9e7af2df-a5f7-44fb-b7f9-dec1dd4d3b0e.webp",
     "isClearance": false
   },
   {
@@ -1296,7 +1262,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 17226,
-    "image": "k_6f60600c09af4ddb8b9a6a997f593c97.jpg",
+    "image": "k_6f60600c09af4ddb8b9a6a997f593c97.webp",
     "isClearance": false
   },
   {
@@ -1305,7 +1271,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 4000,
-    "image": "k_113f34953fa6489ab57dbe4c7a1d2de8.jpg",
+    "image": "k_113f34953fa6489ab57dbe4c7a1d2de8.webp",
     "isClearance": false
   },
   {
@@ -1314,7 +1280,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 11396,
-    "image": "k_07e8f61b5d2d4df1b81cf35f97311700.jpg",
+    "image": "k_07e8f61b5d2d4df1b81cf35f97311700.webp",
     "isClearance": false
   },
   {
@@ -1323,7 +1289,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 361,
-    "image": "k_cdf22a02f356468380b90c76f9964563.jpg",
+    "image": "k_cdf22a02f356468380b90c76f9964563.webp",
     "isClearance": false
   },
   {
@@ -1332,7 +1298,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 567,
-    "image": "k_849615d5f0b4411985af8b070c9f2ebf.jpg",
+    "image": "k_849615d5f0b4411985af8b070c9f2ebf.webp",
     "isClearance": false
   },
   {
@@ -1341,7 +1307,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 316,
-    "image": "k_05b305ba61e2492db8e71320a5aa3bfa.jpg",
+    "image": "k_05b305ba61e2492db8e71320a5aa3bfa.webp",
     "isClearance": false
   },
   {
@@ -1350,7 +1316,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 346,
-    "image": "k_c74671e9916d4a0c8445b1b0b2c06acd.jpg",
+    "image": "k_c74671e9916d4a0c8445b1b0b2c06acd.webp",
     "isClearance": false
   },
   {
@@ -1359,7 +1325,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 21474,
-    "image": "k_df56b42ff4614c3592cf59cf997d866c.jpg",
+    "image": "k_df56b42ff4614c3592cf59cf997d866c.webp",
     "isClearance": false
   },
   {
@@ -1368,7 +1334,7 @@
     "brand": "ZEUS",
     "category": "sabvufery",
     "price": 5883,
-    "image": "k_f257ddbe6fba4eddba0bf78a8943c45c.jpg",
+    "image": "k_f257ddbe6fba4eddba0bf78a8943c45c.webp",
     "isClearance": false
   },
   {
@@ -1377,10 +1343,9 @@
     "brand": "ZEUS",
     "category": "sabvufery",
     "price": 4920,
-    "image": "/products/sabvufer-avtomobilnyy-b-12-450-12-dyuymov-839456.webp",
+    "image": "k_f641a17a37894ac58583cc774999861f.webp",
     "isClearance": false,
-    "inStock": true,
-    "imageLegacy": "k_f641a17a37894ac58583cc774999861f.jpg"
+    "inStock": true
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
@@ -1388,7 +1353,7 @@
     "brand": "ZEUS",
     "category": "sabvufery",
     "price": 7198,
-    "image": "k_104d39545f474cbabb640de82823f2f5.jpg",
+    "image": "k_104d39545f474cbabb640de82823f2f5.webp",
     "isClearance": false
   },
   {
@@ -1397,7 +1362,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 5367,
-    "image": "/products/sabvufer-avtomobilnyy-ts-10-600-10-dyuymov-182054.webp",
+    "image": "k_70d7c83a54b1493599f9e70c98a03770.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1407,8 +1372,7 @@
       "Чувствительность ДБ - 88",
       "Диапозон частот - 32-1 200 Гц",
       "Звуковая катушка - двойная 2.5 черный алюминий"
-    ],
-    "imageLegacy": "k_70d7c83a54b1493599f9e70c98a03770.jpg"
+    ]
   },
   {
     "slug": "sabvufer-avtomobilnyy-ts-15-1100-15-dyuymov-064255",
@@ -1416,7 +1380,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 10901,
-    "image": "k_63e8e058698c416187d0bc63e6fa0275.jpg",
+    "image": "k_63e8e058698c416187d0bc63e6fa0275.webp",
     "isClearance": false
   },
   {
@@ -1425,7 +1389,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 3825,
-    "image": "k_d8dbc9d7174e434b9d41b59a9e84a00b.jpg",
+    "image": "k_d8dbc9d7174e434b9d41b59a9e84a00b.webp",
     "isClearance": false,
     "inStock": true
   },
@@ -1435,7 +1399,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 4761,
-    "image": "k_b1762b72b33b40c1bc87297ec0035244.jpg",
+    "image": "k_b1762b72b33b40c1bc87297ec0035244.webp",
     "isClearance": false
   },
   {
@@ -1444,7 +1408,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 13941,
-    "image": "k_97f82b637f7743c18b252388b7f52028.jpg",
+    "image": "k_97f82b637f7743c18b252388b7f52028.webp",
     "isClearance": false
   },
   {
@@ -1453,7 +1417,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 11668,
-    "image": "k_94a50921d522463599980a0469b7b5d1.jpg",
+    "image": "k_94a50921d522463599980a0469b7b5d1.webp",
     "isClearance": false
   },
   {
@@ -1462,7 +1426,7 @@
     "brand": "MOMO",
     "category": "sabvufery",
     "price": 18881,
-    "image": "k_c653ad14da2143cea2b265cdbaf1dd41.jpg",
+    "image": "k_c653ad14da2143cea2b265cdbaf1dd41.webp",
     "isClearance": false
   },
   {
@@ -1471,7 +1435,7 @@
     "brand": "ZEUS",
     "category": "avtosvet",
     "price": 1355,
-    "image": "k_93be9bcfded740bc8bb9309413f025f5.jpg",
+    "image": "k_93be9bcfded740bc8bb9309413f025f5.webp",
     "isClearance": false
   },
   {
@@ -1480,7 +1444,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1607,
-    "image": "k_2315b1cdc1024e9db0845262167eed32.jpg",
+    "image": "k_2315b1cdc1024e9db0845262167eed32.webp",
     "isClearance": false
   },
   {
@@ -1489,7 +1453,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 2774,
-    "image": "/products/usilitel-avtomobilnyy-ab-2-60-617369.webp",
+    "image": "k_13a04ca57881481491a179d937de6d82.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1501,8 +1465,7 @@
       "Фильтр низких частот (LPF): 50 Гц – 200 Гц",
       "Фильтр высоких частот (HPF): 50 Гц – 8 кГц",
       "Соотношение сигнал/шум: 90 дБ"
-    ],
-    "imageLegacy": "k_13a04ca57881481491a179d937de6d82.jpg"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-4-120-159023",
@@ -1510,7 +1473,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6435,
-    "image": "/products/usilitel-avtomobilnyy-ab-4-120-159023.webp",
+    "image": "k_27b75c539ba74890bbc75847c06dec7b.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1525,8 +1488,7 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 40 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ],
-    "imageLegacy": "k_27b75c539ba74890bbc75847c06dec7b.jpg"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-4-60-882001",
@@ -1534,7 +1496,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 3240,
-    "image": "k_dc433fbf59e94fd9a57ffb1459eab4f5.jpg",
+    "image": "k_dc433fbf59e94fd9a57ffb1459eab4f5.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1557,7 +1519,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 9285,
-    "image": "/products/usilitel-avtomobilnyy-d-4-400-288535.webp",
+    "image": "k_3cb7f4bd2f0640aebd6037c95c14b28b.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1571,8 +1533,7 @@
       "Соотношение сигнал/шум: 90 дБ",
       "Коэффициент гармонических искажений (THD): не указан",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ],
-    "imageLegacy": "k_3cb7f4bd2f0640aebd6037c95c14b28b.jpg"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-1800-802013",
@@ -1580,7 +1541,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 22039,
-    "image": "k_1f51af7699bc429cb2b8ac877b9a9df4.jpg",
+    "image": "k_1f51af7699bc429cb2b8ac877b9a9df4.webp",
     "isClearance": false
   },
   {
@@ -1589,7 +1550,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 18489,
-    "image": "k_1ecfe684983f4874b4deb441d95b5559.jpg",
+    "image": "k_1ecfe684983f4874b4deb441d95b5559.webp",
     "isClearance": true
   },
   {
@@ -1598,7 +1559,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 11055,
-    "image": "k_91d5782e04984bae9c9bd1d9e5515806.jpg",
+    "image": "k_91d5782e04984bae9c9bd1d9e5515806.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1611,7 +1572,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 5527,
-    "image": "k_6f37fbba61414036b1556cd16cf9b365.jpg",
+    "image": "k_6f37fbba61414036b1556cd16cf9b365.webp",
     "isClearance": false
   },
   {
@@ -1620,7 +1581,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4335,
-    "image": "/products/usilitel-avtomobilnyy-p-4-75-147050.webp",
+    "image": "k_dde104b05b1c49ac8fe62d55699998dd.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1636,8 +1597,7 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Номинал предохранителя: 40 А",
       "Размеры (Д×Ш×В): 365 × 220 × 56 мм"
-    ],
-    "imageLegacy": "k_dde104b05b1c49ac8fe62d55699998dd.jpg"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-zeus-ab-4-100-588525",
@@ -1645,7 +1605,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5551,
-    "image": "k_65fcd82e05154aa49f92b8f794c6e51c.jpg",
+    "image": "k_65fcd82e05154aa49f92b8f794c6e51c.webp",
     "isClearance": false
   },
   {
@@ -1654,7 +1614,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 15731,
-    "image": "k_0155f86054604a42918acae04d400518.jpg",
+    "image": "k_0155f86054604a42918acae04d400518.webp",
     "isClearance": false
   },
   {
@@ -1663,7 +1623,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1355,
-    "image": "k_9443ecb012c348ec91e3ebb225a910e2.jpg",
+    "image": "k_9443ecb012c348ec91e3ebb225a910e2.webp",
     "isClearance": false
   },
   {
@@ -1672,7 +1632,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2658,
-    "image": "b8a850da-d55e-4c16-840b-904483d5ad46.jpg",
+    "image": "b8a850da-d55e-4c16-840b-904483d5ad46.webp",
     "isClearance": false
   },
   {
@@ -1681,7 +1641,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 2207,
-    "image": "k_d0d3503cb8514380b4fc3c40e95b4a38.jpg",
+    "image": "k_d0d3503cb8514380b4fc3c40e95b4a38.webp",
     "isClearance": false
   },
   {
@@ -1690,7 +1650,7 @@
     "brand": "MOMO",
     "category": "aksessuary",
     "price": 1845,
-    "image": "9b70e979-bd36-4f2b-90fd-d16f11774705.jpg",
+    "image": "9b70e979-bd36-4f2b-90fd-d16f11774705.webp",
     "isClearance": false
   },
   {
@@ -1699,7 +1659,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3858,
-    "image": "k_25bc81664b5d430c9f56140c72479572.jpg",
+    "image": "k_25bc81664b5d430c9f56140c72479572.webp",
     "isClearance": false
   }
 ]
