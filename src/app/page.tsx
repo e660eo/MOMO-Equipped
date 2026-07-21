@@ -90,10 +90,6 @@ export default function Home() {
               <HeroLogo className="relative z-10 w-[clamp(320px,68vw,860px)]" />
             </div>
 
-            <p className="mx-auto -mt-2 max-w-[48ch] text-[1.05rem] text-neutral-500">
-              Сабвуферы, усилители и эстрадная акустика MOMO — для тех, кто меряет
-              звук не ваттами на бумаге, а ощущением в груди.
-            </p>
             <div className="mt-9 flex flex-wrap justify-center gap-4">
               <Link
                 href="/catalog"
