@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { MapPin, Phone, Clock } from "lucide-react";
 import { siteConfig } from "@/lib/data";
+import { YandexMap } from "@/components/yandex-map";
 
 export const metadata: Metadata = {
   title: "Где установить",
   description:
-    "Установка автоакустики MOMO: партнёрские студии и рекомендации по монтажу сабвуферов, усилителей и акустики.",
+    "Установка автоакустики MOMO: фирменная точка в Махачкале, помощь с подбором и настройкой. Партнёрским студиям — дилерская программа.",
 };
 
 const steps = [
@@ -13,9 +15,24 @@ const steps = [
   { n: "03", title: "Настроим звук", text: "Расскажем про согласование, шумоизоляцию и настройку усилителя под нужное давление." },
 ];
 
+/*
+  Точки установки. Сейчас одна — фирменная (адрес из реквизитов, он настоящий).
+  Партнёрские студии НЕ выдумываем: появятся реальные партнёры — добавим сюда
+  же, структура готова.
+*/
+const points = [
+  {
+    name: "MOMO Equipped — фирменная точка",
+    address: siteConfig.contacts.address,
+    hours: siteConfig.contacts.hours,
+    phone: siteConfig.contacts.phone,
+    note: "Магазин и склад. Поможем с подбором, подключением и настройкой купленного комплекта.",
+  },
+];
+
 export default function InstallPage() {
   return (
-    <main className="mx-auto max-w-[1000px] px-6 py-14">
+    <main className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6 sm:py-14">
       <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
         Установка
       </p>
@@ -44,6 +61,68 @@ export default function InstallPage() {
           </div>
         ))}
       </div>
+
+      {/* Точки установки */}
+      <section className="mt-14">
+        <h2 className="font-display text-xl font-extrabold uppercase">
+          Точки установки
+        </h2>
+        <div className="mt-6 grid gap-6 md:grid-cols-[1fr_1.2fr]">
+          <div className="flex flex-col gap-4">
+            {points.map((p) => (
+              <div
+                key={p.name}
+                className="rounded-xl border border-border bg-surface p-6"
+              >
+                <h3 className="font-display text-base font-semibold">
+                  {p.name}
+                </h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li className="flex items-start gap-2.5">
+                    <MapPin size={15} className="mt-0.5 shrink-0 text-signal" />
+                    {p.address}
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Clock size={15} className="mt-0.5 shrink-0 text-signal" />
+                    {p.hours}
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Phone size={15} className="mt-0.5 shrink-0 text-signal" />
+                    <a
+                      href={`tel:${p.phone.replace(/[^+\d]/g, "")}`}
+                      className="transition-colors hover:text-signal"
+                    >
+                      {p.phone}
+                    </a>
+                  </li>
+                </ul>
+                <p className="mt-4 text-[0.85rem] leading-relaxed text-muted-foreground">
+                  {p.note}
+                </p>
+              </div>
+            ))}
+
+            {/* Честно: партнёрских студий в списке пока нет — зовём подключаться */}
+            <div className="rounded-xl border border-dashed border-border p-6">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Устанавливаете автозвук в своём городе? Подключим вашу студию
+                как партнёрскую точку — клиенты MOMO будут приходить к вам.
+              </p>
+              <a
+                href="/dealers"
+                className="mt-4 inline-flex rounded-sm border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+              >
+                Стать партнёром
+              </a>
+            </div>
+          </div>
+
+          <YandexMap
+            query="Махачкала, проспект Гамидова, 16"
+            title="Фирменная точка MOMO на карте"
+          />
+        </div>
+      </section>
 
       <div className="mt-10 flex flex-wrap gap-3">
         <a

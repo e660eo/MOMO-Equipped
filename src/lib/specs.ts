@@ -119,3 +119,85 @@ export function shortSpecs(title: string, limit = 2): string[] {
     .slice(0, limit)
     .map((s) => s.value);
 }
+
+/* ------------------------------------------------------------------ */
+/* Технические поля для фильтров каталога                              */
+/* ------------------------------------------------------------------ */
+
+export interface TechSpec {
+  diameterMm?: number;
+  powerMaxW?: number;
+  impedanceOhm?: number;
+}
+
+/**
+ * Диаметр, мощность и сопротивление из названия + описания (из прайса).
+ * Значения достаём только при явной единице измерения — коды моделей вроде
+ * «TS-10.600» цифрами похожи на характеристики, но единиц не содержат.
+ */
+export function parseTech(title: string, description?: string[]): TechSpec {
+  const src = [title, ...(description ?? [])].join(" · ");
+  const out: TechSpec = {};
+
+  // Диаметр. Приоритет: см → дюймы → мм. Lookbehind отсекает «1.25 дюйма»
+  // (катушка): без него «25 дюйма» матчился бы из середины числа.
+  const cm = src.match(/(?<![\d.,])(\d{2}(?:[.,]\d)?)\s*(?:см|cm)(?![а-яёa-z])/i);
+  const inch = src.match(/(?<![\d.,])(\d{1,2}(?:[.,]\d)?)\s*(?:дюйм|″|")/i);
+  const mm = src.match(/(?<![\d.,x×х])(\d{2,3})\s*(?:мм|mm)(?![а-яёa-z2])/i);
+  if (cm) out.diameterMm = Math.round(parseFloat(cm[1].replace(",", ".")) * 10);
+  else if (inch)
+    out.diameterMm = Math.round(parseFloat(inch[1].replace(",", ".")) * 25.4);
+  else if (mm) out.diameterMm = parseInt(mm[1], 10);
+
+  // Мощность: «MAX: 300 W» из описания приоритетнее числа из названия.
+  // «BT» — частая опечатка «Вт» в прайсе, но только сразу после числа.
+  const pMax = src.match(/MAX[:\s]*(\d{2,5})\s*(?:W|Вт|BT)/i);
+  const pAny = src.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
+  const p = pMax ?? pAny;
+  if (p) out.powerMaxW = parseInt(p[1], 10);
+
+  // Сопротивление: 1/2/4 Ом (диапазон реальный для автозвука)
+  const ohm = src.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
+  if (ohm) out.impedanceOhm = parseInt(ohm[1], 10);
+
+  return out;
+}
+
+/** Диаметр → человекочитаемая корзина для фильтра. */
+export function diameterBucket(mm: number): string | null {
+  if (mm < 80) return null; // катушки и прочая мелочь — не диаметр динамика
+  if (mm <= 110) return "10 см (4″)";
+  if (mm <= 145) return "13 см (5.25″)";
+  if (mm <= 180) return "16–17 см (6.5″)";
+  if (mm <= 220) return "20 см (8″)";
+  if (mm <= 280) return "25 см (10″)";
+  if (mm <= 330) return "30 см (12″)";
+  if (mm <= 420) return "38 см (15″)";
+  return null;
+}
+
+/** Мощность → корзина для фильтра. */
+export function powerBucket(w: number): string | null {
+  if (w < 20) return null;
+  if (w <= 150) return "до 150 Вт";
+  if (w <= 400) return "150–400 Вт";
+  if (w <= 1000) return "400–1000 Вт";
+  return "свыше 1000 Вт";
+}
+
+/** Порядок корзин в выпадающих списках. */
+export const DIAMETER_ORDER = [
+  "10 см (4″)",
+  "13 см (5.25″)",
+  "16–17 см (6.5″)",
+  "20 см (8″)",
+  "25 см (10″)",
+  "30 см (12″)",
+  "38 см (15″)",
+];
+export const POWER_ORDER = [
+  "до 150 Вт",
+  "150–400 Вт",
+  "400–1000 Вт",
+  "свыше 1000 Вт",
+];
