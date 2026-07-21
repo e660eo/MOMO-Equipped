@@ -17,9 +17,9 @@ import { cn } from "@/lib/utils";
 // Реквизиты намеренно не здесь — они живут в нижней плашке футера,
 // это служебная информация, а не пункт основной навигации.
 const nav = [
+  { href: "/about", label: "О компании" },
   { href: "/sale", label: "Уценка" },
   { href: "/news", label: "Новости" },
-  { href: "/about", label: "О компании" },
   { href: "/contacts", label: "Контакты" },
 ];
 
