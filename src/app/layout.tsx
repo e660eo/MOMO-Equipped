@@ -7,6 +7,7 @@ import { AnnouncementBar } from "@/components/announcement-bar";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CartDrawer } from "@/components/cart-drawer";
+import { AuthModal } from "@/components/auth-modal";
 import { Toaster } from "@/components/toaster";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
 import { JsonLd } from "@/components/json-ld";
@@ -87,7 +88,14 @@ export default async function RootLayout({
           <div className="flex-1">{children}</div>
           <SiteFooter />
         </ClickSpark>
+        {/*
+          Оверлеи держим на уровне body, вне шапки и ClickSpark: у шапки
+          backdrop-filter, а он создаёт точку отсчёта для position:fixed —
+          внутри неё модалка позиционировалась бы относительно шапки, а не
+          экрана (окно входа уезжало вверх на мобильном).
+        */}
         <CartDrawer />
+        <AuthModal />
         <Toaster />
         <WhatsAppFab />
       </body>

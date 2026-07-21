@@ -116,13 +116,24 @@ export function AuthModal() {
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
+      {/*
+        На телефоне окно НЕ центрируем, а прижимаем шторкой к низу (как фильтры
+        каталога): при центрировании экранная клавиатура заставляла браузер
+        подтягивать сфокусированное поле, и верх окна уезжал за край экрана
+        без шанса до него доскроллить. Высота в dvh, а не vh — vh на мобильных
+        не учитывает адресную строку. На sm+ остаётся центрированное окно.
+      */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Личный кабинет"
         className={cn(
-          "fixed inset-0 z-[100] m-auto h-fit max-h-[90vh] w-[min(440px,calc(100vw-32px))] overflow-auto rounded-md border border-border bg-surface p-8 shadow-xl transition-all",
-          open ? "opacity-100" : "pointer-events-none translate-y-3 opacity-0",
+          "fixed z-[100] overflow-y-auto border border-border bg-surface shadow-xl transition-all",
+          "inset-x-0 bottom-0 max-h-[92dvh] rounded-t-2xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
+          "sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[90dvh] sm:w-[min(440px,calc(100vw-32px))] sm:rounded-md sm:p-8",
+          open
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-full opacity-0 sm:translate-y-3",
         )}
       >
         <button

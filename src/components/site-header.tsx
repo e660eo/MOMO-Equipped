@@ -8,7 +8,6 @@ import { User, ShoppingCart, Menu, Search } from "lucide-react";
 import { useCart, cartCount } from "@/lib/cart-store";
 import { useAccount } from "@/lib/account-store";
 import { ThemeToggle } from "./theme-toggle";
-import { AuthModal } from "./auth-modal";
 import { CatalogMenu } from "./catalog-menu";
 import { HeaderExtras, CityPicker } from "./header-extras";
 import { AnimatedGlowingSearch } from "./ui/animated-glowing-search-bar";
@@ -246,8 +245,6 @@ export function SiteHeader() {
           </nav>
         </div>
       </div>
-
-      <AuthModal />
     </header>
   );
 }
