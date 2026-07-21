@@ -4,14 +4,11 @@ import type { PointerEvent } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice, splitPayment, productImageUrl } from "@/lib/data";
-import { getRating } from "@/lib/reviews";
 import { shortSpecs } from "@/lib/specs";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";
-import { Stars } from "./stars";
 
 export function ProductCard({ product }: { product: Product }) {
-  const rating = getRating(product.slug);
   const specs = shortSpecs(product.title);
 
   // Двигаем центр свечения за курсором внутри карточки (обновляется только
@@ -60,14 +57,6 @@ export function ProductCard({ product }: { product: Product }) {
           {product.title}
         </h3>
       </Link>
-
-      {/* Рейтинг */}
-      <div className="mt-2 flex items-center gap-1.5">
-        <Stars value={rating.value} size={13} />
-        <span className="font-mono text-[0.68rem] text-muted-foreground">
-          {rating.value.toFixed(1)} · {rating.count}
-        </span>
-      </div>
 
       {/* Характеристики, распознанные из названия */}
       {specs.length > 0 && (

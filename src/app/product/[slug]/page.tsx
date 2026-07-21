@@ -11,12 +11,11 @@ import {
   productImageUrl,
   siteConfig,
 } from "@/lib/data";
-import { getRating, getReviews, pluralReviews } from "@/lib/reviews";
+import { MessageSquare } from "lucide-react";
 import { parseSpecs } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-import { Stars } from "@/components/stars";
 import { JsonLd } from "@/components/json-ld";
 import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 
@@ -53,8 +52,6 @@ export default async function ProductPage({
     .slice(0, 4);
 
   const split = splitPayment(product.price);
-  const rating = getRating(product.slug);
-  const reviews = getReviews(product.slug);
   const specs = parseSpecs(product.title);
 
   // Крошки для разметки повторяют навигацию выше: Главная → Каталог → категория → товар
@@ -122,18 +119,6 @@ export default async function ProductPage({
           <h1 className="mt-3 font-display text-[clamp(1.5rem,3vw,2.2rem)] font-semibold leading-tight">
             {product.title}
           </h1>
-
-          {/* Рейтинг */}
-          <a
-            href="#reviews"
-            className="mt-3 inline-flex items-center gap-2 transition-colors hover:text-signal"
-          >
-            <Stars value={rating.value} size={16} />
-            <span className="font-mono text-[0.78rem] text-muted-foreground">
-              {rating.value.toFixed(1)} · {rating.count}{" "}
-              {pluralReviews(rating.count)}
-            </span>
-          </a>
 
           <div className="mt-7 flex flex-wrap items-baseline gap-x-5 gap-y-2">
             <span className="font-display text-4xl font-extrabold">
@@ -249,53 +234,31 @@ export default async function ProductPage({
         </div>
       </div>
 
-      {/* Отзывы */}
+      {/*
+        Отзывы. Раньше здесь показывались сгенерированные из хеша slug тексты
+        с именами и датами — это недостоверные сведения о товаре, на боевом
+        домене прямой риск. Настоящих отзывов пока нет, поэтому честно говорим
+        об этом и зовём оставить первый. Когда отзывы появятся — секция
+        наполнится ими, а не заглушкой.
+      */}
       <section id="reviews" className="mt-20 scroll-mt-28">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <h2 className="font-display text-xl font-semibold uppercase">Отзывы</h2>
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-2.5">
-            <span className="font-display text-2xl font-extrabold leading-none">
-              {rating.value.toFixed(1)}
-            </span>
-            <span>
-              <Stars value={rating.value} size={14} />
-              <span className="mt-1 block font-mono text-[0.68rem] text-muted-foreground">
-                {rating.count} {pluralReviews(rating.count)}
-              </span>
-            </span>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {reviews.map((r, i) => (
-            <article
-              key={i}
-              className="rounded-xl border border-border bg-surface p-6"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted font-display text-sm font-semibold">
-                    {r.author.charAt(0)}
-                  </span>
-                  <span className="text-[0.9rem] font-medium">{r.author}</span>
-                </div>
-                <Stars value={r.rating} size={13} />
-              </div>
-              <p className="mt-4 text-[0.9rem] leading-relaxed text-muted-foreground">
-                {r.text}
-              </p>
-              <time
-                dateTime={r.date}
-                className="mt-3 block font-mono text-[0.68rem] uppercase tracking-wider text-muted-foreground"
-              >
-                {new Date(r.date).toLocaleDateString("ru-RU", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </time>
-            </article>
-          ))}
+        <h2 className="font-display text-xl font-semibold uppercase">Отзывы</h2>
+        <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-border">
+            <MessageSquare size={20} className="text-muted-foreground" />
+          </span>
+          <p className="max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
+            Отзывов на этот товар пока нет. Уже брали его? Напишите пару слов о
+            том, как он себя показал, — это поможет другим выбрать.
+          </p>
+          <a
+            href={`${siteConfig.contacts.whatsapp}?text=${encodeURIComponent(
+              `Отзыв о товаре: ${product.title}`,
+            )}`}
+            className="mt-1 inline-flex rounded-sm border border-border px-6 py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+          >
+            Оставить отзыв
+          </a>
         </div>
       </section>
 
