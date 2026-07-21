@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { MapPin, ChevronDown, Check } from "lucide-react";
 import SpecularButton from "./ui/SpecularButton";
 
+// Махачкала первой: здесь магазин и склад, отсюда идёт доставка.
+// Дефолт «Москва» противоречил адресу в футере и на контактах.
 const cities = [
+  "Махачкала",
   "Москва",
   "Санкт-Петербург",
-  "Махачкала",
   "Краснодар",
   "Ростов-на-Дону",
   "Казань",
@@ -18,7 +20,7 @@ const cities = [
 
 // Выбор города — стоит слева в нав-ряду, рядом с пунктами меню.
 export function CityPicker() {
-  const [city, setCity] = useState("Москва");
+  const [city, setCity] = useState("Махачкала");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

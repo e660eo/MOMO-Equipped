@@ -5,6 +5,13 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 import type { Product, Category, Brand } from "@/lib/types";
 import { formatPrice, siteConfig } from "@/lib/data";
+import {
+  parseTech,
+  diameterBucket,
+  powerBucket,
+  DIAMETER_ORDER,
+  POWER_ORDER,
+} from "@/lib/specs";
 import { ProductCard } from "./product-card";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +61,43 @@ export function CatalogView({
   // распроданное»: неизвестный статус — не повод обещать наличие.
   const [inStockOnly, setInStockOnly] = useState(false);
 
+  /*
+    Фильтры по характеристикам. Значения распознаются из названия и описания
+    (см. parseTech): характеристика есть не у каждого товара, поэтому активный
+    фильтр сужает выдачу до товаров, где она распознана, — как в любом
+    магазине. Счётчики в опциях показывают, сколько товаров за каждой.
+  */
+  const [diaFilter, setDiaFilter] = useState("");
+  const [powFilter, setPowFilter] = useState("");
+  const [impFilter, setImpFilter] = useState("");
+
+  const techMap = useMemo(() => {
+    const m = new Map<
+      string,
+      { dia: string | null; pow: string | null; imp: number | null }
+    >();
+    for (const p of products) {
+      const t = parseTech(p.title, p.description);
+      m.set(p.slug, {
+        dia: t.diameterMm ? diameterBucket(t.diameterMm) : null,
+        pow: t.powerMaxW ? powerBucket(t.powerMaxW) : null,
+        imp: t.impedanceOhm ?? null,
+      });
+    }
+    return m;
+  }, [products]);
+
+  // Опции с количеством товаров; пустые корзины не показываем
+  const techOptions = useMemo(() => {
+    const count = (f: (t: { dia: string | null; pow: string | null; imp: number | null }) => boolean) =>
+      products.filter((p) => f(techMap.get(p.slug)!)).length;
+    return {
+      dia: DIAMETER_ORDER.map((b) => ({ v: b, n: count((t) => t.dia === b) })).filter((o) => o.n > 0),
+      pow: POWER_ORDER.map((b) => ({ v: b, n: count((t) => t.pow === b) })).filter((o) => o.n > 0),
+      imp: [1, 2, 4].map((v) => ({ v: String(v), n: count((t) => t.imp === v) })).filter((o) => o.n > 0),
+    };
+  }, [products, techMap]);
+
   // Границы цены по всему каталогу (округляем до сотен).
   const priceBounds = useMemo(() => {
     const prices = products.map((p) => p.price);
@@ -74,7 +118,7 @@ export function CatalogView({
   const [visible, setVisible] = useState(PAGE);
   useEffect(() => {
     setVisible(PAGE);
-  }, [category, brand, query, sort, price, inStockOnly]);
+  }, [category, brand, query, sort, price, inStockOnly, diaFilter, powFilter, impFilter]);
 
   /*
     На узком экране фильтры занимали весь первый экран — до первой карточки
@@ -107,19 +151,27 @@ export function CatalogView({
     setQuery("");
     setPrice([priceBounds.min, priceBounds.max]);
     setInStockOnly(false);
+    setDiaFilter("");
+    setPowFilter("");
+    setImpFilter("");
     router.push(pathname, { scroll: false });
   }
 
   const filtered = useMemo(() => {
-    let list = products.filter(
-      (p) =>
+    let list = products.filter((p) => {
+      const t = techMap.get(p.slug)!;
+      return (
         (!category || p.category === category) &&
         (!brand || p.brand === brand) &&
         (!query || p.title.toLowerCase().includes(query.toLowerCase())) &&
         (!inStockOnly || p.inStock === true) &&
+        (!diaFilter || t.dia === diaFilter) &&
+        (!powFilter || t.pow === powFilter) &&
+        (!impFilter || String(t.imp) === impFilter) &&
         p.price >= price[0] &&
-        p.price <= price[1],
-    );
+        p.price <= price[1]
+      );
+    });
     switch (sort) {
       case "availability": {
         // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
@@ -142,12 +194,13 @@ export function CatalogView({
         break;
     }
     return list;
-  }, [products, category, brand, query, price, sort, inStockOnly]);
+  }, [products, category, brand, query, price, sort, inStockOnly, diaFilter, powFilter, impFilter, techMap]);
 
   const shown = filtered.slice(0, visible);
   const activeCategory = categories.find((c) => c.slug === category);
   const hasFilters = Boolean(
-    category || brand || query || priceActive || inStockOnly,
+    category || brand || query || priceActive || inStockOnly ||
+    diaFilter || powFilter || impFilter,
   );
 
   // Чипы активных фильтров.
@@ -173,6 +226,16 @@ export function CatalogView({
       key: "instock",
       label: "В наличии",
       clear: () => setInStockOnly(false),
+    });
+  if (diaFilter)
+    chips.push({ key: "dia", label: diaFilter, clear: () => setDiaFilter("") });
+  if (powFilter)
+    chips.push({ key: "pow", label: powFilter, clear: () => setPowFilter("") });
+  if (impFilter)
+    chips.push({
+      key: "imp",
+      label: `${impFilter} Ом`,
+      clear: () => setImpFilter(""),
     });
 
   // Счётчик на кнопке «Фильтры»: в свёрнутом виде иначе не видно, что они активны
@@ -301,6 +364,65 @@ export function CatalogView({
               ))}
             </select>
           </label>
+
+          {/* Характеристики: показываем select только если по нему есть данные */}
+          {techOptions.dia.length > 0 && (
+            <label className="flex flex-col gap-1.5">
+              <span className="font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Диаметр динамика
+              </span>
+              <select
+                value={diaFilter}
+                onChange={(e) => setDiaFilter(e.target.value)}
+                className={selectCls}
+              >
+                <option value="">Любой</option>
+                {techOptions.dia.map((o) => (
+                  <option key={o.v} value={o.v}>
+                    {o.v} · {o.n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {techOptions.pow.length > 0 && (
+            <label className="flex flex-col gap-1.5">
+              <span className="font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Мощность (MAX)
+              </span>
+              <select
+                value={powFilter}
+                onChange={(e) => setPowFilter(e.target.value)}
+                className={selectCls}
+              >
+                <option value="">Любая</option>
+                {techOptions.pow.map((o) => (
+                  <option key={o.v} value={o.v}>
+                    {o.v} · {o.n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {techOptions.imp.length > 0 && (
+            <label className="flex flex-col gap-1.5">
+              <span className="font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground">
+                Сопротивление
+              </span>
+              <select
+                value={impFilter}
+                onChange={(e) => setImpFilter(e.target.value)}
+                className={selectCls}
+              >
+                <option value="">Любое</option>
+                {techOptions.imp.map((o) => (
+                  <option key={o.v} value={o.v}>
+                    {o.v} Ом · {o.n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           {/* Цена — двойной ползунок */}
           <div className="flex flex-col gap-2.5">

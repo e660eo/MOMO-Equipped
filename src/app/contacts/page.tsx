@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/data";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import { YandexMap } from "@/components/yandex-map";
 
 export const metadata: Metadata = {
   title: "Контакты",
@@ -94,6 +95,19 @@ export default function ContactsPage() {
             </button>
           </form>
         </div>
+      </div>
+
+      {/* Как нас найти */}
+      <div className="mt-14">
+        <h2 className="font-display text-lg font-semibold uppercase">
+          Как нас найти
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">{c.address}</p>
+        <YandexMap
+          query={`Махачкала, проспект Гамидова, 16`}
+          className="mt-5"
+          title="MOMO Equipped на карте"
+        />
       </div>
     </main>
   );
