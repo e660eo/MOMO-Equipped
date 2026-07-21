@@ -17,6 +17,8 @@ import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Stars } from "@/components/stars";
+import { JsonLd } from "@/components/json-ld";
+import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -55,8 +57,20 @@ export default async function ProductPage({
   const reviews = getReviews(product.slug);
   const specs = parseSpecs(product.title);
 
+  // Крошки для разметки повторяют навигацию выше: Главная → Каталог → категория → товар
+  const crumbs = [
+    { name: "Главная", url: "/" },
+    { name: "Каталог", url: "/catalog" },
+    ...(category
+      ? [{ name: category.title, url: `/catalog?category=${category.slug}` }]
+      : []),
+    { name: product.title, url: `/product/${product.slug}` },
+  ];
+
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-12">
+      <JsonLd data={productSchema(product, category)} />
+      <JsonLd data={breadcrumbSchema(crumbs)} />
       {/* Хлебные крошки */}
       <nav className="mb-8 flex flex-wrap gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground">
         <Link href="/" className="hover:text-signal">

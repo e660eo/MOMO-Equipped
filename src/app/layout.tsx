@@ -9,6 +9,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/toaster";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
+import { JsonLd } from "@/components/json-ld";
+import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 
 // Заголовки — фирменный Unbounded. Вес 800 добавлен к исходным 500/700
 // для акцентных заголовков вроде «Реквизиты».
@@ -61,6 +63,9 @@ export default async function RootLayout({
       className={`${unbounded.variable} ${manrope.variable} ${syne.variable}`}
     >
       <body>
+        {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
         {/*
           Колонка на всю высоту окна: если контента мало (короткая страница,
           пустой результат фильтра, высокий монитор), растягивается обёртка
