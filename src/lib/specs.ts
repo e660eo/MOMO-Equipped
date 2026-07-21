@@ -149,9 +149,9 @@ export function parseTech(title: string, description?: string[]): TechSpec {
     out.diameterMm = Math.round(parseFloat(inch[1].replace(",", ".")) * 25.4);
   else if (mm) out.diameterMm = parseInt(mm[1], 10);
 
-  // Мощность: «MAX: 300 W» из описания приоритетнее числа из названия.
-  // «BT» — частая опечатка «Вт» в прайсе, но только сразу после числа.
-  const pMax = src.match(/MAX[:\s]*(\d{2,5})\s*(?:W|Вт|BT)/i);
+  // Мощность: «MAX: 300 W» / «MAX - 300 W» из описания приоритетнее числа
+  // из названия. «BT» — частая опечатка «Вт» в прайсе, но только после числа.
+  const pMax = src.match(/MAX\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i);
   const pAny = src.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
   const p = pMax ?? pAny;
   if (p) out.powerMaxW = parseInt(p[1], 10);
@@ -201,3 +201,82 @@ export const POWER_ORDER = [
   "400–1000 Вт",
   "свыше 1000 Вт",
 ];
+
+/* ------------------------------------------------------------------ */
+/* Полные характеристики для карточки товара                           */
+/* ------------------------------------------------------------------ */
+
+export interface ProductSpecs {
+  /** Ключевые цифры для крупных плашек: мощность, диаметр, сопротивление. */
+  stats: Spec[];
+  /** Таблица «ключ: значение»; value === "" — подзаголовок группы. */
+  rows: Spec[];
+  /** Строки описания без ключа — обычные пункты. */
+  notes: string[];
+}
+
+/**
+ * Сводит характеристики из описания прайса и названия в одну структуру.
+ * Плашки собираются консервативно: мощность — только явный MAX или число
+ * из названия; сопротивление — только из названия (в описаниях усилителей
+ * «4 Ом: 260 Вт» — это строка таблицы, а не паспортное сопротивление).
+ */
+export function fullSpecs(title: string, description?: string[]): ProductSpecs {
+  const src = [title, ...(description ?? [])].join(" · ");
+
+  const stats: Spec[] = [];
+  const pMax = src.match(/MAX\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i);
+  const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
+  if (pMax) stats.push({ label: "Мощность MAX", value: `${pMax[1]} Вт` });
+  else if (pTitle) stats.push({ label: "Мощность", value: `${pTitle[1]} Вт` });
+
+  const tech = parseTech(title, description);
+  if (tech.diameterMm) {
+    const bucket = diameterBucket(tech.diameterMm);
+    if (bucket) stats.push({ label: "Диаметр", value: bucket });
+  }
+  const ohmTitle = title.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
+  if (ohmTitle) stats.push({ label: "Сопротивление", value: `${ohmTitle[1]} Ом` });
+
+  // «300 W» и прайсовая опечатка «300 BT» — приводим к «300 Вт»
+  const clean = (s: string) =>
+    s.replace(/(\d)\s*(?:BT|W)(?![a-zа-яё])/gi, "$1 Вт").replace(/^["'«]+|["'»]+$/g, "").trim();
+
+  const rows: Spec[] = [];
+  const notes: string[] = [];
+  const seen = new Set<string>();
+  // «Размер» из названия и «Диаметр» из описания — одно и то же поле
+  const keyOf = (label: string) => {
+    const k = label.toLowerCase();
+    return k === "размер" ? "диаметр" : k;
+  };
+  for (const raw of description ?? []) {
+    const line = raw.replace(/^[•\-–\s]+/, "").trim();
+    if (line.length < 3) continue;
+    // «Ключ: значение» либо «Ключ - значение» (обе формы встречаются в прайсе).
+    // В тире-форме ключ без дефисов, а тире может липнуть к слову
+    // («Диапозон частот- 60 - 20 000 Гц» → ключ до первого тире).
+    const m =
+      line.match(/^([^:]{2,40}):\s*(.*)$/) ??
+      line.match(/^([^-:–—]{2,40}?)\s*[-–—]\s+(.+)$/);
+    if (m) {
+      const label = m[1].trim();
+      const key = keyOf(label);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rows.push({ label, value: clean(m[2]) });
+    } else {
+      notes.push(line);
+    }
+  }
+  // Распознанное из названия — только то, чего в описании не было
+  for (const s of parseSpecs(title)) {
+    const key = keyOf(s.label);
+    if (!seen.has(key)) {
+      seen.add(key);
+      rows.push(s);
+    }
+  }
+
+  return { stats, rows, notes };
+}

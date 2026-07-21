@@ -12,9 +12,9 @@ import {
   siteConfig,
 } from "@/lib/data";
 import { MessageSquare } from "lucide-react";
-import { parseSpecs } from "@/lib/specs";
+import { fullSpecs } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
-import { ProductImage } from "@/components/product-image";
+import { ProductGallery } from "@/components/product-gallery";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { JsonLd } from "@/components/json-ld";
 import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
@@ -52,7 +52,9 @@ export default async function ProductPage({
     .slice(0, 4);
 
   const split = splitPayment(product.price);
-  const specs = parseSpecs(product.title);
+  const { stats, rows, notes } = fullSpecs(product.title, product.description);
+  // Обложка + дополнительные снимки из поля images (владелец пополняет сам)
+  const gallery = [product.image, ...(product.images ?? [])].map(productImageUrl);
 
   // Крошки для разметки повторяют навигацию выше: Главная → Каталог → категория → товар
   const crumbs = [
@@ -91,13 +93,9 @@ export default async function ProductPage({
       </nav>
 
       <div className="grid gap-10 md:grid-cols-2">
-        {/* Фото */}
-        <div className="flex aspect-square items-center justify-center overflow-hidden rounded border border-border bg-tile">
-          <ProductImage
-            src={productImageUrl(product.image)}
-            alt={product.title}
-            className="h-[86%] w-[86%] object-contain mix-blend-multiply"
-          />
+        {/* Фото: галерея с крупным просмотром */}
+        <div className="md:sticky md:top-24 md:h-fit">
+          <ProductGallery images={gallery} alt={product.title} />
         </div>
 
         {/* Инфо */}
@@ -169,38 +167,68 @@ export default async function ProductPage({
             </a>
           </div>
 
-          {/* Характеристики, распознанные из названия */}
-          {specs.length > 0 && (
+          {/* Ключевые цифры — крупные плашки; мощность всегда первая */}
+          {stats.length > 0 && (
+            <div
+              className={`mt-8 grid gap-3 border-t border-border pt-6 ${
+                stats.length === 1 ? "grid-cols-1" : stats.length === 2 ? "grid-cols-2" : "grid-cols-3"
+              }`}
+            >
+              {stats.map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-xl border border-border bg-surface p-4 text-center"
+                >
+                  <p className="font-display text-lg font-extrabold leading-tight text-signal sm:text-xl">
+                    {s.value}
+                  </p>
+                  <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
+                    {s.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Полные характеристики: описание прайса + распознанное из названия */}
+          {rows.length > 0 && (
             <div className="mt-8 border-t border-border pt-6">
               <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
                 Характеристики
               </h2>
               <dl className="mt-3 divide-y divide-border">
-                {specs.map((s) => (
-                  <div
-                    key={s.label + s.value}
-                    className="flex items-baseline justify-between gap-6 py-2.5"
-                  >
-                    <dt className="text-[0.85rem] text-muted-foreground">
-                      {s.label}
-                    </dt>
-                    <dd className="text-right font-mono text-[0.85rem] font-medium">
-                      {s.value}
-                    </dd>
-                  </div>
-                ))}
+                {rows.map((s) =>
+                  s.value === "" ? (
+                    // Подзаголовок группы («Номинальная выходная мощность (RMS):»)
+                    <div key={s.label} className="pb-1 pt-3.5">
+                      <dt className="text-[0.85rem] font-semibold">{s.label}</dt>
+                    </div>
+                  ) : (
+                    <div
+                      key={s.label + s.value}
+                      className="flex items-baseline justify-between gap-6 py-2.5"
+                    >
+                      <dt className="text-[0.85rem] text-muted-foreground">
+                        {s.label}
+                      </dt>
+                      <dd className="text-right font-mono text-[0.85rem] font-medium">
+                        {s.value}
+                      </dd>
+                    </div>
+                  ),
+                )}
               </dl>
             </div>
           )}
 
-          {/* Описание из прайса поставщика */}
-          {product.description && product.description.length > 0 && (
+          {/* Особенности без ключей — остаток описания поставщика */}
+          {notes.length > 0 && (
             <div className="mt-8 border-t border-border pt-6">
               <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
-                Описание
+                Особенности
               </h2>
               <ul className="mt-3 space-y-2">
-                {product.description.map((line, i) => (
+                {notes.map((line, i) => (
                   <li
                     key={i}
                     className="border-l border-border pl-4 text-[0.88rem] leading-relaxed text-muted-foreground"

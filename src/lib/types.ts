@@ -10,6 +10,11 @@ export interface Product {
   inStock?: boolean;
   /** Описание из прайса поставщика, построчно. */
   description?: string[];
+  /**
+   * Дополнительные фото для галереи (image остаётся обложкой).
+   * Добавить снимок: положить файл в public/uploads/ и вписать сюда имя.
+   */
+  images?: string[];
 }
 
 export interface Category {
