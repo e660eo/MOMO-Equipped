@@ -8,7 +8,13 @@ import { formatPrice, siteConfig } from "@/lib/data";
 import { ProductCard } from "./product-card";
 import { cn } from "@/lib/utils";
 
-type Sort = "popular" | "price_asc" | "price_desc" | "title_asc" | "title_desc";
+type Sort =
+  | "popular"
+  | "availability"
+  | "price_asc"
+  | "price_desc"
+  | "title_asc"
+  | "title_desc";
 
 const selectCls =
   "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -43,6 +49,10 @@ export function CatalogView({
   const [sort, setSort] = useState<Sort>("popular");
   // Начальный поиск может прийти из шапки: /catalog?search=…
   const [query, setQuery] = useState(params.get("search") ?? "");
+  // Наличие известно не у всех товаров (у части статуса из прайса просто нет),
+  // поэтому фильтр показывает только подтверждённо доступные, а не «прячет
+  // распроданное»: неизвестный статус — не повод обещать наличие.
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   // Границы цены по всему каталогу (округляем до сотен).
   const priceBounds = useMemo(() => {
@@ -64,7 +74,7 @@ export function CatalogView({
   const [visible, setVisible] = useState(PAGE);
   useEffect(() => {
     setVisible(PAGE);
-  }, [category, brand, query, sort, price]);
+  }, [category, brand, query, sort, price, inStockOnly]);
 
   /*
     На узком экране фильтры занимали весь первый экран — до первой карточки
@@ -96,6 +106,7 @@ export function CatalogView({
   function resetAll() {
     setQuery("");
     setPrice([priceBounds.min, priceBounds.max]);
+    setInStockOnly(false);
     router.push(pathname, { scroll: false });
   }
 
@@ -105,10 +116,18 @@ export function CatalogView({
         (!category || p.category === category) &&
         (!brand || p.brand === brand) &&
         (!query || p.title.toLowerCase().includes(query.toLowerCase())) &&
+        (!inStockOnly || p.inStock === true) &&
         p.price >= price[0] &&
         p.price <= price[1],
     );
     switch (sort) {
+      case "availability": {
+        // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
+        const rank = (p: Product) =>
+          p.inStock === true ? 0 : p.inStock === false ? 2 : 1;
+        list = [...list].sort((a, b) => rank(a) - rank(b));
+        break;
+      }
       case "price_asc":
         list = [...list].sort((a, b) => a.price - b.price);
         break;
@@ -123,11 +142,13 @@ export function CatalogView({
         break;
     }
     return list;
-  }, [products, category, brand, query, price, sort]);
+  }, [products, category, brand, query, price, sort, inStockOnly]);
 
   const shown = filtered.slice(0, visible);
   const activeCategory = categories.find((c) => c.slug === category);
-  const hasFilters = Boolean(category || brand || query || priceActive);
+  const hasFilters = Boolean(
+    category || brand || query || priceActive || inStockOnly,
+  );
 
   // Чипы активных фильтров.
   const chips: { key: string; label: string; clear: () => void }[] = [];
@@ -146,6 +167,12 @@ export function CatalogView({
       key: "price",
       label: `${formatPrice(price[0])} – ${formatPrice(price[1])}`,
       clear: () => setPrice([priceBounds.min, priceBounds.max]),
+    });
+  if (inStockOnly)
+    chips.push({
+      key: "instock",
+      label: "В наличии",
+      clear: () => setInStockOnly(false),
     });
 
   // Счётчик на кнопке «Фильтры»: в свёрнутом виде иначе не видно, что они активны
@@ -233,6 +260,7 @@ export function CatalogView({
               className={selectCls}
             >
               <option value="popular">Сначала популярные</option>
+              <option value="availability">Сначала в наличии</option>
               <option value="price_asc">Цена: по возрастанию</option>
               <option value="price_desc">Цена: по убыванию</option>
               <option value="title_asc">Название: А‑Я</option>
@@ -319,6 +347,17 @@ export function CatalogView({
               <span>{formatPrice(price[1])}</span>
             </div>
           </div>
+
+          {/* Наличие */}
+          <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+            <input
+              type="checkbox"
+              checked={inStockOnly}
+              onChange={(e) => setInStockOnly(e.target.checked)}
+              className="h-[1.05rem] w-[1.05rem] shrink-0 cursor-pointer accent-[#FF5500]"
+            />
+            <span className="font-medium">Только в наличии</span>
+          </label>
 
           {hasFilters && (
             <button
