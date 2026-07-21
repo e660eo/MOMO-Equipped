@@ -50,6 +50,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ru_RU",
   },
+  // Невидимый маркер выката: по нему видно, что автообновление доставило сборку
+  other: { "deploy-check": "auto-2026-07-21" },
 };
 
 export default async function RootLayout({
