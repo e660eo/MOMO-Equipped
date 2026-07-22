@@ -15,7 +15,6 @@
     "warrantyMonths": 12,
     "returnDays": 14,
     "processingDays": 1,
-    "skuCount": "300+",
     "freeShippingFrom": 5000
   },
   "requisites": {
@@ -43,7 +42,7 @@
       "mail@momo-eq.ru",
       "zaur122@yandex.ru"
     ],
-    "website": "https://mo.net.ru",
+    "website": "https://momo-eq.ru",
     "okvedMain": "45.31. Торговля оптовая автомобильными деталями, узлами и принадлежностями",
     "okvedExtra": [
       "45.20. Техническое обслуживание и ремонт автотранспортных средств",

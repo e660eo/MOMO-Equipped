@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getClearanceProducts, siteConfig } from "@/lib/data";
+import { plural } from "@/lib/utils";
 import { ProductCard } from "@/components/product-card";
 
 export const metadata: Metadata = {
@@ -53,12 +54,7 @@ export default function SalePage() {
         </p>
         <p className="relative z-[1] mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 font-mono text-[0.72rem] uppercase tracking-wider text-white/80">
           {products.length}{" "}
-          {products.length === 1
-            ? "позиция"
-            : products.length < 5
-              ? "позиции"
-              : "позиций"}{" "}
-          в наличии
+          {plural(products.length, "позиция", "позиции", "позиций")} в наличии
         </p>
       </section>
 

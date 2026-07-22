@@ -312,34 +312,16 @@
     "category": "dinamiki-rupora",
     "price": 1278,
     "image": "k_7e593ec9b92b4595821e96e97749233b.webp",
-    "isClearance": true
-  },
-  {
-    "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-735997",
-    "title": "Динамики рупорные 100мм автомобильные HE-290. Товар уцененный",
-    "brand": "MOMO",
-    "category": "dinamiki-rupora",
-    "price": 1278,
-    "image": "k_58a842f455d3472ea3ae1d921a78e7be.webp",
-    "isClearance": true
-  },
-  {
-    "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-729003",
-    "title": "Динамики рупорные 100мм автомобильные HE-290. Товар уцененный",
-    "brand": "MOMO",
-    "category": "dinamiki-rupora",
-    "price": 1278,
-    "image": "k_d0434726c3544daa9215ba9b857fc3f3.webp",
-    "isClearance": true
-  },
-  {
-    "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-733262",
-    "title": "Динамики рупорные 100мм автомобильные HE-290. Товар уцененный",
-    "brand": "MOMO",
-    "category": "dinamiki-rupora",
-    "price": 1278,
-    "image": "k_9521dfc4c4634b14bcd54cb44e9f997b.webp",
-    "isClearance": true
+    "isClearance": true,
+    "description": [
+      "Диаметр - 100mm",
+      "Мощность MAX - 150 W",
+      "Мощность RMS - 50BT",
+      "Чувствительность ДБ - 92",
+      "Диапозон частот- 2 000-20 000 Гц",
+      "Импеданс - 4 Ом",
+      "Звуковая катушка - 1 Дюйм"
+    ]
   },
   {
     "slug": "dinamiki-estradnye-13sm-v-mashinu-mr-130-056376",

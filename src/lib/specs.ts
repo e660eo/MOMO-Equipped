@@ -10,6 +10,13 @@ export interface Spec {
   value: string;
 }
 
+/**
+ * Потолок правдоподобия для мощности. Самые громкие моноблоки в каталоге
+ * заявляют 5100 Вт пиковой — всё, что выше 10 кВт, приходит из рекламных
+ * названий, а не из характеристик товара.
+ */
+const POWER_SANITY_W = 10000;
+
 export function parseSpecs(title: string): Spec[] {
   const out: Spec[] = [];
   const seen = new Set<string>();
@@ -35,9 +42,12 @@ export function parseSpecs(title: string): Spec[] {
     и склеивает соседние токены («H4 3000-3200Лм» → «43000-3200»).
   */
 
-  // Мощность
+  // Мощность. Выше POWER_SANITY_W не показываем: в названиях с витрины
+  // попадается рекламный мусор («ксеноновая лампа H4 … 23000Вт»), и такая
+  // характеристика в карточке выглядит как ошибка магазина.
   const power = title.match(/(\d{1,6})\s*(?:вт(?![а-яё])|ватт|w\b)/i);
-  if (power) add("Мощность", `${power[1]} Вт`);
+  if (power && parseInt(power[1], 10) <= POWER_SANITY_W)
+    add("Мощность", `${power[1]} Вт`);
 
   // Световой поток (одно значение или диапазон)
   const lumen = title.match(
@@ -154,7 +164,10 @@ export function parseTech(title: string, description?: string[]): TechSpec {
   const pMax = src.match(/MAX\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i);
   const pAny = src.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
   const p = pMax ?? pAny;
-  if (p) out.powerMaxW = parseInt(p[1], 10);
+  if (p) {
+    const w = parseInt(p[1], 10);
+    if (w <= POWER_SANITY_W) out.powerMaxW = w;
+  }
 
   // Сопротивление: 1/2/4 Ом (диапазон реальный для автозвука)
   const ohm = src.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
@@ -227,8 +240,11 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
   const stats: Spec[] = [];
   const pMax = src.match(/MAX\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i);
   const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
-  if (pMax) stats.push({ label: "Мощность MAX", value: `${pMax[1]} Вт` });
-  else if (pTitle) stats.push({ label: "Мощность", value: `${pTitle[1]} Вт` });
+  const sane = (m: RegExpMatchArray | null) =>
+    m && parseInt(m[1], 10) <= POWER_SANITY_W ? m : null;
+  if (sane(pMax)) stats.push({ label: "Мощность MAX", value: `${pMax![1]} Вт` });
+  else if (sane(pTitle))
+    stats.push({ label: "Мощность", value: `${pTitle![1]} Вт` });
 
   const tech = parseTech(title, description);
   if (tech.diameterMm) {

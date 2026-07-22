@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Disc3, Zap, Volume2, Tag } from "lucide-react";
-import { siteConfig } from "@/lib/data";
+import { siteConfig, getProducts } from "@/lib/data";
+import { plural } from "@/lib/utils";
 
 /*
   Страница 404.
@@ -61,7 +62,8 @@ export default function NotFound() {
       </h1>
       <p className="mx-auto mt-5 max-w-[46ch] text-muted-foreground">
         Такой страницы нет — возможно, товар снят с продажи или ссылка устарела.
-        Но каталог на месте: 145 позиций ждут.
+        Но каталог на месте: {getProducts().length}{" "}
+        {plural(getProducts().length, "позиция", "позиции", "позиций")} ждут.
       </p>
 
       <div className="mt-9 flex flex-wrap justify-center gap-3">

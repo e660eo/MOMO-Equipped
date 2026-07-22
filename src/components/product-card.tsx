@@ -72,11 +72,13 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       )}
 
-      <div className="mt-3.5 flex items-baseline justify-between gap-2 border-t border-border pt-3.5">
-        <span className="font-display text-[1.05rem] font-semibold">
+      {/* На узкой плитке (две колонки на телефоне) цена и сплит в одну строку
+          не помещаются и рвутся посреди числа — там они идут друг под другом. */}
+      <div className="mt-3.5 flex flex-col gap-0.5 border-t border-border pt-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+        <span className="font-display text-[1.05rem] font-semibold whitespace-nowrap">
           {formatPrice(product.price)}
         </span>
-        <span className="font-mono text-[0.68rem] text-muted-foreground">
+        <span className="font-mono text-[0.68rem] text-muted-foreground whitespace-nowrap">
           <b className="font-medium text-[var(--signal-text)]">
             {formatPrice(splitPayment(product.price))}
           </b>{" "}

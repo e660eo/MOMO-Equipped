@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getProducts, getCategories, getBrands } from "@/lib/data";
+import { plural } from "@/lib/utils";
 import { CatalogView } from "@/components/catalog-view";
 
+// Число товаров в описании берём из каталога: зашитое «145» устарело на
+// следующей же правке данных, а это текст для выдачи поисковиков.
 export const metadata: Metadata = {
   title: "Каталог",
-  description:
-    "Каталог автоакустики MOMO: сабвуферы, усилители, динамики, мультимедиа, автосвет и аксессуары. 145 товаров с фильтрами по категориям и брендам.",
+  description: `Каталог автоакустики MOMO: сабвуферы, усилители, динамики, мультимедиа, автосвет и аксессуары. ${getProducts().length} ${plural(getProducts().length, "товар", "товара", "товаров")} с фильтрами по категориям и брендам.`,
 };
 
 export default function CatalogPage() {

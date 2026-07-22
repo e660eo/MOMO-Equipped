@@ -13,29 +13,44 @@ import {
   POWER_ORDER,
 } from "@/lib/specs";
 import { ProductCard } from "./product-card";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 
+// «Популярное» намеренно нет: статистики продаж и просмотров у нас не собирается,
+// а прежний пункт «Сначала популярные» просто отдавал порядок строк в JSON.
 type Sort =
-  | "popular"
+  | "sound_first"
   | "availability"
   | "price_asc"
   | "price_desc"
   | "title_asc"
   | "title_desc";
 
+/*
+  Порядок по умолчанию: магазин про звук, поэтому витрина открывается
+  сабвуферами и усилением, а провода, клеммы и лампы уходят в хвост —
+  без этого каталог начинался с автомагнитол и ксеноновых ламп.
+  Внутри раздела вперёд идёт то, что в наличии, затем — что дороже
+  (старшие модели показательнее для первого экрана).
+*/
+const CATEGORY_ORDER = [
+  "sabvufery",
+  "usiliteli-monobloki",
+  "dinamiki-rupora",
+  "multimedia",
+  "aksessuary",
+  "avtosvet",
+];
+const categoryRank = (slug: string) => {
+  const i = CATEGORY_ORDER.indexOf(slug);
+  return i === -1 ? CATEGORY_ORDER.length : i;
+};
+
 const selectCls =
   "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
 
 const PAGE = 24;
 
-// Склонение существительного «товар» под число.
-function pluralItems(n: number): string {
-  const n10 = n % 10;
-  const n100 = n % 100;
-  if (n10 === 1 && n100 !== 11) return "товар";
-  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return "товара";
-  return "товаров";
-}
+const pluralItems = (n: number) => plural(n, "товар", "товара", "товаров");
 
 export function CatalogView({
   products,
@@ -53,7 +68,7 @@ export function CatalogView({
   const category = params.get("category") ?? "";
   const brand = params.get("brand") ?? "";
 
-  const [sort, setSort] = useState<Sort>("popular");
+  const [sort, setSort] = useState<Sort>("sound_first");
   // Начальный поиск может прийти из шапки: /catalog?search=…
   const [query, setQuery] = useState(params.get("search") ?? "");
   // Наличие известно не у всех товаров (у части статуса из прайса просто нет),
@@ -172,14 +187,22 @@ export function CatalogView({
         p.price <= price[1]
       );
     });
+    // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
+    const stockRank = (p: Product) =>
+      p.inStock === true ? 0 : p.inStock === false ? 2 : 1;
+
     switch (sort) {
-      case "availability": {
-        // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
-        const rank = (p: Product) =>
-          p.inStock === true ? 0 : p.inStock === false ? 2 : 1;
-        list = [...list].sort((a, b) => rank(a) - rank(b));
+      case "sound_first":
+        list = [...list].sort(
+          (a, b) =>
+            categoryRank(a.category) - categoryRank(b.category) ||
+            stockRank(a) - stockRank(b) ||
+            b.price - a.price,
+        );
         break;
-      }
+      case "availability":
+        list = [...list].sort((a, b) => stockRank(a) - stockRank(b));
+        break;
       case "price_asc":
         list = [...list].sort((a, b) => a.price - b.price);
         break;
@@ -322,7 +345,7 @@ export function CatalogView({
               onChange={(e) => setSort(e.target.value as Sort)}
               className={selectCls}
             >
-              <option value="popular">Сначала популярные</option>
+              <option value="sound_first">Сначала акустика</option>
               <option value="availability">Сначала в наличии</option>
               <option value="price_asc">Цена: по возрастанию</option>
               <option value="price_desc">Цена: по убыванию</option>

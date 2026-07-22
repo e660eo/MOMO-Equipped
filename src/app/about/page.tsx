@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { siteConfig, getBrands } from "@/lib/data";
+import { siteConfig, getBrands, getProducts } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "О компании",
@@ -21,7 +21,9 @@ export default function AboutPage() {
 
   const facts = [
     { value: "2015", label: "год, с которого мы в автозвуке" },
-    { value: trust.skuCount, label: "позиций в каталоге" },
+    // Цифра — из самого каталога: константа в конфиге рано или поздно разошлась бы
+    // с реальностью, а завышенное «300+» при 145 позициях подрывает доверие.
+    { value: String(getProducts().length), label: "позиций в каталоге" },
     { value: `${trust.warrantyMonths} мес`, label: "гарантия на оборудование" },
     { value: "РФ", label: "доставка по всей России" },
   ];

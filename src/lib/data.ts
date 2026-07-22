@@ -55,8 +55,19 @@ export function getBundles(): ResolvedBundle[] {
   });
 }
 
+/**
+ * Категории со счётчиком, посчитанным по самому каталогу: поле `count` в JSON
+ * расходилось с товарами при каждой правке данных.
+ */
 export function getCategories(): Category[] {
-  return categories as Category[];
+  const counts = new Map<string, number>();
+  for (const p of getProducts()) {
+    counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+  }
+  return (categories as Category[]).map((c) => ({
+    ...c,
+    count: counts.get(c.slug) ?? 0,
+  }));
 }
 
 export function getCategory(slug: string): Category | undefined {
@@ -84,5 +95,7 @@ export function splitPayment(price: number): number {
 }
 
 export function formatPrice(price: number): string {
-  return `${price.toLocaleString("ru-RU")} ₽`;
+  // Неразрывный пробел перед знаком рубля: в узких карточках «₽» уезжал
+  // на следующую строку и цена читалась как оборванная.
+  return `${price.toLocaleString("ru-RU")} ₽`;
 }

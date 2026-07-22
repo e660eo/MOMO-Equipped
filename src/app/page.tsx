@@ -9,7 +9,6 @@ import {
   Cable,
   MapPin,
   Mail,
-  Phone,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -20,7 +19,7 @@ import {
   siteConfig,
 } from "@/lib/data";
 import { BundleCard } from "@/components/bundle-card";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 import { WebGLShader } from "@/components/ui/web-gl-shader";
 import { BannerCarousel } from "@/components/banner-carousel";
 import { ProductCard } from "@/components/product-card";
@@ -53,8 +52,19 @@ export default function Home() {
   const products = getProducts();
   const categories = getCategories();
   const news = getNews();
+  // Флагманы — старшие модели звукового тракта. Только сабвуферы, усиление и
+  // акустика: без этого фильтра наверх по цене всплывала 50-метровая бухта
+  // кабеля. Уценка сюда тоже не идёт — витрина бренда, а не распродажа.
+  const flagshipCategories = new Set([
+    "sabvufery",
+    "usiliteli-monobloki",
+    "dinamiki-rupora",
+  ]);
   const flagship = products
-    .filter((p) => p.brand === "MOMO")
+    .filter(
+      (p) =>
+        p.brand === "MOMO" && flagshipCategories.has(p.category) && !p.isClearance,
+    )
     .sort((a, b) => b.price - a.price)
     .slice(0, 4);
   const { trust } = siteConfig;
@@ -79,15 +89,18 @@ export default function Home() {
             </p>
 
             {/*
-              Логотип — главный герой экрана; заголовок уходит на второй план
-              и работает фоновой типографикой позади него.
+              Слоган и логотип разведены: раньше заголовок лежал подложкой
+              позади рендера и читался кусками. Теперь он идёт строкой над
+              логотипом, а логотип остаётся самым крупным объектом экрана.
             */}
-            <div className="relative mt-4 flex items-center justify-center">
-              <h1 className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center font-display text-[clamp(1.9rem,7.6vw,5.6rem)] font-extrabold uppercase leading-[0.94] tracking-tight text-zinc-900/[0.13]">
-                <span>Звук, который</span>
-                <span className="text-signal/25">чувствуешь.</span>
-              </h1>
-              <HeroLogo className="relative z-10 w-[clamp(320px,68vw,860px)]" />
+            <h1 className="mx-auto mt-4 max-w-[16ch] font-display text-[clamp(1.5rem,4.2vw,2.9rem)] font-extrabold uppercase leading-[1.04] tracking-tight text-zinc-900">
+              Звук, который <span className="text-signal">чувствуешь.</span>
+            </h1>
+
+            {/* Логотип ужат против прежнего: со слоганом отдельной строкой
+                экран стал выше, и кнопки уходили под сгиб. */}
+            <div className="mt-5 flex items-center justify-center">
+              <HeroLogo className="w-[clamp(260px,52vw,660px)]" />
             </div>
 
             <div className="mt-9 flex flex-wrap justify-center gap-4">
@@ -133,10 +146,10 @@ export default function Home() {
       <section className="py-20">
         <Reveal className="mx-auto max-w-[1200px] px-6">
           <SectionHead
-            eyebrow={`${categories.length} категорий · ${products.length} позиций`}
+            eyebrow={`${categories.length} ${plural(categories.length, "категория", "категории", "категорий")} · ${products.length} ${plural(products.length, "позиция", "позиции", "позиций")}`}
             title="Каталог"
             linkHref="/catalog"
-            linkLabel={`Все ${products.length} товаров →`}
+            linkLabel={`Все ${products.length} ${plural(products.length, "товар", "товара", "товаров")} →`}
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             {catalogLayout.map(({ slug, span, feature }) => {
@@ -223,7 +236,7 @@ export default function Home() {
       <section className="py-20">
         <Reveal className="mx-auto max-w-[1200px] px-6">
           <SectionHead
-            eyebrow="Топ по мощности · линейка MOMO"
+            eyebrow="Старшие модели · линейка MOMO"
             title="Флагманы MOMO"
             linkHref="/catalog?brand=MOMO"
             linkLabel="Вся линейка →"
@@ -314,16 +327,9 @@ export default function Home() {
               {siteConfig.contacts.phone}
             </a>
 
+            {/* Второй номер здесь не показываем — на «Контактах» его тоже убрали,
+                для покупателя действует один телефон. Оба остались в реквизитах. */}
             <ul className="relative z-[1] mt-6 space-y-2.5 border-t border-white/10 pt-6 font-mono text-[0.78rem] tracking-wide text-white/70">
-              <li className="flex items-center gap-3">
-                <Phone size={14} className="shrink-0 text-signal" />
-                <a
-                  href={`tel:${siteConfig.contacts.phoneSecondary.replace(/[^+\d]/g, "")}`}
-                  className="transition-colors hover:text-white"
-                >
-                  {siteConfig.contacts.phoneSecondary}
-                </a>
-              </li>
               <li className="flex items-center gap-3">
                 <Mail size={14} className="shrink-0 text-signal" />
                 <a
