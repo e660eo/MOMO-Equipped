@@ -26,6 +26,10 @@ REMOTE=$(git rev-parse origin/main)
 mkdir -p logs
 {
   echo "=== $(date '+%F %T') обновление ${LOCAL:0:7} -> ${REMOTE:0:7} ==="
+  # Забираем код ДО запуска deploy.sh: bash читает скрипт в память при
+  # старте, поэтому иначе выполнялась бы прошлая его версия — правки самого
+  # скрипта применялись бы только со следующего обновления.
+  git pull --ff-only
   bash scripts/deploy.sh
   echo "=== $(date '+%F %T') готово ==="
 } >> logs/auto-update.log 2>&1
