@@ -121,8 +121,18 @@ export async function saveProduct(
       ...(formData.get("hidden") === "on" ? { hidden: true } : {}),
     };
 
-    const stock = parseStock(String(formData.get("inStock") ?? ""));
-    if (stock !== undefined) product.inStock = stock;
+    const flag = parseStock(String(formData.get("inStock") ?? ""));
+    if (flag !== undefined) product.inStock = flag;
+
+    // Остаток: пустое поле — учёта по товару нет, наличие берётся из флага.
+    const stockRaw = String(formData.get("stock") ?? "").trim();
+    if (stockRaw !== "") {
+      const stock = Number(stockRaw);
+      if (!Number.isFinite(stock) || stock < 0) {
+        return { error: "Остаток — целое число, не меньше нуля." };
+      }
+      product.stock = Math.round(stock);
+    }
 
     const next = existing
       ? products.map((p) => (p.slug === slug ? product : p))
@@ -140,6 +150,50 @@ export async function saveProduct(
   }
 
   redirect("/admin/products?saved=1");
+}
+
+/**
+ * Правка цены и остатка прямо в списке — без захода в карточку.
+ * Ради этого сценария всё и затевалось: цены и остатки меняются каждый день,
+ * а открывать ради одной цифры полную форму долго.
+ */
+export async function quickUpdate(
+  slug: string,
+  price: number,
+  stock: number | null,
+): Promise<ActionState> {
+  try {
+    await requireSession();
+    assertWritable();
+
+    if (!Number.isFinite(price) || price <= 0) {
+      return { error: "Цена должна быть больше нуля." };
+    }
+    if (stock !== null && (!Number.isFinite(stock) || stock < 0)) {
+      return { error: "Остаток не может быть отрицательным." };
+    }
+
+    const products = readJson<Product[]>(FILE);
+    const existing = products.find((p) => p.slug === slug);
+    if (!existing) return { error: "Товар не найден." };
+
+    const next = products.map((p) => {
+      if (p.slug !== slug) return p;
+      const updated: Product = { ...p, price: Math.round(price) };
+      if (stock === null) delete updated.stock;
+      else updated.stock = Math.round(stock);
+      return updated;
+    });
+
+    writeJson(FILE, next);
+    refreshSite();
+    revalidatePath("/admin/products");
+    return { ok: "Сохранено" };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Не удалось сохранить.",
+    };
+  }
 }
 
 export async function toggleHidden(formData: FormData): Promise<void> {

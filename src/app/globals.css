@@ -285,6 +285,51 @@ body {
 /* Логотип чёрный по своей природе — в тёмной теме инвертируем в белый */
 :root[data-theme="dark"] .dark-logo { filter: invert(1) brightness(1.15); }
 
+/* ── Отклик интерфейса ──
+   Каждое нажатие должно быть заметно: кнопка проседает под пальцем, строка
+   подсвечивается под курсором, сохранение отвечает галочкой. Без этого в
+   панели непонятно, сработало действие или нет. */
+
+/* Галочка после сохранения: короткий «пух» вместо резкого появления */
+@keyframes check-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  55% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-in-check { animation: check-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Строка таблицы под курсором и сразу после записи */
+.admin-row { transition: background-color 0.18s ease; }
+.admin-row:hover { background: color-mix(in oklab, var(--color-signal) 4%, transparent); }
+
+@keyframes row-saved {
+  from { background: color-mix(in oklab, var(--color-signal) 16%, transparent); }
+  to { background: transparent; }
+}
+.row-saved { animation: row-saved 1.4s ease-out; }
+
+/* Видимый фокус с клавиатуры — по всей панели */
+.admin-scope :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Полоса загрузки при переходе между страницами панели */
+@keyframes nav-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+.nav-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--color-signal);
+  transform-origin: left;
+  animation: nav-progress 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  z-index: 60;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

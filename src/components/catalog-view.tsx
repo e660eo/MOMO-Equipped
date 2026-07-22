@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 import type { Product, Category, Brand } from "@/lib/types";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, isInStock } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
   parseTech,
@@ -181,7 +181,7 @@ export function CatalogView({
         (!category || p.category === category) &&
         (!brand || p.brand === brand) &&
         (!query || p.title.toLowerCase().includes(query.toLowerCase())) &&
-        (!inStockOnly || p.inStock === true) &&
+        (!inStockOnly || isInStock(p) === true) &&
         (!diaFilter || t.dia === diaFilter) &&
         (!powFilter || t.pow === powFilter) &&
         (!impFilter || String(t.imp) === impFilter) &&
@@ -191,7 +191,7 @@ export function CatalogView({
     });
     // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
     const stockRank = (p: Product) =>
-      p.inStock === true ? 0 : p.inStock === false ? 2 : 1;
+      isInStock(p) === true ? 0 : isInStock(p) === false ? 2 : 1;
 
     switch (sort) {
       case "sound_first":

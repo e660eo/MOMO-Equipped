@@ -3,7 +3,7 @@
 import type { PointerEvent } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
+import { formatPrice, splitPayment, productImageUrl, isInStock } from "@/lib/format";
 import { shortSpecs } from "@/lib/specs";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";
@@ -45,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         )}
         {/* «В наличии» на каждой плитке — шум; предупреждаем только про ожидание */}
-        {product.inStock === false && (
+        {isInStock(product) === false && (
           <span className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-muted-foreground">
             Под заказ
           </span>

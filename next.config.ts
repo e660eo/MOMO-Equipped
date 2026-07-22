@@ -1,25 +1,14 @@
-import { execSync } from "node:child_process";
 import type { NextConfig } from "next";
 
 /*
-  Версия развёрнутой сборки — коммит, из которого её собрали.
-
-  Нужна, чтобы снаружи было видно, доехало ли обновление: правка данных или
-  пустой коммит не меняют ни байта в бандлах, и по хешам файлов выкат
-  неотличим от его отсутствия.
+  Версия сборки приходит переменной окружения BUILD_REVISION — её ставит
+  scripts/deploy.sh перед сборкой. Раньше конфиг сам вызывал `git rev-parse`,
+  но любые обращения к файловой системе отсюда заставляют сборщик тянуть в
+  трассировку весь проект (предупреждение «unexpected file in NFT list»).
 */
-function buildRevision(): string {
-  try {
-    return execSync("git rev-parse --short HEAD").toString().trim();
-  } catch {
-    // Сборка из архива без .git — не повод падать
-    return "unknown";
-  }
-}
-
 const nextConfig: NextConfig = {
   env: {
-    BUILD_REVISION: buildRevision(),
+    BUILD_REVISION: process.env.BUILD_REVISION ?? "dev",
     BUILD_TIME: new Date().toISOString(),
   },
 };

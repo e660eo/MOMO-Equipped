@@ -116,8 +116,28 @@ export function ProductForm({
         </div>
 
         <div>
+          <label className={label} htmlFor="stock">
+            Остаток, шт
+          </label>
+          <input
+            id="stock"
+            name="stock"
+            inputMode="numeric"
+            defaultValue={
+              typeof product?.stock === "number" ? product.stock : ""
+            }
+            placeholder="не веду учёт"
+            className={`${field} mt-1.5`}
+          />
+          <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
+            Ноль — товар нельзя купить, на сайте будет «под заказ». Пусто —
+            учёта нет, тогда наличие берётся из поля ниже.
+          </p>
+        </div>
+
+        <div>
           <label className={label} htmlFor="inStock">
-            Наличие
+            Наличие без учёта остатка
           </label>
           <select
             id="inStock"
@@ -252,7 +272,7 @@ export function ProductForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f] disabled:opacity-60"
+          className="rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_20px_-6px_rgba(255,85,0,0.6)] active:scale-95 disabled:opacity-60"
         >
           {pending ? "Сохраняю…" : "Сохранить"}
         </button>

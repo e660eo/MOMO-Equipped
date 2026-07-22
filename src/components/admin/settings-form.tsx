@@ -90,7 +90,7 @@ export function SettingsForm({ site }: { site: SiteConfig }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-7 rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f] disabled:opacity-60"
+        className="mt-7 rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_20px_-6px_rgba(255,85,0,0.6)] active:scale-95 disabled:opacity-60"
       >
         {pending ? "Сохраняю…" : "Сохранить"}
       </button>

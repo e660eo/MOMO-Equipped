@@ -25,7 +25,7 @@ export default async function AdminNewsPage({
         </div>
         <Link
           href="/admin/news/new"
-          className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
+          className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_20px_-6px_rgba(255,85,0,0.6)] active:scale-95"
         >
           Написать новость
         </Link>

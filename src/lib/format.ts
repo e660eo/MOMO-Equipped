@@ -6,8 +6,27 @@
   (карточка товара, корзина, подсказки поиска, всплывающие уведомления).
 */
 
+import type { Product } from "./types";
+
 /** Базовый путь к фото товаров. Файлы отдаёт роут `/media/[...path]`. */
 export const IMAGE_BASE = "/media/";
+
+/**
+ * Наличие товара: true — есть, false — под заказ, undefined — статус неизвестен.
+ *
+ * Остаток штук главнее флага: если склад посчитан, ноль означает «купить
+ * нельзя», даже когда у товара когда-то стояло «в наличии». Само число
+ * покупателю не показываем — это внутренний учёт.
+ */
+export function isInStock(product: Product): boolean | undefined {
+  if (typeof product.stock === "number") return product.stock > 0;
+  return product.inStock;
+}
+
+/** Сколько штук ещё можно положить в корзину. null — ограничения нет. */
+export function stockLimit(product: Product): number | null {
+  return typeof product.stock === "number" ? product.stock : null;
+}
 
 export function productImageUrl(image: string): string {
   // Абсолютные пути (например, /placeholder.svg) отдаём как есть.

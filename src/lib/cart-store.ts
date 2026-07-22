@@ -10,6 +10,12 @@ export interface CartItem {
   price: number;
   image: string;
   qty: number;
+  /**
+   * Остаток на складе на момент добавления. Ограничивает количество в
+   * корзине: узнавать о нехватке от менеджера после оформления — плохо.
+   * Не задан — учёта по этому товару нет, ограничения тоже.
+   */
+  stock?: number;
 }
 
 interface CartState {
@@ -27,14 +33,24 @@ interface CartState {
   closeCart: () => void;
 }
 
+/** Сколько штук этого товара допустимо в корзине. */
+function capFor(item: { stock?: number }): number {
+  return typeof item.stock === "number" ? item.stock : Infinity;
+}
+
 function mergeInto(
   list: CartItem[],
   item: Omit<CartItem, "qty">,
 ): CartItem[] {
   const existing = list.find((i) => i.slug === item.slug);
-  return existing
-    ? list.map((i) => (i.slug === item.slug ? { ...i, qty: i.qty + 1 } : i))
-    : [...list, { ...item, qty: 1 }];
+  if (!existing) return [...list, { ...item, qty: 1 }];
+  // Остаток мог измениться с прошлого добавления — берём свежий
+  const cap = capFor(item);
+  return list.map((i) =>
+    i.slug === item.slug
+      ? { ...i, ...item, qty: Math.min(i.qty + 1, cap) }
+      : i,
+  );
 }
 
 export const useCart = create<CartState>()(
@@ -73,7 +89,11 @@ export const useCart = create<CartState>()(
           items:
             qty < 1
               ? s.items.filter((i) => i.slug !== slug)
-              : s.items.map((i) => (i.slug === slug ? { ...i, qty } : i)),
+              : s.items.map((i) =>
+                  i.slug === slug
+                    ? { ...i, qty: Math.min(qty, capFor(i)) }
+                    : i,
+                ),
         })),
       clear: () => set({ items: [] }),
       openCart: () => set({ isOpen: true }),

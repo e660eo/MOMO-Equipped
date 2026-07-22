@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getAllProducts, getCategories, getRawBundles, formatPrice } from "@/lib/data";
-import { productImageUrl } from "@/lib/format";
+import { getAllProducts, getCategories, getRawBundles } from "@/lib/data";
+import { productImageUrl, isInStock } from "@/lib/format";
 import { plural } from "@/lib/utils";
 import { toggleHidden, deleteProduct } from "./actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { QuickEdit } from "@/components/admin/quick-edit";
 import { requireAdminPage } from "@/lib/admin-auth";
 
 /*
@@ -46,6 +47,8 @@ export default async function AdminProductsPage({
       (!category || p.category === category) &&
       (!q || p.title.toLowerCase().includes(q.toLowerCase())),
   );
+  // Закончившиеся — то, ради чего остатки и заводились: их видно сразу.
+  const soldOut = products.filter((p) => p.stock === 0).length;
 
   return (
     <div>
@@ -55,11 +58,19 @@ export default async function AdminProductsPage({
           <p className="mt-1 text-[0.85rem] text-muted-foreground">
             {products.length} {plural(products.length, "товар", "товара", "товаров")}
             {(q || category) && " по запросу"}
+            {soldOut > 0 && (
+              <>
+                {" · "}
+                <span className="text-[var(--signal-text)]">
+                  {soldOut} без остатка
+                </span>
+              </>
+            )}
           </p>
         </div>
         <Link
           href="/admin/products/new"
-          className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
+          className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_20px_-6px_rgba(255,85,0,0.6)] active:scale-95"
         >
           Добавить товар
         </Link>
@@ -92,7 +103,7 @@ export default async function AdminProductsPage({
         </select>
         <button
           type="submit"
-          className="rounded-sm border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-signal hover:text-signal"
+          className="rounded-sm border border-border px-4 py-2 text-sm font-medium transition-all hover:border-signal hover:text-signal active:scale-95"
         >
           Показать
         </button>
@@ -104,14 +115,15 @@ export default async function AdminProductsPage({
             <tr className="border-b border-border text-left text-[0.72rem] uppercase tracking-wider text-muted-foreground">
               <th className="py-2.5 pr-3 font-medium">Товар</th>
               <th className="py-2.5 pr-3 font-medium">Категория</th>
-              <th className="py-2.5 pr-3 font-medium">Цена</th>
-              <th className="py-2.5 pr-3 font-medium">Наличие</th>
+              <th className="py-2.5 pr-3 text-right font-medium">
+                Цена и остаток
+              </th>
               <th className="py-2.5 pr-3 font-medium" />
             </tr>
           </thead>
           <tbody>
             {products.map((p) => (
-              <tr key={p.slug} className="border-b border-border align-middle">
+              <tr key={p.slug} className="admin-row border-b border-border align-middle">
                 <td className="py-2.5 pr-3">
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -129,6 +141,11 @@ export default async function AdminProductsPage({
                       </Link>
                       <span className="flex gap-2 text-[0.72rem] text-muted-foreground">
                         {p.brand}
+                        {isInStock(p) === false && (
+                          <span className="text-[var(--signal-text)]">
+                            · нет на складе
+                          </span>
+                        )}
                         {p.isClearance && <span>· уценка</span>}
                         {p.hidden && (
                           <span className="text-[var(--signal-text)]">· скрыт</span>
@@ -145,13 +162,8 @@ export default async function AdminProductsPage({
                 <td className="py-2.5 pr-3 text-muted-foreground">
                   {titleByCategory.get(p.category) ?? p.category}
                 </td>
-                <td className="py-2.5 pr-3 whitespace-nowrap">{formatPrice(p.price)}</td>
-                <td className="py-2.5 pr-3 text-muted-foreground">
-                  {p.inStock === true
-                    ? "есть"
-                    : p.inStock === false
-                      ? "под заказ"
-                      : "—"}
+                <td className="py-2.5 pr-3">
+                  <QuickEdit product={p} />
                 </td>
                 <td className="py-2.5 pr-3">
                   <div className="flex justify-end gap-3 whitespace-nowrap">
@@ -167,7 +179,7 @@ export default async function AdminProductsPage({
                       ) : (
                         <button
                           type="submit"
-                          className="text-muted-foreground transition-colors hover:text-signal"
+                          className="text-muted-foreground transition-all hover:text-signal active:scale-95"
                         >
                           {p.hidden ? "Вернуть" : "Скрыть"}
                         </button>

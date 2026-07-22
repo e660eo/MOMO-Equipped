@@ -29,8 +29,8 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-bg text-foreground">
-      <header className="border-b border-border bg-surface">
+    <div className="admin-scope min-h-screen bg-bg text-foreground">
+      <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-8 gap-y-3 px-5 py-3.5">
           <Link href="/admin" className="font-display text-sm font-extrabold uppercase tracking-tight">
             MOMO · панель
@@ -47,7 +47,7 @@ export default async function AdminLayout({
             <form action="/api/admin/logout" method="post">
               <button
                 type="submit"
-                className="text-muted-foreground transition-colors hover:text-signal"
+                className="text-muted-foreground transition-all hover:text-signal active:scale-95"
               >
                 Выйти
               </button>

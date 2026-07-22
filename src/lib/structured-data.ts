@@ -1,4 +1,5 @@
 import { siteConfig, productImageUrl } from "./data";
+import { isInStock } from "./format";
 import type { Product, Category } from "./types";
 
 /*
@@ -90,9 +91,9 @@ export function productSchema(product: Product, category?: Category) {
   };
 
   // Наличие утверждаем только когда оно есть в прайсе. «Под заказ» → BackOrder.
-  if (product.inStock === true)
+  if (isInStock(product) === true)
     offer.availability = "https://schema.org/InStock";
-  else if (product.inStock === false)
+  else if (isInStock(product) === false)
     offer.availability = "https://schema.org/BackOrder";
 
   // Состояние: обычный товар — новый. Уценённый «новым» не помечаем.

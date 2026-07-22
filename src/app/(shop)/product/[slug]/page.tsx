@@ -12,6 +12,7 @@ import {
   siteConfig,
 } from "@/lib/data";
 import { MessageSquare } from "lucide-react";
+import { isInStock } from "@/lib/format";
 import { fullSpecs } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
@@ -52,6 +53,7 @@ export default async function ProductPage({
     .slice(0, 4);
 
   const split = splitPayment(product.price);
+  const available = isInStock(product);
   const { stats, rows, notes } = fullSpecs(product.title, product.description);
   // Обложка + дополнительные снимки из поля images (владелец пополняет сам)
   const gallery = [product.image, ...(product.images ?? [])].map(productImageUrl);
@@ -122,17 +124,18 @@ export default async function ProductPage({
             <span className="font-display text-4xl font-extrabold">
               {formatPrice(product.price)}
             </span>
-            {/* Статус наличия из прайса; если поля нет — не утверждаем ничего */}
-            {product.inStock !== undefined && (
+            {/* Наличие: посчитанный остаток главнее флага из прайса.
+                Само число покупателю не показываем — это внутренний учёт. */}
+            {available !== undefined && (
               <span className="inline-flex items-center gap-2 font-label text-[0.7rem] font-semibold uppercase tracking-[0.16em]">
                 <span
                   className={
-                    product.inStock
+                    available
                       ? "h-1.5 w-1.5 rounded-full bg-signal"
                       : "h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
                   }
                 />
-                {product.inStock ? (
+                {available ? (
                   "В наличии"
                 ) : (
                   <span className="text-muted-foreground">Под заказ</span>
