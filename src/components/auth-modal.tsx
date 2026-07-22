@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-store";
 import { useToast } from "@/lib/toast-store";
@@ -41,6 +41,7 @@ export function AuthModal() {
 
   const [lgId, setLgId] = useState("");
   const [lgPass, setLgPass] = useState("");
+  const [lgShow, setLgShow] = useState(false);
   const [rgName, setRgName] = useState("");
   const [rgEmail, setRgEmail] = useState("");
   const [rgPhone, setRgPhone] = useState("");
@@ -209,16 +210,31 @@ export function AuthModal() {
               <label className={labelCls} htmlFor="lg-pass">
                 Пароль
               </label>
-              <input
-                id="lg-pass"
-                type="password"
-                required
-                value={lgPass}
-                onChange={(e) => setLgPass(e.target.value)}
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className={inputCls}
-              />
+              {/*
+                Показ пароля нужен не для красоты: менеджер паролей молча
+                подставляет сюда сохранённую пару, и человек не понимает,
+                почему «правильный» пароль не подходит.
+              */}
+              <div className="relative">
+                <input
+                  id="lg-pass"
+                  type={lgShow ? "text" : "password"}
+                  required
+                  value={lgPass}
+                  onChange={(e) => setLgPass(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className={cn(inputCls, "pr-11")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setLgShow((v) => !v)}
+                  aria-label={lgShow ? "Скрыть пароль" : "Показать пароль"}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:text-signal"
+                >
+                  {lgShow ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
             </div>
             <button
               type="submit"

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { PasswordField } from "@/components/password-field";
 import {
   hasSession,
   isConfigured,
@@ -85,14 +86,9 @@ export default async function AdminLoginPage({
           >
             Пароль
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            className="mt-2 w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm focus:border-signal focus:outline-none"
-          />
+          <div className="mt-2">
+            <PasswordField />
+          </div>
           {error && (
             <p className="mt-3 text-[0.82rem] text-[var(--signal-text)]">
               {MESSAGES[error] ?? "Не удалось войти."}
