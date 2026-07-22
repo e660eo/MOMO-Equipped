@@ -65,6 +65,25 @@ export interface NewsItem {
   excerpt: string;
 }
 
+/**
+ * Покупатель с аккаунтом на сайте. Живёт в папке данных: внутри
+ * персональные данные, поэтому файл не хранится в репозитории.
+ */
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address?: string;
+  createdAt: string;
+  lastLoginAt?: string;
+  /** scrypt-хеш; наружу не отдаётся никогда. */
+  passwordHash: string;
+}
+
+/** Клиент без хеша пароля — то, что можно показать в браузере. */
+export type PublicCustomer = Omit<Customer, "passwordHash">;
+
 /** Позиция заказа: цена фиксируется на момент оформления. */
 export interface OrderItem {
   slug: string;
@@ -94,6 +113,8 @@ export interface Order {
   total: number;
   /** Заметка менеджера — видна только в панели. */
   note?: string;
+  /** Заказ оформлен вошедшим покупателем — для истории в его кабинете. */
+  customerId?: string;
 }
 
 /** Контакты и цифры доверия — редактируются из админки. */

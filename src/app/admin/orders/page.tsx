@@ -29,12 +29,15 @@ const STATUS_STYLE: Record<OrderStatus, string> = {
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; customer?: string }>;
 }) {
   await requireAdminPage();
 
-  const { status = "" } = await searchParams;
-  const all = getOrders();
+  const { status = "", customer = "" } = await searchParams;
+  // Заказы одного покупателя — переход из раздела «Клиенты»
+  const all = customer
+    ? getOrders().filter((o) => o.customerId === customer)
+    : getOrders();
   const orders = status ? all.filter((o) => o.status === status) : all;
 
   const dateFmt = (iso: string) =>

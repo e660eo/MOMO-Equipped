@@ -4,6 +4,7 @@ import { isRepoData } from "@/lib/store";
 import { plural, cn } from "@/lib/utils";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getOrders } from "@/lib/orders";
+import { getCustomers } from "@/lib/customers";
 
 /*
   Сводка панели: сколько чего в каталоге и куда идти дальше.
@@ -45,6 +46,12 @@ export default async function AdminHomePage() {
       ]
         .filter(Boolean)
         .join(" · "),
+    },
+    {
+      href: "/admin/customers",
+      title: "Клиенты",
+      value: `${getCustomers().length}`,
+      note: "аккаунтов на сайте",
     },
     {
       href: "/admin/news",

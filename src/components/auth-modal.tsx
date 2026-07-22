@@ -10,6 +10,7 @@ import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { attemptAdminLogin } from "@/app/admin-entry";
+import { signIn, signUp } from "@/app/customer-actions";
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -17,22 +18,23 @@ const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
 /*
-  Вход и регистрация ЛОКАЛЬНОГО аккаунта (до серверной Фазы 3):
-  аккаунт живёт в этом браузере, пароль хранится только PBKDF2-хешем
-  (см. lib/local-auth.ts), поэтому «восстановить пароль» нельзя — только
-  сбросить аккаунт и завести заново; заказы на устройстве при этом остаются.
+  Вход и регистрация покупателя.
 
-  Кнопка Яндекс ID — заглушка с явной пометкой: OAuth без сервера невозможен,
+  Аккаунт серверный: пароль уходит на сервер и хранится там scrypt-хешем, а
+  сессия живёт в подписанной куке — заказы видны с любого устройства. Раньше
+  аккаунт лежал в браузере и пропадал вместе с очисткой кэша.
+
+  Той же формой владелец входит в панель: если пара совпала с его почтой и
+  паролем, открывается /admin. По форме этого не видно — посторонний получит
+  обычную ошибку входа.
+
+  Кнопка Яндекс ID — заглушка с явной пометкой: OAuth ещё не подключён,
   и притворяться рабочей она не должна.
 */
 export function AuthModal() {
   const router = useRouter();
   const open = useAccount((s) => s.modalOpen);
   const closeModal = useAccount((s) => s.closeModal);
-  const register = useAccount((s) => s.register);
-  const login = useAccount((s) => s.login);
-  const deleteAccount = useAccount((s) => s.deleteAccount);
-  const hasAccount = useAccount((s) => s.account !== null);
   const pushToast = useToast((s) => s.push);
 
   const [tab, setTab] = useState<"login" | "register">("login");
@@ -80,16 +82,19 @@ export function AuthModal() {
       }
     }
 
-    const err = await login(lgId, lgPass);
+    const result = await signIn(lgId, lgPass);
     setBusy(false);
-    if (err) {
-      setError(err);
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     setError("");
     setLgPass("");
     closeModal();
     pushToast({ title: "С возвращением!", description: "Вы вошли в кабинет." });
+    // Обновляем страницу целиком: сессия живёт в куке, и серверная разметка
+    // (шапка, кабинет) должна перерисоваться с новыми данными.
+    router.refresh();
     router.push("/profile");
   }
 
@@ -100,15 +105,15 @@ export function AuthModal() {
       return;
     }
     setBusy(true);
-    const err = await register({
+    const result = await signUp({
       name: rgName,
       email: rgEmail,
       phone: rgPhone,
       password: rgPass,
     });
     setBusy(false);
-    if (err) {
-      setError(err);
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     setError("");
@@ -116,23 +121,12 @@ export function AuthModal() {
     closeModal();
     pushToast({
       title: "Аккаунт создан",
-      description: "Данные доставки теперь подставляются в корзину сами.",
+      description: "Теперь заказы видны с любого устройства.",
     });
+    router.refresh();
     router.push("/profile");
   }
 
-  // Пароль из хеша не восстановить — честный выход: снести аккаунт и завести заново.
-  function resetLocalAccount() {
-    if (
-      !window.confirm(
-        "Пароль локального аккаунта восстановить нельзя. Удалить аккаунт и создать заново? История заказов на устройстве сохранится.",
-      )
-    )
-      return;
-    deleteAccount();
-    switchTab("register");
-    pushToast({ title: "Аккаунт удалён", description: "Создайте новый." });
-  }
 
   return (
     <>
@@ -253,15 +247,14 @@ export function AuthModal() {
             >
               {busy ? "Проверяем…" : "Войти"}
             </button>
-            {hasAccount && (
-              <button
-                type="button"
-                onClick={resetLocalAccount}
-                className="w-full text-center font-mono text-[0.66rem] uppercase tracking-wider text-muted-foreground underline-offset-4 transition-colors hover:text-signal hover:underline"
-              >
-                Забыли пароль? Сбросить аккаунт
-              </button>
-            )}
+            {/*
+              Восстановления пароля нет: письма сайт пока не отправляет, а
+              кнопка, которая ничего не делает, хуже её отсутствия. Забывшему
+              поможет менеджер — этот путь работает на самом деле.
+            */}
+            <p className="text-center font-mono text-[0.66rem] leading-relaxed tracking-wide text-muted-foreground">
+              Забыли пароль? Напишите нам в WhatsApp — поможем войти.
+            </p>
           </form>
         ) : (
           <form className="space-y-3.5" onSubmit={onRegister}>

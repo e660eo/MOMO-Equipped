@@ -10,7 +10,9 @@ import { JsonLd } from "@/components/json-ld";
 import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import { YandexMetrica } from "@/components/yandex-metrica";
 import { SiteConfigProvider } from "@/components/site-config-provider";
+import { CustomerProvider } from "@/components/customer-provider";
 import { getSiteConfig } from "@/lib/data";
+import { currentCustomer } from "@/lib/customer-auth";
 
 /*
   Обвязка витрины: шапка, футер, оверлеи, счётчик. Вынесена из layout группы
@@ -21,11 +23,14 @@ import { getSiteConfig } from "@/lib/data";
   с диска (его правят из админки), статическим импортом в браузер он больше
   не попадает.
 */
-export function ShopChrome({ children }: { children: React.ReactNode }) {
+export async function ShopChrome({ children }: { children: React.ReactNode }) {
   const { contacts, trust } = getSiteConfig();
+  // Кто вошёл — знает только сервер: кука подписана, в браузере её не проверить
+  const customer = await currentCustomer();
 
   return (
     <SiteConfigProvider value={{ contacts, trust }}>
+      <CustomerProvider value={customer}>
       <YandexMetrica />
       {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
       <JsonLd data={organizationSchema()} />
@@ -59,6 +64,7 @@ export function ShopChrome({ children }: { children: React.ReactNode }) {
       <AuthModal />
       <Toaster />
       <WhatsAppFab />
+      </CustomerProvider>
     </SiteConfigProvider>
   );
 }

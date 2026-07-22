@@ -4,6 +4,7 @@ import { AdminNavLink } from "./nav-link";
 
 const LINKS = [
   { href: "/admin/orders", label: "Заказы" },
+  { href: "/admin/customers", label: "Клиенты" },
   { href: "/admin/products", label: "Товары" },
   { href: "/admin/news", label: "Новости" },
   { href: "/admin/bundles", label: "Сборки" },

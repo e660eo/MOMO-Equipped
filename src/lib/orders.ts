@@ -1,6 +1,8 @@
 import { readJson, writeJson, assertWritable } from "./store";
 import type { Order, OrderStatus } from "./types";
 
+export { STATUS_LABELS } from "./order-status";
+
 /*
   Заказы с сайта.
 
@@ -66,9 +68,3 @@ export function countNewOrders(): number {
   return getOrders().filter((o) => o.status === "new").length;
 }
 
-export const STATUS_LABELS: Record<OrderStatus, string> = {
-  new: "Новый",
-  in_work: "В работе",
-  done: "Выполнен",
-  canceled: "Отменён",
-};

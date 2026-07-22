@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { addOrder } from "@/lib/orders";
 import { getProducts } from "@/lib/data";
+import { currentCustomer } from "@/lib/customer-auth";
 import type { OrderItem } from "@/lib/types";
 
 /*
@@ -80,6 +81,11 @@ export async function submitOrder(payload: {
     };
   }
 
+  // Вошедшему покупателю привязываем заказ к аккаунту — так он увидит его
+  // в своём кабинете с любого устройства, а владелец в панели узнает, что
+  // это постоянный клиент.
+  const me = await currentCustomer();
+
   try {
     const order = addOrder({
       customer: {
@@ -90,6 +96,7 @@ export async function submitOrder(payload: {
       },
       items,
       total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
+      ...(me ? { customerId: me.id } : {}),
     });
     return { ok: true, id: order.id };
   } catch (e) {
