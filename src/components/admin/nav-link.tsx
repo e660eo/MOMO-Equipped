@@ -22,9 +22,12 @@ function Pending() {
 export function AdminNavLink({
   href,
   label,
+  badge = 0,
 }: {
   href: string;
   label: string;
+  /** Сколько дел ждёт в разделе — например, неразобранных заказов. */
+  badge?: number;
 }) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -34,13 +37,21 @@ export function AdminNavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative inline-flex items-center py-0.5 transition-colors",
+        "relative inline-flex items-center gap-1.5 py-0.5 transition-colors",
         "after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-signal after:transition-transform after:duration-200",
         "hover:text-signal hover:after:scale-x-100",
         active ? "font-semibold text-signal after:scale-x-100" : "text-muted-foreground",
       )}
     >
       {label}
+      {badge > 0 && (
+        <span
+          aria-label={`новых: ${badge}`}
+          className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-signal px-1.5 py-0.5 text-[0.66rem] font-semibold leading-none text-white"
+        >
+          {badge}
+        </span>
+      )}
       <Pending />
     </Link>
   );

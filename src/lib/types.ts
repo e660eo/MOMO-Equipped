@@ -65,6 +65,37 @@ export interface NewsItem {
   excerpt: string;
 }
 
+/** Позиция заказа: цена фиксируется на момент оформления. */
+export interface OrderItem {
+  slug: string;
+  title: string;
+  price: number;
+  qty: number;
+}
+
+export type OrderStatus = "new" | "in_work" | "done" | "canceled";
+
+/**
+ * Заказ с сайта. Хранится в папке данных, доступен только из панели:
+ * внутри персональные данные покупателя.
+ */
+export interface Order {
+  /** Короткий номер для разговора с покупателем: 2607-014. */
+  id: string;
+  createdAt: string;
+  status: OrderStatus;
+  customer: {
+    name: string;
+    phone: string;
+    address: string;
+    comment?: string;
+  };
+  items: OrderItem[];
+  total: number;
+  /** Заметка менеджера — видна только в панели. */
+  note?: string;
+}
+
 /** Контакты и цифры доверия — редактируются из админки. */
 export interface SiteConfig {
   name: string;

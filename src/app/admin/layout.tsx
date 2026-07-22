@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { hasSession } from "@/lib/admin-auth";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { countNewOrders } from "@/lib/orders";
 
 export const metadata: Metadata = {
   title: "Панель управления",
@@ -35,7 +36,7 @@ export default async function AdminLayout({
           <Link href="/admin" className="font-display text-sm font-extrabold uppercase tracking-tight">
             MOMO · панель
           </Link>
-          <AdminNav />
+          <AdminNav newOrders={countNewOrders()} />
           <div className="ml-auto flex items-center gap-4 text-[0.8rem]">
             <Link
               href="/"

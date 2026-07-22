@@ -7,6 +7,7 @@ import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { isPhoneComplete } from "@/lib/phone";
 import { recordOrder } from "@/lib/local-orders";
+import { submitOrder } from "@/app/order-actions";
 import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
@@ -30,6 +31,7 @@ export function CartDrawer() {
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const [lastOrderId, setLastOrderId] = useState("");
+  const [sending, setSending] = useState(false);
 
   // Подставляем сохранённые данные получателя при первом открытии
   useEffect(() => {
@@ -50,7 +52,7 @@ export function CartDrawer() {
   const remaining = Math.max(0, freeFrom - total);
   const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
-  function submit() {
+  async function submit() {
     if (!name.trim() || !phone.trim() || !address.trim()) {
       setError("Заполните ФИО, телефон и адрес доставки.");
       return;
@@ -65,6 +67,25 @@ export function CartDrawer() {
       return;
     }
     setError("");
+    setSending(true);
+
+    /*
+      Сначала сохраняем заказ на сервере — он получает номер и появляется в
+      панели. Раньше заявка жила только в переписке: не ответил менеджер —
+      и следов не осталось.
+
+      Если сохранить не удалось, заказ всё равно уходит в WhatsApp: потерять
+      покупателя из-за нашей поломки хуже, чем остаться без записи.
+    */
+    const saved = await submitOrder({
+      name: name.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      comment: comment.trim(),
+      items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+    });
+    setSending(false);
+    const orderNumber = saved.ok ? saved.id : null;
 
     // Запоминаем получателя для следующего заказа
     try {
@@ -74,7 +95,7 @@ export function CartDrawer() {
       );
     } catch {}
     const lines = [
-      "Заказ с сайта MOMO:",
+      orderNumber ? `Заказ №${orderNumber} с сайта MOMO:` : "Заказ с сайта MOMO:",
       ...items.map(
         (i) => `• ${i.title} — ${i.qty} шт. × ${formatPrice(i.price)}`,
       ),
@@ -97,7 +118,7 @@ export function CartDrawer() {
         qty: i.qty,
       })),
     });
-    setLastOrderId(order.id);
+    setLastOrderId(orderNumber ?? order.id);
     setSent(true);
     setConsent(false);
     clear();
@@ -341,9 +362,10 @@ export function CartDrawer() {
             />
             <button
               onClick={submit}
-              className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
+              disabled={sending}
+              className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
             >
-              Оформить через WhatsApp
+              {sending ? "Оформляем заказ…" : "Оформить через WhatsApp"}
             </button>
             <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
               Заказ уйдёт менеджеру в WhatsApp. Онлайн-оплата (ЮKassa)

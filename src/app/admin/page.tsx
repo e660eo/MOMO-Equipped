@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getAllProducts, getCategories, getNews, getRawBundles } from "@/lib/data";
 import { isRepoData } from "@/lib/store";
-import { plural } from "@/lib/utils";
+import { plural, cn } from "@/lib/utils";
 import { requireAdminPage } from "@/lib/admin-auth";
+import { getOrders } from "@/lib/orders";
 
 /*
   Сводка панели: сколько чего в каталоге и куда идти дальше.
@@ -17,7 +18,23 @@ export default async function AdminHomePage() {
   const clearance = products.filter((p) => p.isClearance).length;
   const unknownStock = products.filter((p) => p.inStock === undefined).length;
 
-  const cards = [
+  const orders = getOrders();
+  const newOrders = orders.filter((o) => o.status === "new").length;
+  const inWork = orders.filter((o) => o.status === "in_work").length;
+
+  const cards: { href: string; title: string; value: string; note?: string; accent?: boolean }[] = [
+    {
+      href: "/admin/orders",
+      title: "Заказы",
+      value: `${newOrders}`,
+      note: [
+        newOrders ? "ждут разбора" : "новых нет",
+        inWork ? `${inWork} в работе` : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      accent: newOrders > 0,
+    },
     {
       href: "/admin/products",
       title: "Товары",
@@ -71,9 +88,12 @@ export default async function AdminHomePage() {
           <Link
             key={c.href}
             href={c.href}
-            className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-signal"
+            className={cn(
+              "rounded-xl border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-signal",
+              c.accent ? "border-signal" : "border-border",
+            )}
           >
-            <p className="font-display text-2xl font-extrabold">{c.value}</p>
+            <p className={cn("font-display text-2xl font-extrabold", c.accent && "text-signal")}>{c.value}</p>
             <p className="mt-1 text-[0.9rem] font-medium">{c.title}</p>
             {c.note && (
               <p className="mt-0.5 text-[0.75rem] text-muted-foreground">{c.note}</p>
