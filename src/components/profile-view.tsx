@@ -9,7 +9,7 @@ import { useToast } from "@/lib/toast-store";
 import { formatPrice } from "@/lib/format";
 import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
-import { saveProfile, signOut } from "@/app/customer-actions";
+import { saveProfile, signOut, deleteMyAccount } from "@/app/customer-actions";
 import { STATUS_LABELS } from "@/lib/order-status";
 import type { Order, PublicCustomer } from "@/lib/types";
 
@@ -101,6 +101,29 @@ export function ProfileView({
     router.push("/");
   }
 
+  async function removeAccount() {
+    if (
+      !window.confirm(
+        "Удалить аккаунт и ваши данные с сайта? Отменить это нельзя. Сведения об уже оформленных заказах останутся у магазина — этого требуют гарантия и бухгалтерия.",
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    const result = await deleteMyAccount();
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error ?? "Не получилось удалить аккаунт.");
+      return;
+    }
+    pushToast({
+      title: "Аккаунт удалён",
+      description: "Ваши данные больше не хранятся на сайте.",
+    });
+    router.refresh();
+    router.push("/");
+  }
+
   return (
     <main className="mx-auto max-w-[1000px] px-4 py-12 sm:px-6 sm:py-14">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -173,6 +196,15 @@ export function ProfileView({
               className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
             >
               {busy ? "Сохраняю…" : "Сохранить"}
+            </button>
+
+            {/* Право удалить свои данные — без обращения к магазину */}
+            <button
+              onClick={removeAccount}
+              disabled={busy}
+              className="w-full pt-2 text-center font-mono text-[0.66rem] uppercase tracking-wider text-muted-foreground underline-offset-4 transition-colors hover:text-[var(--signal-text)] hover:underline disabled:opacity-60"
+            >
+              Удалить аккаунт и мои данные
             </button>
           </div>
         </section>

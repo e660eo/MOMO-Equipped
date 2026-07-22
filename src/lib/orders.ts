@@ -1,4 +1,4 @@
-import { readJson, writeJson, assertWritable } from "./store";
+import { readJson, updateJson, assertWritable } from "./store";
 import type { Order, OrderStatus } from "./types";
 
 export { STATUS_LABELS } from "./order-status";
@@ -37,17 +37,50 @@ function nextId(orders: Order[]): string {
   return `${prefix}-${String(todayCount + 1).padStart(3, "0")}`;
 }
 
+/**
+ * Срок хранения заказов — ровно тот, что обещан в политике: три года.
+ * Держать дольше незачем: чем меньше персональных данных лежит на сервере,
+ * тем меньше потерять при взломе.
+ *
+ * Незавершённые заказы не трогаем, сколько бы им ни было лет: висящий
+ * «в работе» заказ — повод разобраться, а не стереть.
+ */
+const KEEP_YEARS = 3;
+
+function withoutExpired(orders: Order[]): Order[] {
+  const edge = new Date();
+  edge.setFullYear(edge.getFullYear() - KEEP_YEARS);
+  const stamp = edge.toISOString();
+  return orders.filter(
+    (o) =>
+      o.createdAt > stamp || (o.status !== "done" && o.status !== "canceled"),
+  );
+}
+
+/** Убирает просроченные заказы. Возвращает, сколько удалено. */
+export function pruneOldOrders(): number {
+  const orders = getOrders();
+  const kept = withoutExpired(orders);
+  if (kept.length === orders.length) return 0;
+
+  assertWritable();
+  updateJson<Order[]>(FILE, withoutExpired);
+  return orders.length - kept.length;
+}
+
 export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Order {
   assertWritable();
-  const orders = getOrders();
+  // Чистим на каждом новом заказе: отдельный планировщик ради пары записей
+  // в год — лишняя деталь, которая ломается незаметно.
+  const orders = withoutExpired(getOrders());
   const full: Order = {
     ...order,
     id: nextId(orders),
     createdAt: new Date().toISOString(),
     status: "new",
   };
-  // Свежие сверху: в панели интересны именно они
-  writeJson(FILE, [full, ...orders]);
+  // Свежие сверху, заодно чистим просроченные
+  updateJson<Order[]>(FILE, (all) => [full, ...withoutExpired(all)]);
   return full;
 }
 
@@ -56,10 +89,8 @@ export function updateOrder(
   patch: { status?: OrderStatus; note?: string },
 ): void {
   assertWritable();
-  const orders = getOrders();
-  writeJson(
-    FILE,
-    orders.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+  updateJson<Order[]>(FILE, (all) =>
+    all.map((o) => (o.id === id ? { ...o, ...patch } : o)),
   );
 }
 

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
-import { readJson, writeJson, assertWritable } from "@/lib/store";
+import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
 import { saveProductImage, deleteProductImage, ImageError } from "@/lib/image-pipeline";
 import type { Product } from "@/lib/types";
@@ -134,11 +134,11 @@ export async function saveProduct(
       product.stock = Math.round(stock);
     }
 
-    const next = existing
-      ? products.map((p) => (p.slug === slug ? product : p))
-      : [product, ...products];
-
-    writeJson(FILE, next);
+    updateJson<Product[]>(FILE, (all) =>
+      existing
+        ? all.map((p) => (p.slug === slug ? product : p))
+        : [product, ...all],
+    );
     refreshSite();
   } catch (e) {
     if (e instanceof ImageError) return { error: e.message };
@@ -177,15 +177,15 @@ export async function quickUpdate(
     const existing = products.find((p) => p.slug === slug);
     if (!existing) return { error: "Товар не найден." };
 
-    const next = products.map((p) => {
-      if (p.slug !== slug) return p;
-      const updated: Product = { ...p, price: Math.round(price) };
-      if (stock === null) delete updated.stock;
-      else updated.stock = Math.round(stock);
-      return updated;
-    });
-
-    writeJson(FILE, next);
+    updateJson<Product[]>(FILE, (all) =>
+      all.map((p) => {
+        if (p.slug !== slug) return p;
+        const updated: Product = { ...p, price: Math.round(price) };
+        if (stock === null) delete updated.stock;
+        else updated.stock = Math.round(stock);
+        return updated;
+      }),
+    );
     refreshSite();
     revalidatePath("/admin/products");
     return { ok: "Сохранено" };
@@ -201,12 +201,8 @@ export async function toggleHidden(formData: FormData): Promise<void> {
   assertWritable();
 
   const slug = String(formData.get("slug") ?? "");
-  const products = readJson<Product[]>(FILE);
-  writeJson(
-    FILE,
-    products.map((p) =>
-      p.slug === slug ? { ...p, hidden: !p.hidden } : p,
-    ),
+  updateJson<Product[]>(FILE, (all) =>
+    all.map((p) => (p.slug === slug ? { ...p, hidden: !p.hidden } : p)),
   );
   refreshSite();
   revalidatePath("/admin/products");
@@ -220,10 +216,7 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   const products = readJson<Product[]>(FILE);
   const victim = products.find((p) => p.slug === slug);
 
-  writeJson(
-    FILE,
-    products.filter((p) => p.slug !== slug),
-  );
+  updateJson<Product[]>(FILE, (all) => all.filter((p) => p.slug !== slug));
 
   // Файлы фото подчищаем, но только те, что не используются другими
   // карточками: часть снимков досталась каталогу общими.

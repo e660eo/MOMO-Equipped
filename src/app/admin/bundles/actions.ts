@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
-import { readJson, writeJson, assertWritable } from "@/lib/store";
+import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
 import type { Bundle, Product } from "@/lib/types";
 
@@ -65,11 +65,10 @@ export async function saveBundle(
       items,
     };
 
-    writeJson(
-      FILE,
+    updateJson<Bundle[]>(FILE, (all) =>
       existing
-        ? bundles.map((b) => (b.slug === bundle.slug ? bundle : b))
-        : [...bundles, bundle],
+        ? all.map((b) => (b.slug === bundle.slug ? bundle : b))
+        : [...all, bundle],
     );
     revalidatePath("/", "layout");
   } catch (e) {
@@ -85,11 +84,7 @@ export async function deleteBundle(formData: FormData): Promise<void> {
   assertWritable();
 
   const slug = String(formData.get("slug") ?? "");
-  const bundles = readJson<Bundle[]>(FILE);
-  writeJson(
-    FILE,
-    bundles.filter((b) => b.slug !== slug),
-  );
+  updateJson<Bundle[]>(FILE, (all) => all.filter((b) => b.slug !== slug));
   revalidatePath("/", "layout");
   revalidatePath("/admin/bundles");
 }

@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { readJson, writeJson, assertWritable } from "./store";
+import { readJson, updateJson, assertWritable } from "./store";
 import { hashPassword, verifyPassword } from "./password";
 import type { Customer, PublicCustomer } from "./types";
 
@@ -78,7 +78,7 @@ export function registerCustomer(input: {
     passwordHash: hashPassword(input.password),
   };
 
-  writeJson(FILE, [...getCustomers(), customer]);
+  updateJson<Customer[]>(FILE, (all) => [...all, customer]);
   return { ok: true, customer: toPublic(customer) };
 }
 
@@ -99,18 +99,52 @@ export function updateCustomer(
   patch: Partial<Pick<Customer, "name" | "phone" | "address">>,
 ): void {
   assertWritable();
-  writeJson(
-    FILE,
-    getCustomers().map((c) => (c.id === id ? { ...c, ...patch } : c)),
+  updateJson<Customer[]>(FILE, (all) =>
+    all.map((c) => (c.id === id ? { ...c, ...patch } : c)),
   );
+}
+
+/**
+ * Удаление аккаунта по требованию покупателя — прямое право по закону
+ * о персональных данных, поэтому без обращения к владельцу магазина.
+ *
+ * Сведения об уже оформленных заказах остаются: их хранение держится на
+ * другом основании — гарантия и бухгалтерский учёт. Связь с аккаунтом при
+ * этом рвётся, так что «все заказы этого клиента» больше не собрать.
+ */
+export function deleteCustomer(id: string): void {
+  assertWritable();
+  updateJson<Customer[]>(FILE, (all) => all.filter((c) => c.id !== id));
+}
+
+/**
+ * Временный пароль вместо забытого. Писем сайт не отправляет, поэтому
+ * владелец выдаёт пароль лично — в переписке или по телефону.
+ * Возвращается один раз: на сервере остаётся только хеш.
+ */
+export function resetPassword(id: string): string | null {
+  assertWritable();
+  const customers = getCustomers();
+  if (!customers.some((c) => c.id === id)) return null;
+
+  // Без похожих символов: пароль диктуют голосом, а «0» и «O» на слух одно и то же
+  const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
+  const temp = Array.from(
+    crypto.randomBytes(10),
+    (b) => alphabet[b % alphabet.length],
+  ).join("");
+
+  updateJson<Customer[]>(FILE, (all) =>
+    all.map((c) => (c.id === id ? { ...c, passwordHash: hashPassword(temp) } : c)),
+  );
+  return temp;
 }
 
 export function touchLogin(id: string): void {
   try {
     assertWritable();
-    writeJson(
-      FILE,
-      getCustomers().map((c) =>
+    updateJson<Customer[]>(FILE, (all) =>
+      all.map((c) =>
         c.id === id ? { ...c, lastLoginAt: new Date().toISOString() } : c,
       ),
     );

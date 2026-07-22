@@ -119,6 +119,30 @@ export function writeJson(file: string, data: unknown): void {
   cache.delete(file);
 }
 
+/**
+ * Правка файла целиком: читаем с диска (мимо кэша), меняем, пишем.
+ *
+ * Так и только так следует менять данные. Раньше код брал список из кэша,
+ * менял и сохранял — и одновременная правка в соседнем запросе затирала
+ * чужую: сброшенный пароль покупателя, например, исчезал от того, что он
+ * же в этот момент вошёл на сайт и обновил отметку о входе.
+ */
+export function updateJson<T>(file: string, update: (current: T) => T): T {
+  ensureSeeded();
+  const full = path.join(dataDir(), file);
+
+  let current: T;
+  try {
+    current = JSON.parse(fs.readFileSync(full, "utf8")) as T;
+  } catch {
+    current = [] as unknown as T;
+  }
+
+  const next = update(current);
+  writeJson(file, next);
+  return next;
+}
+
 /** Держим последние 20 копий каждого файла — этого хватает для отката. */
 function pruneBackups(dir: string, file: string): void {
   const mine = fs

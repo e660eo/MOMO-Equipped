@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
-import { readJson, writeJson, assertWritable } from "@/lib/store";
+import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
 import type { NewsItem } from "@/lib/types";
 
@@ -46,14 +46,13 @@ export async function saveNews(
       excerpt,
     };
 
-    const next = existing
-      ? news.map((n) => (n.slug === item.slug ? item : n))
-      : [item, ...news];
-
-    // Свежие сверху: главная и /news показывают список как есть.
-    next.sort((a, b) => b.date.localeCompare(a.date));
-
-    writeJson(FILE, next);
+    updateJson<NewsItem[]>(FILE, (all) => {
+      const merged = existing
+        ? all.map((n) => (n.slug === item.slug ? item : n))
+        : [item, ...all];
+      // Свежие сверху: главная и /news показывают список как есть
+      return [...merged].sort((a, b) => b.date.localeCompare(a.date));
+    });
     revalidatePath("/", "layout");
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
@@ -68,11 +67,7 @@ export async function deleteNews(formData: FormData): Promise<void> {
   assertWritable();
 
   const slug = String(formData.get("slug") ?? "");
-  const news = readJson<NewsItem[]>(FILE);
-  writeJson(
-    FILE,
-    news.filter((n) => n.slug !== slug),
-  );
+  updateJson<NewsItem[]>(FILE, (all) => all.filter((n) => n.slug !== slug));
   revalidatePath("/", "layout");
   revalidatePath("/admin/news");
 }

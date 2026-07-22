@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
-import { readJson, writeJson, assertWritable } from "@/lib/store";
+import { readJson, updateJson, assertWritable } from "@/lib/store";
 import type { SiteConfig } from "@/lib/types";
 
 /*
@@ -79,7 +79,7 @@ export async function saveSettings(
       },
     };
 
-    writeJson(FILE, next);
+    updateJson<SiteConfig>(FILE, () => next);
     revalidatePath("/", "layout");
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;

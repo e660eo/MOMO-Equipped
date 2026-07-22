@@ -7,6 +7,7 @@ import {
   authenticate,
   updateCustomer,
   touchLogin,
+  deleteCustomer,
 } from "@/lib/customers";
 import {
   startCustomerSession,
@@ -113,6 +114,24 @@ export async function signIn(
 export async function signOut(): Promise<void> {
   await endCustomerSession();
   revalidatePath("/", "layout");
+}
+
+/**
+ * Удаление аккаунта самим покупателем — по требованию закона о персональных
+ * данных это должно работать без обращения к магазину.
+ */
+export async function deleteMyAccount(): Promise<{ ok: boolean; error?: string }> {
+  const me = await currentCustomer();
+  if (!me) return { ok: false, error: "Нужно войти заново." };
+
+  try {
+    deleteCustomer(me.id);
+    await endCustomerSession();
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Не получилось удалить аккаунт." };
+  }
 }
 
 /** Данные доставки из личного кабинета. */

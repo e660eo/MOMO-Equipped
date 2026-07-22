@@ -4,6 +4,7 @@ import { getCustomers } from "@/lib/customers";
 import { getOrders } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { plural } from "@/lib/utils";
+import { ResetPasswordButton } from "@/components/admin/reset-password-button";
 
 /*
   Клиенты с аккаунтом. Показываем не просто список, а то, ради чего его
@@ -91,6 +92,7 @@ export default async function AdminCustomersPage({
                 <th className="py-2.5 pr-3 font-medium">Был</th>
                 <th className="py-2.5 pr-3 text-right font-medium">Заказы</th>
                 <th className="py-2.5 pr-3 text-right font-medium">Куплено на</th>
+                <th className="py-2.5 pr-3 font-medium" />
               </tr>
             </thead>
             <tbody>
@@ -130,6 +132,12 @@ export default async function AdminCustomersPage({
                   </td>
                   <td className="py-3 pr-3 text-right font-medium">
                     {spent > 0 ? formatPrice(spent) : "—"}
+                  </td>
+                  <td className="py-3 pr-3 text-right">
+                    <ResetPasswordButton
+                      customerId={customer.id}
+                      name={customer.name}
+                    />
                   </td>
                 </tr>
               ))}
