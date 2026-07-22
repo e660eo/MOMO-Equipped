@@ -58,12 +58,27 @@ export function BundleForm({
     «Сабвуфер автомобильный ACHILLES 12 дюймов».
   */
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const found = products.filter((p) => {
-    if (items.includes(p.slug)) return false;
-    if (category && p.category !== category) return false;
-    const haystack = `${p.title} ${p.brand}`.toLowerCase();
-    return words.every((w) => haystack.includes(w));
-  });
+  const found = products
+    .filter((p) => {
+      if (items.includes(p.slug)) return false;
+      if (category && p.category !== category) return false;
+      const haystack = `${p.title} ${p.brand}`.toLowerCase();
+      return words.every((w) => haystack.includes(w));
+    })
+    /*
+      Сначала то, что начинается со слова из запроса: по «усилитель» сами
+      усилители нужнее, чем «разветвитель ДЛЯ усилителя» и «плата НА
+      усилитель», хотя формально подходят все трое.
+    */
+    .sort((a, b) => {
+      const rank = (p: Product) => {
+        if (!words.length) return 0;
+        const title = p.title.toLowerCase();
+        const at = title.indexOf(words[0]);
+        return at < 0 ? 999 : at;
+      };
+      return rank(a) - rank(b) || a.title.localeCompare(b.title, "ru");
+    });
 
   return (
     <form action={formAction} className="max-w-[760px]">
