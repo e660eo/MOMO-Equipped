@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllProducts, getCategories, formatPrice } from "@/lib/data";
+import { getAllProducts, getCategories, getRawBundles, formatPrice } from "@/lib/data";
 import { productImageUrl } from "@/lib/format";
 import { plural } from "@/lib/utils";
 import { toggleHidden, deleteProduct } from "./actions";
@@ -22,6 +22,24 @@ export default async function AdminProductsPage({
   const { q = "", category = "", saved } = await searchParams;
   const categories = await getCategories();
   const titleByCategory = new Map(categories.map((c) => [c.slug, c.title]));
+
+  /*
+    В каких сборках состоит товар. Удаление и скрытие молча вырезают его из
+    комплектов — цена пересчитывается, а описание продолжает обещать прежний
+    состав. Так уже случилось с «Первым басом», когда из него пропала клемма.
+  */
+  const bundlesOf = new Map<string, string[]>();
+  for (const b of getRawBundles()) {
+    for (const slug of b.items) {
+      bundlesOf.set(slug, [...(bundlesOf.get(slug) ?? []), b.title]);
+    }
+  }
+  const bundleNote = (slug: string) => {
+    const names = bundlesOf.get(slug);
+    return names?.length
+      ? ` Товар входит в ${names.length > 1 ? "сборки" : "сборку"} «${names.join("», «")}» — ${names.length > 1 ? "они пересчитаются" : "она пересчитается"} без него.`
+      : "";
+  };
 
   const products = getAllProducts().filter(
     (p) =>
@@ -115,6 +133,11 @@ export default async function AdminProductsPage({
                         {p.hidden && (
                           <span className="text-[var(--signal-text)]">· скрыт</span>
                         )}
+                        {bundlesOf.has(p.slug) && (
+                          <span title={bundlesOf.get(p.slug)!.join(", ")}>
+                            · в сборке
+                          </span>
+                        )}
                       </span>
                     </span>
                   </div>
@@ -134,18 +157,27 @@ export default async function AdminProductsPage({
                   <div className="flex justify-end gap-3 whitespace-nowrap">
                     <form action={toggleHidden}>
                       <input type="hidden" name="slug" value={p.slug} />
-                      <button
-                        type="submit"
-                        className="text-muted-foreground transition-colors hover:text-signal"
-                      >
-                        {p.hidden ? "Вернуть" : "Скрыть"}
-                      </button>
+                      {/* Спрашиваем, только когда скрытие ломает сборку */}
+                      {!p.hidden && bundlesOf.has(p.slug) ? (
+                        <ConfirmButton
+                          label="Скрыть"
+                          tone="neutral"
+                          question={`Убрать «${p.title}» с витрины?${bundleNote(p.slug)}`}
+                        />
+                      ) : (
+                        <button
+                          type="submit"
+                          className="text-muted-foreground transition-colors hover:text-signal"
+                        >
+                          {p.hidden ? "Вернуть" : "Скрыть"}
+                        </button>
+                      )}
                     </form>
                     <form action={deleteProduct}>
                       <input type="hidden" name="slug" value={p.slug} />
                       <ConfirmButton
                         label="Удалить"
-                        question={`Удалить «${p.title}» насовсем? Чтобы просто убрать с витрины, нажмите «Скрыть».`}
+                        question={`Удалить «${p.title}» насовсем? Чтобы просто убрать с витрины, нажмите «Скрыть».${bundleNote(p.slug)}`}
                       />
                     </form>
                   </div>
