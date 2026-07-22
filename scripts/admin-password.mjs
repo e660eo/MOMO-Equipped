@@ -3,11 +3,16 @@
   Пароль для панели управления сайтом.
 
   Запуск на сервере:  node scripts/admin-password.mjs
-  Скрипт спросит пароль, напечатает две строки для .env.local и ничего
-  никуда не отправит — сам пароль нигде не сохраняется.
+  Скрипт спросит пароль и сам впишет хеш с секретом сессий в .env.local —
+  переносить длинные строки руками не нужно, а при копировании мышью в них
+  легко потерять символ. Сам пароль нигде не сохраняется и никуда не уходит.
+
+  С флагом --print строки печатаются на экран вместо записи в файл.
 */
 import crypto from "node:crypto";
 import readline from "node:readline";
+import fs from "node:fs";
+import path from "node:path";
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(16);
@@ -64,9 +69,51 @@ if (repeat !== password) {
 
 rl.close();
 
-console.log("\nВставьте эти строки в файл .env.local рядом с package.json:\n");
-console.log(`ADMIN_PASSWORD_HASH='${hashPassword(password)}'`);
-console.log(`ADMIN_SESSION_SECRET='${crypto.randomBytes(32).toString("hex")}'`);
+const vars = {
+  ADMIN_PASSWORD_HASH: hashPassword(password),
+  ADMIN_SESSION_SECRET: crypto.randomBytes(32).toString("hex"),
+};
+const remember =
+  "Пароль запомните — восстановить его из этих строк нельзя, только задать новый.";
+
+if (process.argv.includes("--print")) {
+  console.log("\nВставьте эти строки в файл .env.local рядом с package.json:\n");
+  for (const [key, value] of Object.entries(vars)) {
+    console.log(`${key}='${value}'`);
+  }
+  console.log(`\n${remember}`);
+  process.exit(0);
+}
+
+const envFile = path.join(process.cwd(), ".env.local");
+const existing = fs.existsSync(envFile) ? fs.readFileSync(envFile, "utf8") : "";
+
+// Прежние значения выкидываем: два одинаковых ключа в файле — источник
+// долгих разбирательств, почему пароль «не тот».
+const kept = existing
+  .split("\n")
+  .filter((line) => !/^\s*(ADMIN_PASSWORD_HASH|ADMIN_SESSION_SECRET)\s*=/.test(line))
+  .join("\n")
+  .replace(/\n+$/, "");
+
+const lines2 = Object.entries(vars).map(([k, v]) => `${k}='${v}'`);
+fs.writeFileSync(
+  envFile,
+  `${kept ? `${kept}\n` : ""}${lines2.join("\n")}\n`,
+  "utf8",
+);
+// Файл читаемый только владельцем: в нём ключи от панели.
+fs.chmodSync(envFile, 0o600);
+
+const hasDataDir = /^\s*MOMO_DATA_DIR\s*=/m.test(kept);
+
+console.log(`\nГотово: пароль записан в ${envFile}`);
+if (!hasDataDir) {
+  console.log(
+    "\nВ файле не хватает строки с папкой данных. Добавьте её командой:\n" +
+      "  echo 'MOMO_DATA_DIR=/home/momo/momo-data' >> .env.local",
+  );
+}
 console.log(
-  "\nПароль запомните — восстановить его из этих строк нельзя, только задать новый.",
+  "\nЧтобы сайт увидел изменения:\n  pm2 reload momo --update-env\n\n" + remember,
 );
