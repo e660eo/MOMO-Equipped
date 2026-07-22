@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
     BUILD_REVISION: process.env.BUILD_REVISION ?? "dev",
     BUILD_TIME: new Date().toISOString(),
   },
+  // nodemailer — обычный CommonJS-пакет для Node: пусть сборщик его не трогает,
+  // а требует из node_modules как есть.
+  serverExternalPackages: ["nodemailer"],
 };
 
 export default nextConfig;

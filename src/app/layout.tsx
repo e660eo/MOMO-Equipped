@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Unbounded, Manrope, Syne } from "next/font/google";
+import { SITE_URL } from "@/lib/site-url";
 import "./globals.css";
 
 // Заголовки — фирменный Unbounded. Вес 800 добавлен к исходным 500/700
@@ -25,7 +26,7 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://momo-eq.ru"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "MOMO — автоакустика и аксессуары",
     template: "%s · MOMO",

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
 import { readJson, updateJson, assertWritable } from "@/lib/store";
+import { sendMail, mailerConfig } from "@/lib/mailer";
+import { SITE_URL } from "@/lib/site-url";
 import type { SiteConfig } from "@/lib/types";
 
 /*
@@ -87,4 +89,55 @@ export async function saveSettings(
   }
 
   redirect("/admin/settings?saved=1");
+}
+
+/* --------------------------- проверка почты ------------------------------ */
+
+export type MailTestState = { ok?: string; error?: string };
+
+/**
+ * Пробное письмо на тот же адрес, куда уходят заказы.
+ *
+ * Настройки почты живут в окружении сервера — из панели их не поменять, но
+ * увидеть, работают ли они, можно и нужно: неверный пароль ящика иначе
+ * обнаружится только на потерянном заказе.
+ */
+export async function sendTestMail(
+  _prev: MailTestState,
+  _formData: FormData,
+): Promise<MailTestState> {
+  try {
+    await requireSession();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Нужно войти заново." };
+  }
+
+  const config = mailerConfig();
+  if (!config) {
+    return {
+      error:
+        "Почтовый ящик не подключён. Нужны переменные SMTP_USER и SMTP_PASS " +
+        "в файле .env.local на сервере — раздел «Письма о заказах» в DEPLOY.md.",
+    };
+  }
+
+  const when = new Date().toLocaleString("ru-RU", {
+    timeZone: "Europe/Moscow",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const result = await sendMail({
+    subject: "MOMO — проверка почты",
+    text: `Почта подключена. Уведомления о новых заказах будут приходить на этот адрес.\n\n${when}\n${SITE_URL}/admin/orders`,
+    html: `<div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#151515;">
+  <p><b>Почта подключена.</b> Уведомления о новых заказах будут приходить на этот адрес.</p>
+  <p style="color:#767676;font-size:13px;">Проверка отправлена ${when} из панели управления сайтом.</p>
+</div>`,
+  });
+
+  if (!result.ok) return { error: result.error };
+  return { ok: `Письмо отправлено на ${result.to.join(", ")}. Проверьте ящик.` };
 }

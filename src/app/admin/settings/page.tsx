@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { getSiteConfig } from "@/lib/data";
 import { SettingsForm } from "@/components/admin/settings-form";
+import {
+  MailStatusPanel,
+  type MailStatus,
+} from "@/components/admin/mail-status";
 import { requireAdminPage } from "@/lib/admin-auth";
+import { mailerConfig, lastMailResult } from "@/lib/mailer";
 
 export default async function AdminSettingsPage({
   searchParams,
@@ -12,6 +17,22 @@ export default async function AdminSettingsPage({
 
   const { saved } = await searchParams;
   const site = getSiteConfig();
+
+  // Настройки почты не отдаём в браузер целиком: там логин ящика.
+  const mail = mailerConfig();
+  const last = lastMailResult();
+  const mailStatus: MailStatus = {
+    configured: Boolean(mail),
+    to: mail?.to ?? [],
+    host: mail?.host ?? "",
+    last: last
+      ? {
+          ok: last.ok,
+          at: last.at,
+          detail: last.ok ? "" : last.error,
+        }
+      : null,
+  };
 
   return (
     <div>
@@ -33,7 +54,11 @@ export default async function AdminSettingsPage({
         <SettingsForm site={site} />
       </div>
 
-      <p className="mt-10 max-w-[680px] rounded-sm border border-border bg-surface px-4 py-3 text-[0.82rem] text-muted-foreground">
+      <div className="mt-10">
+        <MailStatusPanel status={mailStatus} />
+      </div>
+
+      <p className="mt-6 max-w-[680px] rounded-sm border border-border bg-surface px-4 py-3 text-[0.82rem] text-muted-foreground">
         Реквизиты ИП (ИНН, ОГРНИП, счёт в банке) здесь не меняются — они уходят
         в договоры и счета, ошибка там дороже удобства. Понадобится правка —
         напишите разработчику, страница{" "}

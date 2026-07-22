@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { addOrder } from "@/lib/orders";
+import { notifyNewOrder } from "@/lib/order-mail";
 import { getProducts } from "@/lib/data";
 import { currentCustomer } from "@/lib/customer-auth";
 import type { OrderItem } from "@/lib/types";
@@ -98,6 +99,16 @@ export async function submitOrder(payload: {
       total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
       ...(me ? { customerId: me.id } : {}),
     });
+
+    /*
+      Письмо владельцу отправляем вдогонку, не дожидаясь почтового сервера:
+      покупатель в этот момент стоит перед кнопкой, а разговор с SMTP —
+      это секунды. Заказ уже сохранён, так что потеря письма ничего не
+      обрывает; сбой уедет в лог, а результат последней отправки видно
+      в панели.
+    */
+    void notifyNewOrder(order);
+
     return { ok: true, id: order.id };
   } catch (e) {
     // Панель не настроена или диск недоступен — заказ не потерян, покупателя

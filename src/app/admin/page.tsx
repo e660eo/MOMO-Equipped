@@ -5,6 +5,7 @@ import { plural, cn } from "@/lib/utils";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getOrders } from "@/lib/orders";
 import { getCustomers } from "@/lib/customers";
+import { lastMailResult } from "@/lib/mailer";
 
 /*
   Сводка панели: сколько чего в каталоге и куда идти дальше.
@@ -22,6 +23,11 @@ export default async function AdminHomePage() {
   const orders = getOrders();
   const newOrders = orders.filter((o) => o.status === "new").length;
   const inWork = orders.filter((o) => o.status === "in_work").length;
+
+  // Сломанная почта иначе незаметна: заказы приходят, письма нет, и узнать
+  // об этом было бы неоткуда. Сводку владелец видит при каждом входе.
+  const mail = lastMailResult();
+  const mailBroken = mail && !mail.ok;
 
   const cards: { href: string; title: string; value: string; note?: string; accent?: boolean }[] = [
     {
@@ -87,6 +93,21 @@ export default async function AdminHomePage() {
           Не задана папка данных (MOMO_DATA_DIR). Сохранять правки некуда:
           файлы каталога перезаписываются при каждом обновлении сайта.
           Настройка — в DEPLOY.md, раздел «Папка данных».
+        </p>
+      )}
+
+      {mailBroken && (
+        <p className="mt-5 rounded-sm border border-[var(--signal-text)] px-4 py-3 text-[0.85rem] leading-relaxed text-[var(--signal-text)]">
+          Письмо о заказе не ушло — заказы приходят, но на почту вы их не
+          получаете. Сами заказы на месте, они в разделе{" "}
+          <Link href="/admin/orders" className="underline underline-offset-2">
+            «Заказы»
+          </Link>
+          . Причина и проверка почты —{" "}
+          <Link href="/admin/settings" className="underline underline-offset-2">
+            в настройках
+          </Link>
+          .
         </p>
       )}
 

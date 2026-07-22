@@ -1,5 +1,6 @@
 import { siteConfig, productImageUrl } from "./data";
 import { isInStock } from "./format";
+import { SITE_URL as BASE } from "./site-url";
 import type { Product, Category } from "./types";
 
 /*
@@ -9,10 +10,9 @@ import type { Product, Category } from "./types";
   они синтетические (см. src/lib/reviews.ts) — за фейковый aggregateRating
   поисковики снимают сниппет и накладывают санкции.
 
-  BASE — канонический домен. Должен совпадать с metadataBase в layout.tsx
-  и BASE в sitemap.ts.
+  Домен берём из src/lib/site-url.ts — там же его берут metadataBase, sitemap,
+  robots и письма о заказах.
 */
-const BASE = "https://momo-eq.ru";
 
 /** Абсолютный URL: локальные пути дополняем доменом, внешние оставляем как есть. */
 function absUrl(path: string): string {

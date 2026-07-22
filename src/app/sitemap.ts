@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getProducts, getCategories, getNews } from "@/lib/data";
-
-const BASE = "https://momo-eq.ru";
+import { SITE_URL as BASE } from "@/lib/site-url";
 
 /*
   Карта сайта: статические страницы + все карточки товаров, категории и новости.
