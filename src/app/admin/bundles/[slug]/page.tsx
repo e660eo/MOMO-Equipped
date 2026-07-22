@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRawBundles, getProducts } from "@/lib/data";
+import { getRawBundles, getProducts, getCategories } from "@/lib/data";
 import { BundleForm } from "@/components/admin/bundle-form";
 import { requireAdminPage } from "@/lib/admin-auth";
 
@@ -27,7 +27,7 @@ export default async function EditBundlePage({
         {bundle.title}
       </h1>
       <div className="mt-7">
-        <BundleForm bundle={bundle} products={getProducts()} />
+        <BundleForm bundle={bundle} products={getProducts()} categories={getCategories()} />
       </div>
     </div>
   );

@@ -2,8 +2,8 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { formatPrice } from "@/lib/format";
-import type { Bundle, Product } from "@/lib/types";
+import { formatPrice, productImageUrl, isInStock } from "@/lib/format";
+import type { Bundle, Category, Product } from "@/lib/types";
 import { saveBundle, type ActionState } from "@/app/admin/bundles/actions";
 
 /*
@@ -21,32 +21,49 @@ const label = "block text-[0.78rem] font-medium";
 export function BundleForm({
   bundle,
   products,
+  categories,
 }: {
   bundle?: Bundle;
   products: Product[];
+  categories: Category[];
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     saveBundle,
     {},
   );
-  const [items, setItems] = useState<string[]>(bundle?.items ?? []);
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
+
+  /*
+    Состав чистим от товаров, которых в каталоге уже нет: удалённая позиция
+    оставалась в наборе невидимкой — в списке не показывалась, но уезжала
+    при сохранении и валила его ошибкой «часть товаров уже удалена».
+  */
+  const [items, setItems] = useState<string[]>(
+    () => (bundle?.items ?? []).filter((slug) => bySlug.has(slug)),
+  );
+  const dropped = (bundle?.items.length ?? 0) - items.length;
+
   const [discount, setDiscount] = useState(bundle?.discountPercent ?? 7);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
 
-  const bySlug = new Map(products.map((p) => [p.slug, p]));
-  const chosen = items.map((s) => bySlug.get(s)).filter(Boolean) as Product[];
+  const chosen = items.map((s) => bySlug.get(s)!).filter(Boolean);
   const full = chosen.reduce((sum, p) => sum + p.price, 0);
   const price = Math.round((full * (100 - discount)) / 100 / 10) * 10;
 
-  const found = query.trim()
-    ? products
-        .filter(
-          (p) =>
-            !items.includes(p.slug) &&
-            p.title.toLowerCase().includes(query.trim().toLowerCase()),
-        )
-        .slice(0, 8)
-    : [];
+  /*
+    Подбор товара: список открыт всегда, а поиск и категория его сужают —
+    так комплект собирается выбором из готового перечня, а не угадыванием
+    точного названия. Слова ищем по отдельности: «саб 12» найдёт
+    «Сабвуфер автомобильный ACHILLES 12 дюймов».
+  */
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const found = products.filter((p) => {
+    if (items.includes(p.slug)) return false;
+    if (category && p.category !== category) return false;
+    const haystack = `${p.title} ${p.brand}`.toLowerCase();
+    return words.every((w) => haystack.includes(w));
+  });
 
   return (
     <form action={formAction} className="max-w-[760px]">
@@ -113,6 +130,15 @@ export function BundleForm({
       <fieldset className="mt-8">
         <legend className="text-[0.78rem] font-medium">Состав</legend>
 
+        {dropped > 0 && (
+          <p className="mt-2 rounded-sm border border-border bg-surface px-3 py-2 text-[0.8rem] text-muted-foreground">
+            {dropped === 1
+              ? "Один товар из этой сборки удалён из каталога и убран из состава."
+              : `${dropped} товара из этой сборки удалены из каталога и убраны из состава.`}{" "}
+            Добавьте замену ниже и сохраните.
+          </p>
+        )}
+
         {chosen.length > 0 && (
           <ul className="mt-3 divide-y divide-border border-y border-border">
             {chosen.map((p) => (
@@ -133,27 +159,60 @@ export function BundleForm({
           </ul>
         )}
 
-        <div className="mt-4">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Найти товар и добавить в сборку…"
-            className={field}
-          />
+        <div className="mt-5">
+          <p className="text-[0.78rem] font-medium">Добавить товар</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Поиск: сабвуфер, усилитель, кабель…"
+              className={`${field} min-w-[220px] flex-1`}
+            />
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={`${field} w-auto`}
+            >
+              <option value="">Все категории</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <p className="mt-2 text-[0.72rem] text-muted-foreground">
+            {found.length > 0
+              ? `Показано ${Math.min(found.length, 60)} из ${found.length} — нажмите на товар, чтобы добавить`
+              : "Ничего не нашлось: измените запрос или категорию"}
+          </p>
+
           {found.length > 0 && (
-            <ul className="mt-2 divide-y divide-border rounded-sm border border-border bg-surface">
-              {found.map((p) => (
+            <ul className="mt-2 max-h-[320px] divide-y divide-border overflow-y-auto rounded-sm border border-border bg-surface">
+              {found.slice(0, 60).map((p) => (
                 <li key={p.slug}>
                   <button
                     type="button"
-                    onClick={() => {
-                      setItems((list) => [...list, p.slug]);
-                      setQuery("");
-                    }}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-[0.85rem] transition-colors hover:text-signal"
+                    onClick={() => setItems((list) => [...list, p.slug])}
+                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-[0.85rem] transition-colors hover:bg-signal/5 hover:text-signal active:scale-[0.995]"
                   >
-                    <span className="flex-1">{p.title}</span>
-                    <span className="text-muted-foreground">{formatPrice(p.price)}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={productImageUrl(p.image)}
+                      alt=""
+                      className="h-9 w-9 shrink-0 rounded-sm border border-border bg-tile object-contain"
+                    />
+                    <span className="flex-1">
+                      {p.title}
+                      <span className="block text-[0.72rem] text-muted-foreground">
+                        {p.brand}
+                        {isInStock(p) === false && " · нет на складе"}
+                      </span>
+                    </span>
+                    <span className="whitespace-nowrap text-muted-foreground">
+                      {formatPrice(p.price)}
+                    </span>
                   </button>
                 </li>
               ))}

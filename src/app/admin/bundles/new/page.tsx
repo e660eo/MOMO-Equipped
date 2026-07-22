@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getProducts } from "@/lib/data";
+import { getProducts, getCategories } from "@/lib/data";
 import { BundleForm } from "@/components/admin/bundle-form";
 import { requireAdminPage } from "@/lib/admin-auth";
 
@@ -18,7 +18,7 @@ export default async function NewBundlePage() {
         Новая сборка
       </h1>
       <div className="mt-7">
-        <BundleForm products={getProducts()} />
+        <BundleForm products={getProducts()} categories={getCategories()} />
       </div>
     </div>
   );
