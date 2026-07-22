@@ -47,6 +47,7 @@ export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
                 <ProductImage
                   src={productImageUrl(p.image)}
                   alt=""
+                  sizes="80px"
                   className="h-[84%] w-[84%] object-contain mix-blend-multiply"
                 />
               </span>

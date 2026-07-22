@@ -68,6 +68,7 @@ export function SearchSuggestions({
                 <ProductImage
                   src={productImageUrl(h.image)}
                   alt=""
+                  sizes="64px"
                   className="h-[84%] w-[84%] object-contain mix-blend-multiply"
                 />
               </span>

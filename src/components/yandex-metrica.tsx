@@ -66,7 +66,7 @@ export function YandexMetrica() {
     <>
       <Script
         id="yandex-metrica"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{ __html: loader }}
       />
       <Suspense fallback={null}>

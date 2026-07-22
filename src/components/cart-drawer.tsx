@@ -187,6 +187,7 @@ export function CartDrawer() {
                     <ProductImage
                       src={productImageUrl(i.image)}
                       alt=""
+                      sizes="96px"
                       className="h-[85%] w-[85%] object-contain mix-blend-multiply"
                     />
                   </span>

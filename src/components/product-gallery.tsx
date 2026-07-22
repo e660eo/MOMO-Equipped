@@ -54,6 +54,8 @@ export function ProductGallery({
         <ProductImage
           src={images[idx]}
           alt={alt}
+          sizes="(max-width: 1024px) 92vw, 560px"
+          priority
           className="h-[86%] w-[86%] object-contain mix-blend-multiply"
         />
         <span className="absolute bottom-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
@@ -78,6 +80,7 @@ export function ProductGallery({
               <ProductImage
                 src={src}
                 alt=""
+                sizes="96px"
                 className="h-[84%] w-[84%] object-contain mix-blend-multiply"
               />
             </button>
