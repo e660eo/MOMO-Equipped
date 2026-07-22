@@ -140,7 +140,9 @@ export async function requireAdminPage(): Promise<void> {
 /* ---------------------------- защита от подбора --------------------------- */
 
 const attempts = new Map<string, { count: number; until: number }>();
-const MAX_ATTEMPTS = 5;
+// Восемь попыток: пароль владельца длинный, промахнуться по клавише легко,
+// а перебирать его вслепую всё равно бессмысленно.
+const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 10 * 60 * 1000;
 
 /** Осталось ли право на попытку входа с этого адреса. */

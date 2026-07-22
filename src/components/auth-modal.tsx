@@ -62,12 +62,22 @@ export function AuthModal() {
       ответ отрицательный, и дальше идёт обычный вход в кабинет покупателя —
       по форме не видно, что какая-то почта особенная.
     */
-    if (lgId.includes("@") && (await attemptAdminLogin(lgId, lgPass))) {
-      setBusy(false);
-      setLgPass("");
-      closeModal();
-      window.location.href = "/admin";
-      return;
+    if (lgId.includes("@")) {
+      const result = await attemptAdminLogin(lgId, lgPass);
+      if (result === "ok") {
+        setBusy(false);
+        setLgPass("");
+        closeModal();
+        window.location.href = "/admin";
+        return;
+      }
+      if (result === "throttled") {
+        setBusy(false);
+        setError(
+          "Слишком много попыток входа. Подождите десять минут и попробуйте снова.",
+        );
+        return;
+      }
     }
 
     const err = await login(lgId, lgPass);
