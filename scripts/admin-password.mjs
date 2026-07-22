@@ -15,24 +15,36 @@ function hashPassword(password) {
   return `scrypt:${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
-function ask(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  // Ввод не отображаем: пароль не должен остаться на экране и в истории.
-  const wasRaw = process.stdin.isTTY;
-  if (wasRaw) {
-    rl.output.write(question);
-    rl._writeToOutput = () => {};
+// Один интерфейс на оба вопроса: с отдельным на каждый вопрос второй ответ
+// терялся, когда ввод приходит не с клавиатуры (echo … | node …).
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+// Строки читаем итератором, а не rl.question: при вводе не с клавиатуры
+// (echo … | node …) обе строки приходят разом, и ответ на второй вопрос
+// терялся — колбэка в этот момент ещё нет, а итератор их буферизует.
+const lines = rl[Symbol.asyncIterator]();
+
+async function ask(question) {
+  /*
+    Вопрос печатаем сами, до маскировки: она подменяет весь вывод readline,
+    и заданный через rl.question вопрос стирался вместе с вводом — на экране
+    оставался пустой курсор без единой подсказки.
+
+    Печатаем звёздочки, а не прячем ввод совсем: видно, что клавиши доходят,
+    а сам пароль на экране не остаётся.
+  */
+  process.stdout.write(question);
+  if (process.stdin.isTTY) {
+    rl._writeToOutput = (chunk) => {
+      rl.output.write(chunk.includes("\n") ? "\n" : "*");
+    };
   }
-  return new Promise((resolve) => {
-    rl.question(wasRaw ? "" : question, (answer) => {
-      if (wasRaw) rl.output.write("\n");
-      rl.close();
-      resolve(answer);
-    });
-  });
+
+  const { value } = await lines.next();
+  process.stdout.write("\n");
+  return value ?? "";
 }
 
 const password = (await ask("Придумайте пароль для входа в панель: ")).trim();
@@ -49,6 +61,8 @@ if (repeat !== password) {
   console.error("\nПароли не совпали. Запустите скрипт заново.");
   process.exit(1);
 }
+
+rl.close();
 
 console.log("\nВставьте эти строки в файл .env.local рядом с package.json:\n");
 console.log(`ADMIN_PASSWORD_HASH='${hashPassword(password)}'`);
