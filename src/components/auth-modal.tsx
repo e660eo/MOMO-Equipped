@@ -340,11 +340,12 @@ export function AuthModal() {
           <span className="h-px flex-1 bg-border" />
         </div>
 
-        {/* Заглушка: OAuth требует сервера, кнопка не притворяется рабочей */}
+        {/* Заглушка: приложение в Яндекс OAuth не заведено, кнопка не
+            притворяется рабочей */}
         <button
           type="button"
           disabled
-          title="Вход через Яндекс ID появится после переезда сайта на сервер"
+          title="Вход через Яндекс ID пока не подключён"
           className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-sm border border-border py-3 text-sm font-semibold opacity-60"
         >
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FC3F1D] text-[0.8rem] font-bold text-white">
@@ -356,10 +357,23 @@ export function AuthModal() {
           </span>
         </button>
 
+        {/*
+          Текст обязан описывать то, что происходит на самом деле: аккаунт
+          с 22.07.2026 живёт на сервере, а не в браузере. Прежняя редакция
+          обещала «данные никуда не отправляются» — под этим обещанием
+          покупатель и оставлял свои контакты.
+        */}
         <p className="mt-4 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
-          Аккаунт пока хранится только в этом браузере: пароль — необратимым
-          хешем, данные никуда не отправляются. После переезда сайта на сервер
-          кабинет станет полноценным: вход с любого устройства и Яндекс ID.
+          Аккаунт хранится у нас на сервере — вход работает с любого
+          устройства, история заказов не теряется. Пароль записан необратимым
+          хешем, увидеть его не можем даже мы. Что и зачем мы храним — в{" "}
+          <a
+            href="/privacy"
+            className="underline underline-offset-2 hover:text-[var(--signal-text)]"
+          >
+            политике конфиденциальности
+          </a>
+          ; удалить аккаунт можно в кабинете в любой момент.
         </p>
       </div>
     </>

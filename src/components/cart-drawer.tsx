@@ -368,8 +368,8 @@ export function CartDrawer() {
               {sending ? "Оформляем заказ…" : "Оформить через WhatsApp"}
             </button>
             <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
-              Заказ уйдёт менеджеру в WhatsApp. Онлайн-оплата (ЮKassa)
-              подключается в Фазе 3.
+              Заказ уйдёт менеджеру в WhatsApp: он подтвердит наличие, назовёт
+              стоимость доставки и пришлёт способы оплаты.
             </p>
           </>
         )}

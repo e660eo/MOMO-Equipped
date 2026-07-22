@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { User, ShoppingCart, Menu, Search } from "lucide-react";
 import { useCart, cartCount } from "@/lib/cart-store";
 import { useAccount } from "@/lib/account-store";
+import { useCustomer } from "@/components/customer-provider";
 import { ThemeToggle } from "./theme-toggle";
 import { CatalogMenu } from "./catalog-menu";
 import { HeaderExtras, CityPicker } from "./header-extras";
@@ -27,17 +28,19 @@ export function SiteHeader() {
   const router = useRouter();
   const items = useCart((s) => s.items);
   const openCart = useCart((s) => s.openCart);
-  const authed = useAccount((s) => s.authed);
+  /*
+    Вошёл покупатель или нет — знает сервер по подписанной куке, и только он.
+    Раньше шапка спрашивала об этом localStorage, оставшийся от старого
+    браузерного аккаунта: вход и регистрация ходят на сервер и этот флаг не
+    трогают, поэтому сразу после регистрации кнопка снова предлагала войти.
+  */
+  const customer = useCustomer();
+  const authed = customer !== null;
   const openAuth = useAccount((s) => s.openModal);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hintsOpen, setHintsOpen] = useState(false);
   const count = cartCount(items);
-
-  // Точка «вы вошли» рисуется только после маунта: серверный HTML про
-  // localStorage не знает, и до гидрации разметка должна совпадать.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   // Вошедшего ведём в кабинет, остальным открываем вход
   function accountAction() {
@@ -119,7 +122,7 @@ export function SiteHeader() {
             aria-label="Личный кабинет"
           >
             <User size={16} />
-            {mounted && authed && (
+            {authed && (
               <span
                 aria-hidden
                 className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-signal"
@@ -238,7 +241,7 @@ export function SiteHeader() {
             >
               <User size={16} />
               Личный кабинет
-              {mounted && authed && (
+              {authed && (
                 <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-signal" />
               )}
             </button>
