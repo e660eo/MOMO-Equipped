@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSiteConfig } from "./data";
 
 /*
   Вход в панель управления: один общий пароль владельца магазина.
@@ -17,6 +18,22 @@ const SESSION_DAYS = 7;
 /** Пароль задан и панель вообще может работать. */
 export function isConfigured(): boolean {
   return Boolean(process.env.ADMIN_PASSWORD_HASH && sessionSecret());
+}
+
+/**
+ * Почта-логин владельца. По умолчанию — почта магазина из настроек сайта,
+ * чтобы вход работал без правки окружения на сервере. ADMIN_EMAIL
+ * перекрывает её, если логин нужен отдельный от публичного адреса.
+ */
+export function adminEmail(): string {
+  const fromEnv = process.env.ADMIN_EMAIL?.trim();
+  return (fromEnv || getSiteConfig().contacts.email).toLowerCase();
+}
+
+/** Пара «почта + пароль» с формы входа на сайте. */
+export function verifyAdminLogin(email: string, password: string): boolean {
+  if (email.trim().toLowerCase() !== adminEmail()) return false;
+  return verifyPassword(password);
 }
 
 function sessionSecret(): string {

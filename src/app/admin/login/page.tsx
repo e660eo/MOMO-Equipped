@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import {
   hasSession,
   isConfigured,
-  verifyPassword,
+  verifyAdminLogin,
   startSession,
   canAttempt,
   recordFailure,
@@ -28,8 +28,9 @@ async function login(formData: FormData) {
     redirect("/admin/login?error=too-many");
   }
 
+  const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  if (!verifyPassword(password)) {
+  if (!verifyAdminLogin(email, password)) {
     recordFailure(ip);
     redirect("/admin/login?error=wrong");
   }
@@ -65,7 +66,23 @@ export default async function AdminLoginPage({
 
       {configured ? (
         <form action={login} className="mt-8">
-          <label className="block text-[0.8rem] font-medium" htmlFor="password">
+          <label className="block text-[0.8rem] font-medium" htmlFor="email">
+            Почта
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            autoFocus
+            required
+            className="mt-2 w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm focus:border-signal focus:outline-none"
+          />
+
+          <label
+            className="mt-5 block text-[0.8rem] font-medium"
+            htmlFor="password"
+          >
             Пароль
           </label>
           <input
@@ -73,7 +90,6 @@ export default async function AdminLoginPage({
             name="password"
             type="password"
             autoComplete="current-password"
-            autoFocus
             required
             className="mt-2 w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm focus:border-signal focus:outline-none"
           />

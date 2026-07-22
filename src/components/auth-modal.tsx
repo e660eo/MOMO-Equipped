@@ -9,6 +9,7 @@ import { useToast } from "@/lib/toast-store";
 import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
+import { attemptAdminLogin } from "@/app/admin-entry";
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -53,6 +54,21 @@ export function AuthModal() {
   async function onLogin(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
+
+    /*
+      Сначала пробуем вход владельца: та же пара «почта + пароль» открывает
+      панель управления, чтобы не помнить отдельный адрес. Для всех остальных
+      ответ отрицательный, и дальше идёт обычный вход в кабинет покупателя —
+      по форме не видно, что какая-то почта особенная.
+    */
+    if (lgId.includes("@") && (await attemptAdminLogin(lgId, lgPass))) {
+      setBusy(false);
+      setLgPass("");
+      closeModal();
+      window.location.href = "/admin";
+      return;
+    }
+
     const err = await login(lgId, lgPass);
     setBusy(false);
     if (err) {
