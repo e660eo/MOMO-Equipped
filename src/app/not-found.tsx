@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Disc3, Zap, Volume2, Tag } from "lucide-react";
 import { siteConfig, getProducts } from "@/lib/data";
 import { plural } from "@/lib/utils";
+import { ShopChrome } from "@/components/shop-chrome";
 
 /*
   Страница 404.
@@ -23,8 +24,14 @@ const shortcuts = [
   { href: "/sale", label: "Уценка", icon: Tag },
 ];
 
+/*
+  404 лежит в корне приложения — она ловит любые адреса, в том числе вне
+  группы `(shop)`, и группового layout не получает. Шапку и футер поэтому
+  подключаем здесь явно, тем же компонентом, что и витрина.
+*/
 export default function NotFound() {
   return (
+    <ShopChrome>
     <main className="mx-auto flex min-h-[68vh] max-w-[1200px] flex-col items-center justify-center px-6 py-20 text-center">
       {/* Осциллограмма с обрывом — «сигнал потерян» */}
       <svg
@@ -108,5 +115,6 @@ export default function NotFound() {
         — подберём под задачу и бюджет.
       </p>
     </main>
+    </ShopChrome>
   );
 }

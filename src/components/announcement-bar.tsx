@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Truck, ShieldCheck, Clock, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { siteConfig } from "@/lib/data";
+import { useSiteConfig } from "@/components/site-config-provider";
 
 const items = [
   { icon: Truck, text: "Бесплатная доставка от 5000 ₽" },
@@ -22,7 +22,7 @@ export function AnnouncementBar() {
     return () => clearInterval(t);
   }, []);
 
-  const phone = siteConfig.contacts.phone;
+  const phone = useSiteConfig().contacts.phone;
 
   return (
     <div className="relative overflow-hidden bg-black text-white">

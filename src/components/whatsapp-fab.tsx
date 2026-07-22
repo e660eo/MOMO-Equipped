@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { siteConfig } from "@/lib/data";
+import { useSiteConfig } from "@/components/site-config-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 export function WhatsAppFab() {
   const [visible, setVisible] = useState(false);
   const [hintOpen, setHintOpen] = useState(false);
+  const { contacts } = useSiteConfig();
 
   useEffect(() => {
     const onScroll = () => {
@@ -48,7 +49,7 @@ export function WhatsAppFab() {
       )}
 
       <a
-        href={siteConfig.contacts.whatsapp}
+        href={contacts.whatsapp}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Написать в WhatsApp"

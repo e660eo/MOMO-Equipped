@@ -1,9 +1,4 @@
-import products from "@data/products.json";
-import categories from "@data/categories.json";
-import brands from "@data/brands.json";
-import news from "@data/news.json";
-import site from "@data/site.json";
-import bundlesData from "@data/bundles.json";
+import { readJson } from "./store";
 import type {
   Product,
   Category,
@@ -11,18 +6,36 @@ import type {
   NewsItem,
   Bundle,
   ResolvedBundle,
+  SiteConfig,
 } from "./types";
 
 /*
-  Слой данных v1: локальные JSON-файлы, собранные с momo-eq.ru.
-  В фазе CMS эти функции сохранят сигнатуры, но начнут читать из Sanity —
-  страницы переписывать не придётся.
+  Слой данных: JSON-файлы из папки данных (см. store.ts).
+
+  Функции намеренно остались синхронными — их зовут страницы, sitemap и
+  generateStaticParams, а чтение идёт из кэша в памяти. Модуль серверный:
+  клиентским компонентам нужны только формат цены и путь к фото, они лежат
+  в отдельном `format.ts`.
 */
 
-export const siteConfig = site;
+export const getSiteConfig = (): SiteConfig => readJson<SiteConfig>("site.json");
 
+/**
+ * Конфиг сайта для серверных компонентов. Клиентские берут его из
+ * `SiteConfigProvider` — статический импорт JSON в браузер больше не уходит.
+ */
+export const siteConfig: SiteConfig = new Proxy({} as SiteConfig, {
+  get: (_t, prop: string) => getSiteConfig()[prop as keyof SiteConfig],
+});
+
+/** Все товары, включая скрытые от покупателей. Для админки. */
+export function getAllProducts(): Product[] {
+  return readJson<Product[]>("products.json");
+}
+
+/** Товары витрины: скрытые из админки сюда не попадают. */
 export function getProducts(): Product[] {
-  return products as Product[];
+  return getAllProducts().filter((p) => !p.hidden);
 }
 
 export function getProduct(slug: string): Product | undefined {
@@ -44,7 +57,7 @@ export function getClearanceProducts(): Product[] {
  * не роняла страницу.
  */
 export function getBundles(): ResolvedBundle[] {
-  return (bundlesData as Bundle[]).map((b) => {
+  return readJson<Bundle[]>("bundles.json").map((b) => {
     const products = b.items
       .map((slug) => getProduct(slug))
       .filter((p): p is Product => Boolean(p));
@@ -53,6 +66,10 @@ export function getBundles(): ResolvedBundle[] {
       Math.round((fullPrice * (100 - b.discountPercent)) / 100 / 10) * 10;
     return { ...b, products, fullPrice, price, saving: fullPrice - price };
   });
+}
+
+export function getRawBundles(): Bundle[] {
+  return readJson<Bundle[]>("bundles.json");
 }
 
 /**
@@ -64,7 +81,7 @@ export function getCategories(): Category[] {
   for (const p of getProducts()) {
     counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
   }
-  return (categories as Category[]).map((c) => ({
+  return readJson<Category[]>("categories.json").map((c) => ({
     ...c,
     count: counts.get(c.slug) ?? 0,
   }));
@@ -75,27 +92,11 @@ export function getCategory(slug: string): Category | undefined {
 }
 
 export function getBrands(): Brand[] {
-  return brands as Brand[];
+  return readJson<Brand[]>("brands.json");
 }
 
 export function getNews(): NewsItem[] {
-  return news as NewsItem[];
+  return readJson<NewsItem[]>("news.json");
 }
 
-export function productImageUrl(image: string): string {
-  // Фото, выгруженные из прайса, лежат в public/ и уже абсолютны —
-  // им база со старого сайта не нужна.
-  if (image.startsWith("/")) return image;
-  return `${site.imageBase}${image}`;
-}
-
-/** Платёж при оплате частями: 4 равных платежа, копейки округляются вверх. */
-export function splitPayment(price: number): number {
-  return Math.ceil(price / 4);
-}
-
-export function formatPrice(price: number): string {
-  // Неразрывный пробел перед знаком рубля: в узких карточках «₽» уезжал
-  // на следующую строку и цена читалась как оборванная.
-  return `${price.toLocaleString("ru-RU")} ₽`;
-}
+export { productImageUrl, splitPayment, formatPrice } from "./format";

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Package, Plus } from "lucide-react";
 import type { ResolvedBundle } from "@/lib/types";
-import { formatPrice, splitPayment, productImageUrl } from "@/lib/data";
+import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
 import { ProductImage } from "./product-image";
 

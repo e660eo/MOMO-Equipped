@@ -28,3 +28,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Данные, которые пишет панель управления (в git не хранятся)
+/data/backups/
+/data/uploads/

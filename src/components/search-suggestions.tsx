@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { searchProducts, countMatches } from "@/lib/search-index";
-import { formatPrice, productImageUrl } from "@/lib/data";
+import { formatPrice, productImageUrl } from "@/lib/format";
 import { ProductImage } from "./product-image";
 
 /**

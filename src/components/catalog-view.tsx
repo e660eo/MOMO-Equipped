@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 import type { Product, Category, Brand } from "@/lib/types";
-import { formatPrice, siteConfig } from "@/lib/data";
+import { formatPrice } from "@/lib/format";
+import { useSiteConfig } from "@/components/site-config-provider";
 import {
   parseTech,
   diameterBucket,
@@ -64,6 +65,7 @@ export function CatalogView({
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { contacts } = useSiteConfig();
 
   const category = params.get("category") ?? "";
   const brand = params.get("brand") ?? "";
@@ -588,7 +590,7 @@ export function CatalogView({
                   Сбросить фильтры
                 </button>
                 <a
-                  href={siteConfig.contacts.whatsapp}
+                  href={contacts.whatsapp}
                   className="inline-flex rounded-sm bg-signal px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_28px_rgba(255,85,0,0.35)]"
                 >
                   Написать в WhatsApp

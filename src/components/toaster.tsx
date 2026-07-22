@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { useToast } from "@/lib/toast-store";
-import { productImageUrl } from "@/lib/data";
+import { productImageUrl } from "@/lib/format";
 import { ProductImage } from "./product-image";
 
 export function Toaster() {

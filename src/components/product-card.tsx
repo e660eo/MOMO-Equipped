@@ -3,7 +3,7 @@
 import type { PointerEvent } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { formatPrice, splitPayment, productImageUrl } from "@/lib/data";
+import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
 import { shortSpecs } from "@/lib/specs";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";

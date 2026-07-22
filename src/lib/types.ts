@@ -12,9 +12,11 @@ export interface Product {
   description?: string[];
   /**
    * Дополнительные фото для галереи (image остаётся обложкой).
-   * Добавить снимок: положить файл в public/uploads/ и вписать сюда имя.
+   * Файлы лежат в папке данных (uploads/), загружаются через админку.
    */
   images?: string[];
+  /** Снят с витрины из админки, но не удалён — карточки и ссылок нет. */
+  hidden?: boolean;
 }
 
 export interface Category {
@@ -54,3 +56,53 @@ export interface NewsItem {
   date: string;
   excerpt: string;
 }
+
+/** Контакты и цифры доверия — редактируются из админки. */
+export interface SiteConfig {
+  name: string;
+  tagline: string;
+  contacts: {
+    phone: string;
+    phoneSecondary: string;
+    email: string;
+    address: string;
+    hours: string;
+    whatsapp: string;
+    telegram: string;
+  };
+  trust: {
+    warrantyMonths: number;
+    returnDays: number;
+    processingDays: number;
+    freeShippingFrom: number;
+  };
+  /** Юридические данные ИП. Из админки не правятся — только показ. */
+  requisites: {
+    fullName: string;
+    shortName: string;
+    inn: string;
+    ogrnip: string;
+    registrationAddress: string;
+    postalAddress: string;
+    bank: string;
+    bik: string;
+    correspondentAccount: string;
+    settlementAccount: string;
+    certificate: string;
+    okpo: string;
+    okato: string;
+    oktmo: string;
+    sfr: string;
+    edoGuid: string;
+    phones: string[];
+    emails: string[];
+    website: string;
+    okvedMain: string;
+    okvedExtra: string[];
+  };
+  /** Историческое поле: путь к фото задаётся в `format.ts`. */
+  imageBase?: string;
+}
+
+/** Часть конфига, нужная клиентским компонентам (шапка, корзина, кнопки). */
+export type PublicSiteConfig = Pick<SiteConfig, "contacts" | "trust">;

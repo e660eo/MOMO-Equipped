@@ -5,7 +5,7 @@ import { User, LogOut, Trash2, Package } from "lucide-react";
 import { useAccount } from "@/lib/account-store";
 import { useToast } from "@/lib/toast-store";
 import { readOrders, clearOrders, type LocalOrder } from "@/lib/local-orders";
-import { formatPrice } from "@/lib/data";
+import { formatPrice } from "@/lib/format";
 import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
 

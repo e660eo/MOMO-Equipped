@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
-import { formatPrice, splitPayment, productImageUrl, siteConfig } from "@/lib/data";
+import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
+import { useSiteConfig } from "@/components/site-config-provider";
 import { isPhoneComplete } from "@/lib/phone";
 import { recordOrder } from "@/lib/local-orders";
 import { ProductImage } from "./product-image";
@@ -42,9 +43,10 @@ export function CartDrawer() {
     } catch {}
   }, []);
 
+  const { contacts, trust } = useSiteConfig();
   const total = cartTotal(items);
   // Апсейл: сколько не хватает до бесплатной доставки.
-  const freeFrom = siteConfig.trust.freeShippingFrom;
+  const freeFrom = trust.freeShippingFrom;
   const remaining = Math.max(0, freeFrom - total);
   const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
@@ -83,7 +85,7 @@ export function CartDrawer() {
       `Адрес: ${address.trim()}`,
       comment.trim() ? `Комментарий: ${comment.trim()}` : "",
     ].filter(Boolean);
-    const url = `${siteConfig.contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
+    const url = `${contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
     window.open(url, "_blank", "noopener");
     // Локальная квитанция для «Моих заказов» в кабинете
     const order = recordOrder({

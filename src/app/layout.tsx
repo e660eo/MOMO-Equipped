@@ -2,17 +2,6 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Unbounded, Manrope, Syne } from "next/font/google";
 import "./globals.css";
-import ClickSpark from "@/components/ui/ClickSpark";
-import { AnnouncementBar } from "@/components/announcement-bar";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { CartDrawer } from "@/components/cart-drawer";
-import { AuthModal } from "@/components/auth-modal";
-import { Toaster } from "@/components/toaster";
-import { WhatsAppFab } from "@/components/whatsapp-fab";
-import { JsonLd } from "@/components/json-ld";
-import { organizationSchema, websiteSchema } from "@/lib/structured-data";
-import { YandexMetrica } from "@/components/yandex-metrica";
 
 // Заголовки — фирменный Unbounded. Вес 800 добавлен к исходным 500/700
 // для акцентных заголовков вроде «Реквизиты».
@@ -54,6 +43,11 @@ export const metadata: Metadata = {
   other: { "deploy-check": "auto-2026-07-21" },
 };
 
+/*
+  Корневой каркас: язык, тема, шрифты. Обвязка магазина (шапка, футер,
+  корзина, счётчик Метрики) живёт в layout группы `(shop)` — панель
+  управления на /admin рисуется на чистом листе, без витрины вокруг.
+*/
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -66,41 +60,7 @@ export default async function RootLayout({
       data-theme={theme === "dark" ? "dark" : undefined}
       className={`${unbounded.variable} ${manrope.variable} ${syne.variable}`}
     >
-      <body>
-        <YandexMetrica />
-        {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
-        <JsonLd data={organizationSchema()} />
-        <JsonLd data={websiteSchema()} />
-        {/*
-          Колонка на всю высоту окна: если контента мало (короткая страница,
-          пустой результат фильтра, высокий монитор), растягивается обёртка
-          вокруг children, а тёмный футер остаётся прижатым к низу. Без этого
-          под футером проступала светлая полоса фона body.
-        */}
-        <ClickSpark
-          className="flex min-h-screen flex-col"
-          sparkColor="#ff5500"
-          sparkSize={11}
-          sparkRadius={18}
-          sparkCount={8}
-          duration={450}
-        >
-          <AnnouncementBar />
-          <SiteHeader />
-          <div className="flex-1">{children}</div>
-          <SiteFooter />
-        </ClickSpark>
-        {/*
-          Оверлеи держим на уровне body, вне шапки и ClickSpark: у шапки
-          backdrop-filter, а он создаёт точку отсчёта для position:fixed —
-          внутри неё модалка позиционировалась бы относительно шапки, а не
-          экрана (окно входа уезжало вверх на мобильном).
-        */}
-        <CartDrawer />
-        <AuthModal />
-        <Toaster />
-        <WhatsAppFab />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
