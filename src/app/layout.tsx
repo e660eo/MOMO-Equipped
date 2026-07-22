@@ -39,8 +39,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ru_RU",
   },
-  // Невидимый маркер выката: по нему видно, что автообновление доставило сборку
-  other: { "deploy-check": "auto-2026-07-21" },
+  // Невидимая метка версии: по ней снаружи видно, какая сборка развёрнута.
+  // Правка данных и пустой коммит не меняют бандлы, и без метки выкат
+  // неотличим от его отсутствия.
+  other: {
+    "build-revision": process.env.BUILD_REVISION ?? "unknown",
+    "build-time": process.env.BUILD_TIME ?? "unknown",
+  },
 };
 
 /*
