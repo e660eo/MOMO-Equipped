@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
 import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
+import { messageFor, isRedirect } from "@/lib/errors";
 import type { Bundle, Product } from "@/lib/types";
 
 /*
@@ -72,8 +73,8 @@ export async function saveBundle(
     );
     revalidatePath("/", "layout");
   } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    return { error: e instanceof Error ? e.message : "Не удалось сохранить." };
+    if (isRedirect(e)) throw e;
+    return { error: messageFor(e, "Не удалось сохранить.", "saveBundle") };
   }
 
   redirect("/admin/bundles?saved=1");

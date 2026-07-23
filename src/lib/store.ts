@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { ExpectedError } from "./errors";
 
 /*
   Хранилище данных сайта.
@@ -161,7 +162,12 @@ function pruneBackups(dir: string, file: string): void {
  */
 export function assertWritable(): void {
   if (process.env.NODE_ENV === "production" && isRepoData()) {
-    throw new Error(
+    /*
+      ExpectedError — текст написан для владельца магазина и показывается
+      ему в панели. Наружу, в формы покупателя, он не уходит: там этот
+      отказ ловится отдельно (см. signUp) и заменяется на «напишите нам».
+    */
+    throw new ExpectedError(
       "Не задана переменная MOMO_DATA_DIR — сохранять правки некуда: " +
         "файлы репозитория перезаписываются при каждом обновлении сайта. " +
         "Смотрите раздел «Папка данных» в DEPLOY.md.",

@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
 import { uploadsDir } from "./store";
+import { ExpectedError } from "./errors";
 
 /*
   Обработка загружаемых фото товара.
@@ -15,7 +16,8 @@ import { uploadsDir } from "./store";
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export class ImageError extends Error {}
+/** Отказ, написанный для владельца магазина: показывается ему как есть. */
+export class ImageError extends ExpectedError {}
 
 /**
  * Сохраняет загруженный файл в папку данных и возвращает имя, которое

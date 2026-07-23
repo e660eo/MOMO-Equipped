@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/admin-auth";
 import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { sendMail, mailerConfig } from "@/lib/mailer";
 import { SITE_URL } from "@/lib/site-url";
+import { messageFor, isRedirect } from "@/lib/errors";
 import type { SiteConfig } from "@/lib/types";
 
 /*
@@ -84,8 +85,8 @@ export async function saveSettings(
     updateJson<SiteConfig>(FILE, () => next);
     revalidatePath("/", "layout");
   } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    return { error: e instanceof Error ? e.message : "Не удалось сохранить." };
+    if (isRedirect(e)) throw e;
+    return { error: messageFor(e, "Не удалось сохранить.", "saveSettings") };
   }
 
   redirect("/admin/settings?saved=1");
@@ -109,7 +110,7 @@ export async function sendTestMail(
   try {
     await requireSession();
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Нужно войти заново." };
+    return { error: messageFor(e, "Нужно войти заново.", "sendTestMail") };
   }
 
   const config = mailerConfig();

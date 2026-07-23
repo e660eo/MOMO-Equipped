@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSiteConfig } from "./data";
+import { ExpectedError } from "./errors";
 
 /*
   Вход в панель управления: один общий пароль владельца магазина.
@@ -123,7 +124,7 @@ export async function hasSession(): Promise<boolean> {
  */
 export async function requireSession(): Promise<void> {
   if (!(await hasSession())) {
-    throw new Error("Нужно войти заново — сессия истекла.");
+    throw new ExpectedError("Нужно войти заново — сессия истекла.");
   }
 }
 

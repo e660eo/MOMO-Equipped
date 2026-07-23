@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
 import { resetPassword } from "@/lib/customers";
+import { messageFor } from "@/lib/errors";
 
 /*
   Сброс пароля покупателя.
@@ -24,7 +25,7 @@ export async function issueTempPassword(
   } catch (e) {
     return {
       ok: false,
-      error: e instanceof Error ? e.message : "Не получилось сбросить пароль.",
+      error: messageFor(e, "Не получилось сбросить пароль.", "issueTempPassword"),
     };
   }
 }

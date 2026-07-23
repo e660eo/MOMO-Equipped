@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
 import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
+import { messageFor, isRedirect } from "@/lib/errors";
 import type { NewsItem } from "@/lib/types";
 
 /* Новости журнала: короткие заметки на главной и в разделе /news. */
@@ -55,8 +56,8 @@ export async function saveNews(
     });
     revalidatePath("/", "layout");
   } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    return { error: e instanceof Error ? e.message : "Не удалось сохранить." };
+    if (isRedirect(e)) throw e;
+    return { error: messageFor(e, "Не удалось сохранить.", "saveNews") };
   }
 
   redirect("/admin/news?saved=1");

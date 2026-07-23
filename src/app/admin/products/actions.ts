@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
 import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
-import { saveProductImage, deleteProductImage, ImageError } from "@/lib/image-pipeline";
+import { saveProductImage, deleteProductImage } from "@/lib/image-pipeline";
+import { messageFor, isRedirect } from "@/lib/errors";
 import type { Product } from "@/lib/types";
 
 /*
@@ -141,12 +142,9 @@ export async function saveProduct(
     );
     refreshSite();
   } catch (e) {
-    if (e instanceof ImageError) return { error: e.message };
     // redirect() внутри try бросает управляющее исключение — пропускаем дальше
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    return {
-      error: e instanceof Error ? e.message : "Не удалось сохранить товар.",
-    };
+    if (isRedirect(e)) throw e;
+    return { error: messageFor(e, "Не удалось сохранить товар.", "saveProduct") };
   }
 
   redirect("/admin/products?saved=1");
@@ -190,9 +188,7 @@ export async function quickUpdate(
     revalidatePath("/admin/products");
     return { ok: "Сохранено" };
   } catch (e) {
-    return {
-      error: e instanceof Error ? e.message : "Не удалось сохранить.",
-    };
+    return { error: messageFor(e, "Не удалось сохранить.", "quickUpdate") };
   }
 }
 

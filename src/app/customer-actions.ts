@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { clientIp } from "@/lib/client-ip";
+import { ExpectedError } from "@/lib/errors";
 import {
   registerCustomer,
   authenticate,
@@ -120,10 +121,16 @@ export async function signUp(input: {
     revalidatePath("/", "layout");
     return { ok: true, customer: result.customer };
   } catch (e) {
+    /*
+      Покупателю — только человеческий текст: про переменные окружения и
+      устройство сервера ему знать незачем. Настоящая причина уходит в лог,
+      иначе сломанная регистрация была бы совершенно невидимой.
+    */
+    console.error("signUp:", e);
     return {
       ok: false,
       error:
-        e instanceof Error && e.message.includes("MOMO_DATA_DIR")
+        e instanceof ExpectedError
           ? "Регистрация сейчас недоступна — напишите нам в WhatsApp."
           : "Не получилось создать аккаунт.",
     };
@@ -183,7 +190,9 @@ export async function deleteMyAccount(): Promise<{ ok: boolean; error?: string }
     await endCustomerSession();
     revalidatePath("/", "layout");
     return { ok: true };
-  } catch {
+  } catch (e) {
+    // Удаление своих данных — право по закону: молча терять отказ нельзя.
+    console.error("deleteMyAccount:", e);
     return { ok: false, error: "Не получилось удалить аккаунт." };
   }
 }
@@ -211,7 +220,8 @@ export async function saveProfile(patch: {
     // показывать покупателю несуществующую правку.
     const saved = await currentCustomer();
     return { ok: true, customer: saved ?? me };
-  } catch {
+  } catch (e) {
+    console.error("saveProfile:", e);
     return { ok: false, error: "Не получилось сохранить." };
   }
 }
