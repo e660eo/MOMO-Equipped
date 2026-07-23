@@ -63,24 +63,59 @@ function noteFailure(ip: string): void {
   rec.count += 1;
 }
 
+/*
+  Почта: одна собака, что-то до неё, домен с точкой и без пробелов.
+  Строже проверять смысла нет — настоящую проверку даёт письмо, а его мы
+  пока не шлём. Задача здесь другая: не пускать в файл мусор и простыни.
+*/
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@.]+(\.[^\s@.]+)+$/;
+
 export async function signUp(input: {
   name: string;
   email: string;
   phone: string;
   password: string;
 }): Promise<AuthResult> {
-  if (!input.name.trim()) return { ok: false, error: "Впишите имя." };
-  if (!input.email.includes("@")) return { ok: false, error: "Проверьте почту." };
-  if (input.phone.replace(/\D/g, "").length < 11) {
+  /*
+    Счётчик тот же, что у входа. Раньше регистрация не ограничивалась
+    ничем: customers.json набивался скриптом до отказа диска, и каждая
+    запись — это ещё и scrypt, то есть процессорное время сервера.
+  */
+  const ip = await clientIp();
+  if (throttled(ip)) {
+    return {
+      ok: false,
+      error: "Слишком много попыток. Подождите десять минут.",
+    };
+  }
+
+  const name = typeof input.name === "string" ? input.name.trim().slice(0, 100) : "";
+  const email = typeof input.email === "string" ? input.email.trim().slice(0, 120) : "";
+  const phone = typeof input.phone === "string" ? input.phone.trim().slice(0, 30) : "";
+  const password = typeof input.password === "string" ? input.password : "";
+
+  if (!name) return { ok: false, error: "Впишите имя." };
+  if (!EMAIL_RE.test(email)) return { ok: false, error: "Проверьте почту." };
+  if (phone.replace(/\D/g, "").length < 11) {
     return { ok: false, error: "Проверьте телефон." };
   }
-  if (input.password.length < 6) {
+  if (password.length < 6) {
     return { ok: false, error: "Пароль — от шести символов." };
+  }
+  // Потолок на пароль: scrypt считает тем дольше, чем он длиннее, и
+  // мегабайтная строка на входе — это способ занять сервер надолго.
+  if (password.length > 200) {
+    return { ok: false, error: "Пароль слишком длинный." };
   }
 
   try {
-    const result = registerCustomer(input);
-    if (!result.ok) return result;
+    const result = registerCustomer({ name, email, phone, password });
+    if (!result.ok) {
+      // Занятая почта или телефон — тоже повод притормозить перебор:
+      // иначе форма превращается в проверку «есть ли такой клиент».
+      noteFailure(ip);
+      return result;
+    }
     await startCustomerSession(result.customer.id);
     revalidatePath("/", "layout");
     return { ok: true, customer: result.customer };
@@ -105,6 +140,16 @@ export async function signIn(
       ok: false,
       error: "Слишком много попыток входа. Подождите десять минут.",
     };
+  }
+
+  // Потолки на длину: scrypt считается на каждую попытку, и простыня на
+  // входе — способ занять сервер, даже когда пароль заведомо неверный.
+  if (typeof login !== "string" || typeof password !== "string") {
+    return { ok: false, error: "Не подошли почта, телефон или пароль." };
+  }
+  if (login.length > 120 || password.length > 200) {
+    noteFailure(ip);
+    return { ok: false, error: "Не подошли почта, телефон или пароль." };
   }
 
   const customer = authenticate(login, password);
