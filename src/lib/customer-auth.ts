@@ -22,32 +22,62 @@ function secret(): string {
   return process.env.ADMIN_SESSION_SECRET?.trim() ?? "";
 }
 
+/*
+  В подпись входит назначение куки: у панели тот же секрет сервера и такой
+  же вид «значения через точку», и без пометки одну куку можно было бы
+  предъявить вместо другой.
+*/
 function sign(payload: string): string {
-  return crypto.createHmac("sha256", secret()).update(payload).digest("base64url");
+  return crypto
+    .createHmac("sha256", secret())
+    .update(`customer:${payload}`)
+    .digest("base64url");
 }
 
-function makeToken(customerId: string): string {
-  const payload = `${customerId}.${Date.now() + DAYS * 24 * 60 * 60 * 1000}`;
+/*
+  Отпечаток пароля — двенадцать символов от хеша его хеша. Восстановить по
+  нему ничего нельзя, но смена пароля меняет отпечаток, и все выданные до
+  этого куки перестают подходить.
+
+  Без него сброс пароля никого не выгонял: владелец выдавал покупателю
+  новый пароль, а тот, кто уже вошёл в чужой аккаунт, оставался внутри
+  ещё девяносто дней. Ради этого сброс обычно и делают.
+*/
+function fingerprint(passwordHash: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(passwordHash)
+    .digest("base64url")
+    .slice(0, 12);
+}
+
+function makeToken(customerId: string, fp: string): string {
+  const payload = `${customerId}.${Date.now() + DAYS * 24 * 60 * 60 * 1000}.${fp}`;
   return `${payload}.${sign(payload)}`;
 }
 
-function readToken(token: string | undefined): string | null {
+function readToken(
+  token: string | undefined,
+): { id: string; fp: string } | null {
   if (!token || !secret()) return null;
   const parts = token.split(".");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 4) return null;
 
-  const [id, expires, signature] = parts;
-  const expected = Buffer.from(sign(`${id}.${expires}`));
+  const [id, expires, fp, signature] = parts;
+  const expected = Buffer.from(sign(`${id}.${expires}.${fp}`));
   const actual = Buffer.from(signature);
   if (expected.length !== actual.length) return null;
   if (!crypto.timingSafeEqual(expected, actual)) return null;
   if (Number(expires) < Date.now()) return null;
 
-  return id;
+  return { id, fp };
 }
 
 export async function startCustomerSession(customerId: string): Promise<void> {
-  (await cookies()).set(COOKIE, makeToken(customerId), {
+  const customer = findCustomer(customerId);
+  if (!customer) return;
+
+  (await cookies()).set(COOKIE, makeToken(customerId, fingerprint(customer.passwordHash)), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -62,8 +92,15 @@ export async function endCustomerSession(): Promise<void> {
 
 /** Текущий покупатель или null. Без хеша пароля. */
 export async function currentCustomer(): Promise<PublicCustomer | null> {
-  const id = readToken((await cookies()).get(COOKIE)?.value);
-  if (!id) return null;
-  const customer = findCustomer(id);
-  return customer ? toPublic(customer) : null;
+  const parsed = readToken((await cookies()).get(COOKIE)?.value);
+  if (!parsed) return null;
+
+  const customer = findCustomer(parsed.id);
+  if (!customer) return null;
+
+  // Пароль сменили — сбросом из панели или самим покупателем. Кука,
+  // выданная до этого, больше не годится.
+  if (fingerprint(customer.passwordHash) !== parsed.fp) return null;
+
+  return toPublic(customer);
 }

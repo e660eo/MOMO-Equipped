@@ -74,30 +74,50 @@ export function verifyPassword(password: string): boolean {
 
 /* --------------------------------- сессия -------------------------------- */
 
+/*
+  Версия сессий. Сессия нигде не хранится, поэтому отозвать выданную куку
+  раньше было нечем: сменил пароль — а прежние куки живут ещё неделю.
+  Смена ADMIN_SESSION_VERSION в окружении закрывает разом все открытые
+  сессии панели. Это и есть «выйти со всех устройств» на случай потерянного
+  ноутбука или смены пароля.
+*/
+function sessionVersion(): string {
+  return process.env.ADMIN_SESSION_VERSION?.trim() || "1";
+}
+
+/*
+  Подписывается не голый срок, а строка с назначением. Кука покупателя
+  подписана тем же секретом сервера и устроена так же — «значения через
+  точку». Без пометки назначения одну можно было бы предъявить вместо
+  другой, и защита держалась бы только на разнице в числе кусков.
+*/
 function sign(payload: string): string {
   return crypto
     .createHmac("sha256", sessionSecret())
-    .update(payload)
+    .update(`admin:${payload}`)
     .digest("base64url");
 }
 
 function createToken(): string {
   const expires = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
-  const payload = String(expires);
+  const payload = `${sessionVersion()}.${expires}`;
   return `${payload}.${sign(payload)}`;
 }
 
 export function verifyToken(token: string | undefined): boolean {
   if (!token || !sessionSecret()) return false;
-  const [payload, signature] = token.split(".");
-  if (!payload || !signature) return false;
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
 
-  const expected = Buffer.from(sign(payload));
+  const [version, expires, signature] = parts;
+  if (version !== sessionVersion()) return false;
+
+  const expected = Buffer.from(sign(`${version}.${expires}`));
   const actual = Buffer.from(signature);
   if (expected.length !== actual.length) return false;
   if (!crypto.timingSafeEqual(expected, actual)) return false;
 
-  return Number(payload) > Date.now();
+  return Number(expires) > Date.now();
 }
 
 export async function startSession(): Promise<void> {
