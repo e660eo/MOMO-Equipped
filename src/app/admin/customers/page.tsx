@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-auth";
-import { getCustomers } from "@/lib/customers";
+import { getCustomers, toPublic } from "@/lib/customers";
 import { getOrders } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { plural } from "@/lib/utils";
@@ -20,11 +20,18 @@ export default async function AdminCustomersPage({
   const { q = "" } = await searchParams;
   const orders = getOrders();
 
+  /*
+    toPublic снимает passwordHash. Сейчас в клиентский компонент уходят
+    только id и имя, так что хеш никуда не утекал, — но он лежал в объекте,
+    который страница таскает по разметке, и одного невнимательного
+    <Что-нибудь customer={customer}/> хватило бы, чтобы он уехал в разметку
+    RSC. Проще не носить его сюда вовсе.
+  */
   const rows = getCustomers()
     .map((c) => {
       const mine = orders.filter((o) => o.customerId === c.id);
       return {
-        customer: c,
+        customer: toPublic(c),
         count: mine.length,
         spent: mine
           .filter((o) => o.status !== "canceled")
