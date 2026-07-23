@@ -6,7 +6,6 @@ import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { isPhoneComplete } from "@/lib/phone";
-import { recordOrder } from "@/lib/local-orders";
 import { submitOrder } from "@/app/order-actions";
 import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
@@ -139,17 +138,13 @@ export function CartDrawer() {
     ].filter(Boolean);
     const url = `${contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
     window.open(url, "_blank", "noopener");
-    // Локальная квитанция для «Моих заказов» в кабинете
-    const order = recordOrder({
-      total,
-      items: items.map((i) => ({
-        slug: i.slug,
-        title: i.title,
-        price: i.price,
-        qty: i.qty,
-      })),
-    });
-    setLastOrderId(orderNumber ?? order.id);
+    /*
+      Номер показываем только настоящий, с сервера. Раньше при неудачном
+      сохранении подставлялся выдуманный локальный «MO-…», которого магазин
+      никогда не видел, — покупатель называл менеджеру номер, а тот его не
+      находил. Без номера заказ всё равно уходит в WhatsApp полным составом.
+    */
+    setLastOrderId(orderNumber ?? "");
     setSent(true);
     setConsent(false);
     clear();
