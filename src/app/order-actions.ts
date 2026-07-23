@@ -23,6 +23,8 @@ import type { OrderItem } from "@/lib/types";
 const MAX_PER_HOUR = 10;
 /** Потолок штук одного товара в заказе — на случай, если остаток не ведётся. */
 const MAX_QTY = 99;
+/** Потолок строк в одном заказе: весь каталог с запасом. */
+const MAX_LINES = 200;
 const recent = new Map<string, number[]>();
 
 /*
@@ -74,9 +76,19 @@ export async function submitOrder(payload: {
     return { ok: false, error: "Слишком много заказов подряд. Напишите нам в WhatsApp." };
   }
 
-  const name = payload.name.trim();
-  const phone = payload.phone.trim();
-  const address = payload.address.trim();
+  /*
+    Всё, что приходит сюда, приходит из сети: действие вызывается и в обход
+    формы. Строки обрезаем по длине, а не только по пробелам — иначе в
+    orders.json уезжает мегабайт текста на заказ, и файл растёт, пока
+    панель не перестанет открываться.
+  */
+  const text = (value: unknown, limit: number): string =>
+    typeof value === "string" ? value.trim().slice(0, limit) : "";
+
+  const name = text(payload.name, 100);
+  const phone = text(payload.phone, 30);
+  const address = text(payload.address, 300);
+  const comment = text(payload.comment, 1000);
 
   if (!name || !phone || !address) {
     return { ok: false, error: "Заполните имя, телефон и адрес." };
@@ -84,8 +96,11 @@ export async function submitOrder(payload: {
   if (phone.replace(/\D/g, "").length < 11) {
     return { ok: false, error: "Проверьте телефон." };
   }
-  if (!payload.items.length) {
+  if (!Array.isArray(payload.items) || !payload.items.length) {
     return { ok: false, error: "Корзина пуста." };
+  }
+  if (payload.items.length > MAX_LINES) {
+    return { ok: false, error: "Слишком много позиций в заказе." };
   }
 
   const catalog = new Map(getProducts().map((p) => [p.slug, p]));
@@ -97,7 +112,15 @@ export async function submitOrder(payload: {
   */
   const wanted = new Map<string, number>();
   for (const line of payload.items) {
-    wanted.set(line.slug, (wanted.get(line.slug) ?? 0) + Math.round(line.qty));
+    if (typeof line?.slug !== "string") continue;
+    /*
+      Количество обязано быть числом. Прежний Math.max(1, Math.min(Math.round(x), 99))
+      на «abc» или undefined давал NaN, а JSON.stringify пишет NaN как null —
+      в панель приезжал заказ с «qty: null» и «total: null».
+    */
+    const qty = Number(line.qty);
+    if (!Number.isFinite(qty) || qty < 1) continue;
+    wanted.set(line.slug, (wanted.get(line.slug) ?? 0) + Math.round(qty));
   }
 
   const items: OrderItem[] = [];
@@ -149,7 +172,7 @@ export async function submitOrder(payload: {
         name,
         phone,
         address,
-        ...(payload.comment?.trim() ? { comment: payload.comment.trim() } : {}),
+        ...(comment ? { comment } : {}),
       },
       items,
       total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
