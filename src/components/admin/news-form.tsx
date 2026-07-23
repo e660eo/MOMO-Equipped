@@ -9,6 +9,20 @@ const field =
   "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm focus:border-signal focus:outline-none";
 const label = "block text-[0.78rem] font-medium";
 
+/*
+  Подсказка в пустом поле — заодно и образец разметки: показать её на живом
+  примере короче, чем объяснить словами.
+*/
+const PLACEHOLDER = `Здесь пишется сама статья.
+
+## Подзаголовок
+
+Абзац текста. Строки внутри абзаца можно переносить как удобно — на странице
+они склеятся в один абзац.
+
+- первый пункт списка
+- второй пункт`;
+
 export function NewsForm({ item }: { item?: NewsItem }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     saveNews,
@@ -46,20 +60,57 @@ export function NewsForm({ item }: { item?: NewsItem }) {
       />
 
       <label className={`${label} mt-5`} htmlFor="excerpt">
-        Текст
+        Анонс
       </label>
       <textarea
         id="excerpt"
         name="excerpt"
-        rows={5}
+        rows={3}
         defaultValue={item?.excerpt}
         required
         className={`${field} mt-1.5`}
       />
       <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
-        Пара предложений: этот текст видно и в списке новостей, и на самой
-        странице заметки.
+        Пара предложений. Их видно в списке новостей и в начале статьи — по
+        ним решают, читать ли дальше.
       </p>
+
+      <label className={`${label} mt-5`} htmlFor="body">
+        Полный текст{" "}
+        <span className="font-normal text-muted-foreground">
+          — можно не заполнять
+        </span>
+      </label>
+      <textarea
+        id="body"
+        name="body"
+        rows={18}
+        defaultValue={item?.body}
+        placeholder={PLACEHOLDER}
+        className={`${field} mt-1.5 leading-relaxed`}
+      />
+      <div className="mt-2 rounded-sm border border-border bg-bg px-4 py-3 text-[0.75rem] leading-relaxed text-muted-foreground">
+        <p className="font-medium text-foreground">Как оформить текст</p>
+        <ul className="mt-1.5 space-y-1">
+          <li>
+            Пустая строка — новый абзац. Внутри абзаца можно переносить строки
+            как удобно.
+          </li>
+          <li>
+            <code className="font-mono text-foreground">## Подзаголовок</code>{" "}
+            — две решётки и пробел в начале строки.
+          </li>
+          <li>
+            <code className="font-mono text-foreground">- пункт</code> — список;{" "}
+            <code className="font-mono text-foreground">1. пункт</code> —
+            нумерованный.
+          </li>
+        </ul>
+        <p className="mt-2">
+          Больше ничего учить не нужно: остальное — обычный текст. Оставите
+          поле пустым — на странице останется один анонс.
+        </p>
+      </div>
 
       {state.error && (
         <p className="mt-5 rounded-sm border border-[var(--signal-text)] px-4 py-3 text-[0.85rem] text-[var(--signal-text)]">

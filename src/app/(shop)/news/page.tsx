@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getNews } from "@/lib/data";
+import { hasArticle, readingMinutes } from "@/lib/article";
 
 export const metadata: Metadata = {
   title: "Новости",
@@ -33,6 +34,9 @@ export default function NewsPage() {
                 month: "long",
                 year: "numeric",
               })}
+              {/* Время чтения — только у настоящих статей: у анонса из двух
+                  предложений «1 мин чтения» выглядит издевательством */}
+              {hasArticle(n.body) && ` · ${readingMinutes(n.body!)} мин`}
             </span>
             <h2 className="mt-3 font-display text-[1.05rem] font-semibold leading-snug transition-colors group-hover:text-signal">
               {n.title}
@@ -41,7 +45,7 @@ export default function NewsPage() {
               {n.excerpt}
             </p>
             <span className="mt-4 font-mono text-[0.72rem] uppercase tracking-wider text-signal">
-              Читать →
+              {hasArticle(n.body) ? "Читать →" : "Подробнее →"}
             </span>
           </Link>
         ))}

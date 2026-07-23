@@ -1,7 +1,8 @@
 import { siteConfig, productImageUrl } from "./data";
 import { isInStock } from "./format";
 import { SITE_URL as BASE } from "./site-url";
-import type { Product, Category } from "./types";
+import { articlePlainText } from "./article";
+import type { Product, Category, NewsItem } from "./types";
 
 /*
   Разметка Schema.org (JSON-LD) для поисковиков. Принцип — утверждать только
@@ -112,6 +113,38 @@ export function productSchema(product: Product, category?: Category) {
   if (product.description?.length)
     schema.description = product.description.join(" ");
   return schema;
+}
+
+/**
+ * Статья журнала.
+ *
+ * Размечаем только заметки с полным текстом: у анонса из двух предложений
+ * нет articleBody, а размечать пустую статью — то же самое, что обещать
+ * поисковику содержимое, которого нет.
+ *
+ * dateModified не указываем: правки заметок мы не датируем, а выдумывать
+ * дату «последнего изменения» ради лишнего поля незачем.
+ */
+export function articleSchema(item: NewsItem) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: item.title,
+    description: item.excerpt,
+    datePublished: item.date,
+    mainEntityOfPage: absUrl(`/news/${item.slug}`),
+    articleBody: item.body ? articlePlainText(item.body, 5000) : undefined,
+    author: {
+      "@type": "Organization",
+      name: "MOMO Equipped",
+      url: BASE,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "MOMO Equipped",
+      logo: { "@type": "ImageObject", url: `${BASE}/logo-3d.png` },
+    },
+  };
 }
 
 /** Хлебные крошки для страницы товара. */

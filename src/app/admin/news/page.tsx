@@ -3,6 +3,7 @@ import { getNews } from "@/lib/data";
 import { deleteNews } from "./actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireAdminPage } from "@/lib/admin-auth";
+import { hasArticle, readingMinutes } from "@/lib/article";
 
 export default async function AdminNewsPage({
   searchParams,
@@ -48,6 +49,15 @@ export default async function AdminNewsPage({
               className="flex-1 text-[0.9rem] font-medium transition-colors hover:text-signal"
             >
               {n.title}
+              {/*
+                Видно с одного взгляда, где заметка обрывается анонсом:
+                иначе это выясняется только открыв страницу на сайте.
+              */}
+              <span className="ml-2 font-normal text-[0.75rem] text-muted-foreground">
+                {hasArticle(n.body)
+                  ? `статья · ${readingMinutes(n.body!)} мин`
+                  : "только анонс"}
+              </span>
             </Link>
             <form action={deleteNews}>
               <input type="hidden" name="slug" value={n.slug} />
