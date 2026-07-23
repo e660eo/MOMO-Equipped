@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import {
   verifyAdminLogin,
   startSession,
@@ -26,8 +26,7 @@ export async function attemptAdminLogin(
 ): Promise<AdminLoginResult> {
   if (!isConfigured()) return "wrong";
 
-  const ip =
-    (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
 
   /*
     Счётчик попыток общий с отдельной страницей входа. Про исчерпанный лимит

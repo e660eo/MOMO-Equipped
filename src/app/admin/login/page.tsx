@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import { PasswordField } from "@/components/password-field";
 import {
   hasSession,
@@ -22,8 +22,7 @@ import {
 async function login(formData: FormData) {
   "use server";
 
-  const ip =
-    (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
 
   if (!canAttempt(ip)) {
     redirect("/admin/login?error=too-many");

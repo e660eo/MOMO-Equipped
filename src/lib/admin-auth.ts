@@ -144,6 +144,26 @@ const attempts = new Map<string, { count: number; until: number }>();
 // а перебирать его вслепую всё равно бессмысленно.
 const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 10 * 60 * 1000;
+/*
+  Потолок на размер карты: она живёт всё время работы процесса, и поток
+  попыток с разных адресов иначе раздувал бы её до перезапуска по
+  max_memory_restart — а перезапуск обнуляет и сами счётчики.
+*/
+const MAX_TRACKED = 5000;
+
+function forget(): void {
+  const now = Date.now();
+  for (const [ip, rec] of attempts) {
+    if (now > rec.until) attempts.delete(ip);
+  }
+  // Просроченных не нашлось — расстаёмся с самыми давними записями
+  // (Map отдаёт ключи в порядке добавления).
+  while (attempts.size >= MAX_TRACKED) {
+    const oldest = attempts.keys().next().value;
+    if (oldest === undefined) break;
+    attempts.delete(oldest);
+  }
+}
 
 /** Осталось ли право на попытку входа с этого адреса. */
 export function canAttempt(ip: string): boolean {
@@ -159,6 +179,7 @@ export function canAttempt(ip: string): boolean {
 export function recordFailure(ip: string): void {
   const rec = attempts.get(ip);
   if (!rec || Date.now() > rec.until) {
+    if (!rec && attempts.size >= MAX_TRACKED) forget();
     attempts.set(ip, { count: 1, until: Date.now() + WINDOW_MS });
     return;
   }

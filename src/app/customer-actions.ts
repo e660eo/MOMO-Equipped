@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import {
   registerCustomer,
   authenticate,
@@ -32,11 +32,19 @@ export type AuthResult =
 const attempts = new Map<string, { count: number; until: number }>();
 const MAX_ATTEMPTS = 10;
 const WINDOW_MS = 10 * 60 * 1000;
+// Потолок на размер карты — она живёт всё время работы процесса.
+const MAX_TRACKED = 5000;
 
-async function clientIp(): Promise<string> {
-  return (
-    (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local"
-  );
+function forget(): void {
+  const now = Date.now();
+  for (const [ip, rec] of attempts) {
+    if (now > rec.until) attempts.delete(ip);
+  }
+  while (attempts.size >= MAX_TRACKED) {
+    const oldest = attempts.keys().next().value;
+    if (oldest === undefined) break;
+    attempts.delete(oldest);
+  }
 }
 
 function throttled(ip: string): boolean {
@@ -48,6 +56,7 @@ function throttled(ip: string): boolean {
 function noteFailure(ip: string): void {
   const rec = attempts.get(ip);
   if (!rec || Date.now() > rec.until) {
+    if (!rec && attempts.size >= MAX_TRACKED) forget();
     attempts.set(ip, { count: 1, until: Date.now() + WINDOW_MS });
     return;
   }

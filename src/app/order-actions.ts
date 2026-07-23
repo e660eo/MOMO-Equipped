@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment } from "@/lib/orders";
 import { notifyNewOrder } from "@/lib/order-mail";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
@@ -22,10 +22,32 @@ import type { OrderItem } from "@/lib/types";
 const MAX_PER_HOUR = 10;
 const recent = new Map<string, number[]>();
 
+/*
+  Потолок на число отслеживаемых адресов. Карта живёт всё время работы
+  процесса, и без потолка поток заказов с меняющихся адресов раздувал бы её
+  до перезапуска по max_memory_restart — то есть до обнуления всех счётчиков.
+*/
+const MAX_TRACKED = 5000;
+const HOUR_MS = 60 * 60 * 1000;
+
+function forget(now: number): void {
+  for (const [ip, times] of recent) {
+    if (times.every((t) => now - t >= HOUR_MS)) recent.delete(ip);
+  }
+  // Всё ещё полна — значит адреса живые: расстаёмся с самыми давними
+  // (Map отдаёт ключи в порядке добавления).
+  while (recent.size >= MAX_TRACKED) {
+    const oldest = recent.keys().next().value;
+    if (oldest === undefined) break;
+    recent.delete(oldest);
+  }
+}
+
 function tooManyFrom(ip: string): boolean {
   const now = Date.now();
-  const hour = 60 * 60 * 1000;
-  const list = (recent.get(ip) ?? []).filter((t) => now - t < hour);
+  if (!recent.has(ip) && recent.size >= MAX_TRACKED) forget(now);
+
+  const list = (recent.get(ip) ?? []).filter((t) => now - t < HOUR_MS);
   recent.set(ip, [...list, now]);
   return list.length >= MAX_PER_HOUR;
 }
@@ -43,8 +65,7 @@ export async function submitOrder(payload: {
   /** Покупатель выбрал оплату на сайте, а не переписку с менеджером. */
   pay?: boolean;
 }): Promise<OrderResult> {
-  const ip =
-    (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
 
   if (tooManyFrom(ip)) {
     return { ok: false, error: "Слишком много заказов подряд. Напишите нам в WhatsApp." };
