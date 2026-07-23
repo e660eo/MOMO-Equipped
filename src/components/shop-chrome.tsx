@@ -13,6 +13,7 @@ import { SiteConfigProvider } from "@/components/site-config-provider";
 import { CustomerProvider } from "@/components/customer-provider";
 import { getSiteConfig } from "@/lib/data";
 import { currentCustomer } from "@/lib/customer-auth";
+import { payConfig } from "@/lib/yandex-pay";
 
 /*
   Обвязка витрины: шапка, футер, оверлеи, счётчик. Вынесена из layout группы
@@ -27,9 +28,18 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
   const { contacts, trust } = getSiteConfig();
   // Кто вошёл — знает только сервер: кука подписана, в браузере её не проверить
   const customer = await currentCustomer();
+  // В браузер уходит только «оплата работает / не работает». Ключи — никогда.
+  const pay = payConfig();
 
   return (
-    <SiteConfigProvider value={{ contacts, trust }}>
+    <SiteConfigProvider
+      value={{
+        contacts,
+        trust,
+        payEnabled: pay !== null,
+        paySandbox: pay?.sandbox ?? false,
+      }}
+    >
       <CustomerProvider value={customer}>
       <YandexMetrica />
       {/* Разметка продавца и сайта для поисковиков — на всех страницах */}

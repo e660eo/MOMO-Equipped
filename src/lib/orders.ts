@@ -1,5 +1,5 @@
 import { readJson, updateJson, assertWritable } from "./store";
-import type { Order, OrderStatus } from "./types";
+import type { Order, OrderStatus, OrderPayment, PaymentStatus } from "./types";
 
 export { STATUS_LABELS } from "./order-status";
 
@@ -97,5 +97,40 @@ export function updateOrder(
 /** Сколько заказов ждут обработки — для счётчика в панели. */
 export function countNewOrders(): number {
   return getOrders().filter((o) => o.status === "new").length;
+}
+
+/* -------------------------------- оплата ---------------------------------- */
+
+/**
+ * Записать состояние онлайн-оплаты.
+ *
+ * Правка идёт через updateJson: платёж прилетает вебхуком в тот же момент,
+ * когда менеджер может менять статус руками, — читать список из кэша и
+ * сохранять целиком значило бы терять одно из двух.
+ */
+export function setOrderPayment(id: string, payment: OrderPayment): void {
+  assertWritable();
+  updateJson<Order[]>(FILE, (all) =>
+    all.map((o) => (o.id === id ? { ...o, payment } : o)),
+  );
+}
+
+/**
+ * Обновить только статус оплаты, сохранив ссылку и сумму.
+ *
+ * Возвращает false, если заказа нет или статус не изменился, — тогда не
+ * нужно ни писать файл, ни слать письмо: вебхук повторяется, и каждый
+ * повтор не должен выглядеть новым событием.
+ */
+export function updatePaymentStatus(id: string, status: PaymentStatus): boolean {
+  const order = getOrder(id);
+  if (!order?.payment || order.payment.status === status) return false;
+
+  setOrderPayment(id, {
+    ...order.payment,
+    status,
+    updatedAt: new Date().toISOString(),
+  });
+  return true;
 }
 

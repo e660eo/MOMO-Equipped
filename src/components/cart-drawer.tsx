@@ -45,14 +45,14 @@ export function CartDrawer() {
     } catch {}
   }, []);
 
-  const { contacts, trust } = useSiteConfig();
+  const { contacts, trust, payEnabled, paySandbox } = useSiteConfig();
   const total = cartTotal(items);
   // Апсейл: сколько не хватает до бесплатной доставки.
   const freeFrom = trust.freeShippingFrom;
   const remaining = Math.max(0, freeFrom - total);
   const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
-  async function submit() {
+  async function submit(pay = false) {
     if (!name.trim() || !phone.trim() || !address.trim()) {
       setError("Заполните ФИО, телефон и адрес доставки.");
       return;
@@ -83,9 +83,40 @@ export function CartDrawer() {
       address: address.trim(),
       comment: comment.trim(),
       items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+      pay,
     });
     setSending(false);
     const orderNumber = saved.ok ? saved.id : null;
+
+    /*
+      Оплата на сайте: уводим на форму Яндекса тем же переходом, без нового
+      окна — платёжную страницу браузеры и блокировщики любят придержать,
+      а пропавшая оплата выглядит как поломка магазина.
+
+      Локальную квитанцию тут не пишем: заказ уже на сервере, а в кабинете он
+      появится с настоящим статусом оплаты.
+    */
+    if (pay && saved.ok && saved.paymentUrl) {
+      // Запоминаем получателя до ухода со страницы
+      try {
+        localStorage.setItem(
+          RECIPIENT_KEY,
+          JSON.stringify({ name: name.trim(), phone, address: address.trim() }),
+        );
+      } catch {}
+      clear();
+      window.location.href = saved.paymentUrl;
+      return;
+    }
+
+    // Просили оплату, а ссылки нет — Яндекс Пэй не ответил. Заказ сохранён,
+    // поэтому не бросаем покупателя, а доводим привычным путём.
+    if (pay) {
+      setError(
+        "Оплата на сайте сейчас недоступна. Заказ сохранён — отправьте его в WhatsApp, менеджер подтвердит.",
+      );
+      return;
+    }
 
     // Запоминаем получателя для следующего заказа
     try {
@@ -360,17 +391,43 @@ export function CartDrawer() {
               onChange={setConsent}
               className="mb-4"
             />
-            <button
-              onClick={submit}
-              disabled={sending}
-              className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
-            >
-              {sending ? "Оформляем заказ…" : "Оформить через WhatsApp"}
-            </button>
-            <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
-              Заказ уйдёт менеджеру в WhatsApp: он подтвердит наличие, назовёт
-              стоимость доставки и пришлёт способы оплаты.
-            </p>
+            {payEnabled ? (
+              <>
+                <button
+                  onClick={() => submit(true)}
+                  disabled={sending}
+                  className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
+                >
+                  {sending ? "Оформляем заказ…" : "Оплатить на сайте"}
+                </button>
+                <button
+                  onClick={() => submit(false)}
+                  disabled={sending}
+                  className="mt-2.5 w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
+                >
+                  Оформить через WhatsApp
+                </button>
+                <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
+                  {paySandbox
+                    ? "Оплата работает в тестовом режиме: настоящие деньги не списываются."
+                    : "Оплата картой или Сплитом на странице Яндекс Пэй. Стоимость доставки менеджер согласует отдельно после заказа."}
+                </p>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => submit(false)}
+                  disabled={sending}
+                  className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
+                >
+                  {sending ? "Оформляем заказ…" : "Оформить через WhatsApp"}
+                </button>
+                <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
+                  Заказ уйдёт менеджеру в WhatsApp: он подтвердит наличие,
+                  назовёт стоимость доставки и пришлёт способы оплаты.
+                </p>
+              </>
+            )}
           </>
         )}
       </aside>

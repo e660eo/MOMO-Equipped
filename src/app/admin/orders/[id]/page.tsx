@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getOrder, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
+import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
+import { cn } from "@/lib/utils";
 import { setOrderStatus, setOrderNote } from "../actions";
 import type { OrderStatus } from "@/lib/types";
 
@@ -127,6 +129,43 @@ export default async function AdminOrderPage({
           Цены — на момент оформления заказа
         </p>
       </section>
+
+      {/* Оплата на сайте — только если её заводили */}
+      {order.payment && (
+        <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+          <h2 className="font-display text-base font-extrabold uppercase">
+            Оплата на сайте
+          </h2>
+          <p
+            className={cn(
+              "mt-2 text-[0.9rem] font-semibold",
+              isPaid(order.payment.status)
+                ? "text-[var(--signal-text)]"
+                : "text-foreground",
+            )}
+          >
+            {PAYMENT_LABELS[order.payment.status]} ·{" "}
+            {formatPrice(order.payment.amount)}
+          </p>
+          {order.payment.sandbox && (
+            <p className="mt-1 text-[0.78rem] text-muted-foreground">
+              Тестовый режим — настоящие деньги не списывались.
+            </p>
+          )}
+          <p className="mt-2 text-[0.78rem] text-muted-foreground">
+            Оплачен только товар. Доставку согласуйте отдельно.
+          </p>
+          <p className="mt-1 text-[0.75rem] text-muted-foreground">
+            Обновлено{" "}
+            {new Date(order.payment.updatedAt).toLocaleString("ru-RU", {
+              day: "2-digit",
+              month: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </section>
+      )}
 
       {/* Заметка */}
       <form action={setOrderNote} className="mt-5">

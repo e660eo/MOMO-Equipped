@@ -1,8 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
-import { addOrder } from "@/lib/orders";
+import { addOrder, setOrderPayment } from "@/lib/orders";
 import { notifyNewOrder } from "@/lib/order-mail";
+import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
 import { currentCustomer } from "@/lib/customer-auth";
 import type { OrderItem } from "@/lib/types";
@@ -30,7 +31,7 @@ function tooManyFrom(ip: string): boolean {
 }
 
 export type OrderResult =
-  | { ok: true; id: string }
+  | { ok: true; id: string; paymentUrl?: string }
   | { ok: false; error: string };
 
 export async function submitOrder(payload: {
@@ -39,6 +40,8 @@ export async function submitOrder(payload: {
   address: string;
   comment?: string;
   items: { slug: string; qty: number }[];
+  /** Покупатель выбрал оплату на сайте, а не переписку с менеджером. */
+  pay?: boolean;
 }): Promise<OrderResult> {
   const ip =
     (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
@@ -108,6 +111,29 @@ export async function submitOrder(payload: {
       в панели.
     */
     void notifyNewOrder(order);
+
+    /*
+      Оплата на сайте. Ссылку заводим только по просьбе покупателя: заказ
+      уже сохранён, и если Яндекс Пэй сейчас недоступен, терять заявку
+      из-за этого нельзя — вернём номер без ссылки, а менеджер разберётся
+      перепиской, как раньше.
+    */
+    if (payload.pay && isPayConfigured()) {
+      try {
+        const payment = await createPayment(order);
+        setOrderPayment(order.id, {
+          status: "created",
+          url: payment.url,
+          token: payment.token,
+          amount: payment.amount,
+          updatedAt: new Date().toISOString(),
+          sandbox: payment.sandbox,
+        });
+        return { ok: true, id: order.id, paymentUrl: payment.url };
+      } catch (e) {
+        console.error(`Заказ ${order.id}: не удалось создать платёж`, e);
+      }
+    }
 
     return { ok: true, id: order.id };
   } catch (e) {

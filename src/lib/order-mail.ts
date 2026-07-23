@@ -150,3 +150,43 @@ export async function notifyNewOrder(order: Order): Promise<void> {
     console.error(`Заказ ${order.id}: сбой отправки письма`, e);
   }
 }
+
+/**
+ * Отдельное письмо о том, что заказ оплачен.
+ *
+ * Нужно потому, что письмо о заказе приходит раньше денег: покупатель может
+ * не дойти до оплаты. Отдельная строка «оплачен» избавляет от привычки
+ * проверять каждый заказ руками.
+ */
+export async function notifyPaidOrder(order: Order): Promise<void> {
+  if (!isMailerConfigured()) return;
+
+  const paid = order.payment;
+  const sum = formatPrice(paid?.amount ?? order.total);
+  const test = paid?.sandbox ? " (тестовая оплата)" : "";
+  const orderUrl = `${SITE_URL}/admin/orders`;
+
+  try {
+    const result = await sendMailWithRetry({
+      subject: `Оплачен заказ №${order.id} — ${sum}${test}`,
+      text: [
+        `Заказ №${order.id} оплачен: ${sum}${test}`,
+        `Покупатель: ${order.customer.name}, ${order.customer.phone}`,
+        `Адрес: ${order.customer.address}`,
+        "",
+        `Открыть в панели: ${orderUrl}`,
+      ].join("\n"),
+      html: `<div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#151515;">
+  <p style="font-size:18px;"><b>Заказ №${esc(order.id)} оплачен — ${sum}</b>${test ? `<br><span style="color:#767676;font-size:13px;">тестовая оплата, деньги не настоящие</span>` : ""}</p>
+  <p>${esc(order.customer.name)} · ${esc(order.customer.phone)}<br>
+  <span style="color:#767676;font-size:13px;">${esc(order.customer.address)}</span></p>
+  <p style="margin-top:20px;"><a href="${orderUrl}" style="display:inline-block;background:#e2571f;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 22px;border-radius:6px;">Открыть в панели</a></p>
+</div>`,
+    });
+    if (!result.ok) {
+      console.error(`Заказ ${order.id}: письмо об оплате не ушло — ${result.error}`);
+    }
+  } catch (e) {
+    console.error(`Заказ ${order.id}: сбой письма об оплате`, e);
+  }
+}

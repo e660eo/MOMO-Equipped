@@ -5,8 +5,11 @@ import {
   MailStatusPanel,
   type MailStatus,
 } from "@/components/admin/mail-status";
+import { PayStatusPanel, type PayStatus } from "@/components/admin/pay-status";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { mailerConfig, lastMailResult } from "@/lib/mailer";
+import { payConfig } from "@/lib/yandex-pay";
+import { SITE_URL } from "@/lib/site-url";
 
 export default async function AdminSettingsPage({
   searchParams,
@@ -21,6 +24,14 @@ export default async function AdminSettingsPage({
   // Настройки почты не отдаём в браузер целиком: там логин ящика.
   const mail = mailerConfig();
   const last = lastMailResult();
+  // Из настроек оплаты наружу отдаём только «включено» и «песочница».
+  const pay = payConfig();
+  const payStatus: PayStatus = {
+    configured: pay !== null,
+    sandbox: pay?.sandbox ?? false,
+    callbackUrl: `${SITE_URL}/api/pay/callback`,
+  };
+
   const mailStatus: MailStatus = {
     configured: Boolean(mail),
     to: mail?.to ?? [],
@@ -56,6 +67,10 @@ export default async function AdminSettingsPage({
 
       <div className="mt-10">
         <MailStatusPanel status={mailStatus} />
+      </div>
+
+      <div className="mt-6">
+        <PayStatusPanel status={payStatus} />
       </div>
 
       <p className="mt-6 max-w-[680px] rounded-sm border border-border bg-surface px-4 py-3 text-[0.82rem] text-muted-foreground">

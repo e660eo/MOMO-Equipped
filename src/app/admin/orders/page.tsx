@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getOrders, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
+import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { plural, cn } from "@/lib/utils";
 import type { OrderStatus } from "@/lib/types";
 
@@ -128,6 +129,25 @@ export default async function AdminOrdersPage({
                   </td>
                   <td className="py-3 pr-3 whitespace-nowrap text-right font-medium">
                     {formatPrice(o.total)}
+                    {/*
+                      Оплату показываем строкой под суммой и только когда она
+                      была: у заказа через WhatsApp денег на сайте не ждут,
+                      и пустая пометка сбивала бы с толку.
+                    */}
+                    {o.payment && (
+                      <span
+                        className={cn(
+                          "block text-[0.72rem] font-normal",
+                          isPaid(o.payment.status)
+                            ? "text-[var(--signal-text)]"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {isPaid(o.payment.status) ? "✓ " : ""}
+                        {PAYMENT_LABELS[o.payment.status]}
+                        {o.payment.sandbox ? " (тест)" : ""}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3 pr-3">
                     <span
