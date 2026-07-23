@@ -77,6 +77,14 @@ export async function startCustomerSession(customerId: string): Promise<void> {
   const customer = findCustomer(customerId);
   if (!customer) return;
 
+  /*
+    Флаги те же, что у панели (admin-auth.ts), с одним отличием: sameSite
+    здесь lax, а не strict. Покупатель возвращается на сайт с чужих страниц —
+    со страницы оплаты Яндекса и по ссылкам из WhatsApp, — а strict в таком
+    переходе куку не приложит, и вошедший увидел бы «Войти». CSRF это не
+    открывает: строгую проверку источника Next делает сам на каждом серверном
+    действии, а lax и без того не прикладывает куку к чужим POST-запросам.
+  */
   (await cookies()).set(COOKIE, makeToken(customerId, fingerprint(customer.passwordHash)), {
     httpOnly: true,
     sameSite: "lax",

@@ -14,6 +14,7 @@ import { HeaderExtras, CityPicker } from "./header-extras";
 import { AnimatedGlowingSearch } from "./ui/animated-glowing-search-bar";
 import { SearchSuggestions } from "./search-suggestions";
 import { cn } from "@/lib/utils";
+import { cleanQuery } from "@/lib/sanitize";
 
 // Реквизиты намеренно не здесь — они живут в нижней плашке футера,
 // это служебная информация, а не пункт основной навигации.
@@ -51,7 +52,7 @@ export function SiteHeader() {
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
-    const q = query.trim();
+    const q = cleanQuery(query);
     router.push(q ? `/catalog?search=${encodeURIComponent(q)}` : "/catalog");
     setMenuOpen(false);
     setHintsOpen(false);

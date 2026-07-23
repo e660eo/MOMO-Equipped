@@ -13,6 +13,7 @@ import { SiteConfigProvider } from "@/components/site-config-provider";
 import { CustomerProvider } from "@/components/customer-provider";
 import { getSiteConfig } from "@/lib/data";
 import { currentCustomer } from "@/lib/customer-auth";
+import { requestNonce } from "@/lib/nonce";
 import { payConfig } from "@/lib/yandex-pay";
 
 /*
@@ -30,6 +31,9 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
   const customer = await currentCustomer();
   // В браузер уходит только «оплата работает / не работает». Ключи — никогда.
   const pay = payConfig();
+  // Метка запроса для встроенного загрузчика Метрики: без неё политика
+  // безопасности не даст ему выполниться (см. proxy.ts).
+  const nonce = await requestNonce();
 
   return (
     <SiteConfigProvider
@@ -41,7 +45,7 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
       }}
     >
       <CustomerProvider value={customer}>
-      <YandexMetrica />
+      <YandexMetrica nonce={nonce} />
       {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
       <JsonLd data={organizationSchema()} />
       <JsonLd data={websiteSchema()} />

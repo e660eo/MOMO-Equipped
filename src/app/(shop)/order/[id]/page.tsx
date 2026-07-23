@@ -5,6 +5,7 @@ import { getOrder } from "@/lib/orders";
 import { fetchPaymentStatus, isPaid, PAYMENT_LABELS } from "@/lib/yandex-pay";
 import { updatePaymentStatus } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
+import { safeHref } from "@/lib/sanitize";
 import type { PaymentStatus } from "@/lib/types";
 
 /*
@@ -116,7 +117,7 @@ export default async function OrderStatusPage({
           </p>
           {order.payment?.url && (
             <a
-              href={order.payment.url}
+              href={safeHref(order.payment.url)}
               className="mt-6 inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
             >
               Попробовать снова

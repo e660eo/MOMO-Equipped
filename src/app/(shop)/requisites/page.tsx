@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/data";
+import { safeHref } from "@/lib/sanitize";
 
 export const metadata: Metadata = {
   title: "Реквизиты",
@@ -103,7 +104,7 @@ export default function RequisitesPage() {
           </dt>
           <dd className="text-sm">
             <a
-              href={r.website}
+              href={safeHref(r.website)}
               className="transition-colors hover:text-signal"
               rel="noopener"
             >

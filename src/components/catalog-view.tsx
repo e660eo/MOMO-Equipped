@@ -15,6 +15,7 @@ import {
 } from "@/lib/specs";
 import { ProductCard } from "./product-card";
 import { cn, plural } from "@/lib/utils";
+import { cleanQuery } from "@/lib/sanitize";
 
 // «Популярное» намеренно нет: статистики продаж и просмотров у нас не собирается,
 // а прежний пункт «Сначала популярные» просто отдавал порядок строк в JSON.
@@ -71,8 +72,13 @@ export function CatalogView({
   const brand = params.get("brand") ?? "";
 
   const [sort, setSort] = useState<Sort>("sound_first");
-  // Начальный поиск может прийти из шапки: /catalog?search=…
-  const [query, setQuery] = useState(params.get("search") ?? "");
+  /*
+    Начальный поиск может прийти из шапки: /catalog?search=…
+    Через cleanQuery, потому что адрес страницы может составить кто угодно:
+    ссылка с десятком тысяч символов в параметре ушла бы и в разметку, и в
+    перебор товаров, и в Метрику.
+  */
+  const [query, setQuery] = useState(cleanQuery(params.get("search")));
   // Наличие известно не у всех товаров (у части статуса из прайса просто нет),
   // поэтому фильтр показывает только подтверждённо доступные, а не «прячет
   // распроданное»: неизвестный статус — не повод обещать наличие.

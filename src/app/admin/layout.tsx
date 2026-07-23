@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { hasSession } from "@/lib/admin-auth";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { logoutAdmin } from "./actions";
 import { countNewOrders } from "@/lib/orders";
 
 export const metadata: Metadata = {
@@ -45,7 +46,7 @@ export default async function AdminLayout({
             >
               Открыть сайт ↗
             </Link>
-            <form action="/api/admin/logout" method="post">
+            <form action={logoutAdmin}>
               <button
                 type="submit"
                 className="text-muted-foreground transition-all hover:text-signal active:scale-95"

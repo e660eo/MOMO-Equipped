@@ -48,10 +48,14 @@ function MetrikaRouteTracker() {
   константу. Опции init оставлены ровно те, что были выбраны в счётчике:
   webvisor (запись сессий), clickmap (карта кликов), ecommerce (события
   корзины из dataLayer — пригодятся, когда начнём их отправлять).
-  strategy="afterInteractive" — грузим после гидратации, чтобы аналитика
-  не конкурировала с отрисовкой страницы.
+  strategy="lazyOnload" — грузим последним, чтобы 86 КБ аналитики не
+  конкурировали с отрисовкой страницы.
+
+  nonce — метка запроса из proxy.ts: без неё политика безопасности не даст
+  выполниться встроенному скрипту. Сам tag.js метки не получает и не должен:
+  его вставляет уже доверенный загрузчик, а это разрешает 'strict-dynamic'.
 */
-export function YandexMetrica() {
+export function YandexMetrica({ nonce }: { nonce?: string }) {
   const loader = `
     (function(m,e,t,r,i,k,a){
         m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -67,6 +71,7 @@ export function YandexMetrica() {
       <Script
         id="yandex-metrica"
         strategy="lazyOnload"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: loader }}
       />
       <Suspense fallback={null}>

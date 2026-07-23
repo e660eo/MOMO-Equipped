@@ -120,18 +120,42 @@ export function verifyToken(token: string | undefined): boolean {
   return Number(expires) > Date.now();
 }
 
+/*
+  Флаги куки — то, из-за чего кражу сессии через XSS можно вычеркнуть:
+
+  httpOnly  кука не видна из JavaScript вообще. Чужой скрипт на странице не
+            прочитает document.cookie и не отправит сессию себе.
+  secure    не уходит по http, то есть не подслушивается в чужом Wi-Fi. В
+            разработке выключается: на http://localhost браузер её иначе
+            просто не сохранит, и вход перестал бы работать.
+  sameSite  strict — кука не прикладывается ни к одному запросу, начатому с
+            чужого сайта. Это отсекает CSRF целиком: страница-приманка не
+            сможет ничего сделать в панели от имени владельца. Цена — переход
+            по ссылке из письма или мессенджера прилетает «без куки», и
+            владелец видит форму входа; следующий шаг уже внутри панели.
+            У куки покупателя (customer-auth.ts) намеренно lax: туда
+            возвращаются с оплаты и приходят по ссылкам из WhatsApp, и
+            strict показывал бы вошедшему покупателю «войти».
+  path      кука уходит на все адреса сайта — панели нужен и /admin, и
+            серверные действия, лежащие в других сегментах.
+  maxAge    ограниченный срок: подобранная или украденная кука не вечна.
+*/
 export async function startSession(): Promise<void> {
   (await cookies()).set(SESSION_COOKIE, createToken(), {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
 }
 
+/*
+  Удаление — с тем же path, с каким кука ставилась: браузер считает куки с
+  разным путём разными, и «удаление» без пути оставило бы сессию жить.
+*/
 export async function endSession(): Promise<void> {
-  (await cookies()).delete(SESSION_COOKIE);
+  (await cookies()).delete({ name: SESSION_COOKIE, path: "/" });
 }
 
 export async function hasSession(): Promise<boolean> {

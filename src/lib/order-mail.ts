@@ -3,6 +3,7 @@ import { findCustomer } from "./customers";
 import { formatPrice } from "./format";
 import { phoneE164 } from "./phone";
 import { SITE_URL } from "./site-url";
+import { escapeHtml } from "./sanitize";
 import type { Order } from "./types";
 
 /*
@@ -26,14 +27,12 @@ function moscowTime(iso: string): string {
   });
 }
 
-/** Экранирование для вставки в разметку письма. */
-function esc(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+/*
+  Экранирование для вставки в разметку письма — общее с сайтом, чтобы
+  правило было одно на весь проект. Обязательно: имя, адрес и комментарий
+  покупатель пишет сам, а письмо владелец открывает в почтовом клиенте.
+*/
+const esc = escapeHtml;
 
 export function buildOrderLetter(order: Order): Letter {
   const when = moscowTime(order.createdAt);
