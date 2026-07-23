@@ -93,15 +93,49 @@ export function authenticate(
   return toPublic(customer);
 }
 
-/** Правка данных доставки из личного кабинета. */
+/**
+ * Правка данных доставки из личного кабинета.
+ *
+ * Поля перечислены поимённо, и это не занудство. Тип `patch` существует
+ * только при сборке: saveProfile — серверное действие, вызвать его можно
+ * с любым объектом. Прежний `{ ...c, ...patch }` записывал что прислали,
+ * то есть покупатель мог переписать себе passwordHash, подставить чужой id
+ * (а deleteMyAccount сносит все записи с этим id) или занять чужой телефон
+ * — findByLogin отдаёт первое совпадение, и настоящий владелец номера
+ * переставал входить.
+ */
+export type UpdateResult = { ok: true } | { ok: false; error: string };
+
 export function updateCustomer(
   id: string,
   patch: Partial<Pick<Customer, "name" | "phone" | "address">>,
-): void {
+): UpdateResult {
   assertWritable();
+
+  const clean: Partial<Customer> = {};
+  if (typeof patch.name === "string") clean.name = patch.name.trim().slice(0, 100);
+  if (typeof patch.phone === "string") clean.phone = patch.phone.trim().slice(0, 30);
+  if (typeof patch.address === "string") {
+    clean.address = patch.address.trim().slice(0, 300);
+  }
+
+  /*
+    Телефон — такой же логин, как почта, и занятость его при регистрации
+    проверяется. Здесь проверки не было: покупатель мог вписать себе чужой
+    номер, а findByLogin отдаёт первое совпадение — настоящий владелец
+    номера переставал им входить.
+  */
+  if (clean.phone) {
+    const taken = findByLogin(clean.phone);
+    if (taken && taken.id !== id) {
+      return { ok: false, error: "Этот телефон уже привязан к другому аккаунту." };
+    }
+  }
+
   updateJson<Customer[]>(FILE, (all) =>
-    all.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+    all.map((c) => (c.id === id ? { ...c, ...clean } : c)),
   );
+  return { ok: true };
 }
 
 /**

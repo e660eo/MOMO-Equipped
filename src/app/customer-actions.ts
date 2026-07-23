@@ -152,10 +152,20 @@ export async function saveProfile(patch: {
   const me = await currentCustomer();
   if (!me) return { ok: false, error: "Нужно войти заново." };
 
+  if (typeof patch.phone === "string" && patch.phone.replace(/\D/g, "").length < 11) {
+    return { ok: false, error: "Проверьте телефон." };
+  }
+
   try {
-    updateCustomer(me.id, patch);
+    const result = updateCustomer(me.id, patch);
+    if (!result.ok) return { ok: false, error: result.error };
     revalidatePath("/profile");
-    return { ok: true, customer: { ...me, ...patch } };
+
+    // Возвращаем то, что записалось на самом деле, а не присланное:
+    // updateCustomer берёт из patch только три поля, и ответ не должен
+    // показывать покупателю несуществующую правку.
+    const saved = await currentCustomer();
+    return { ok: true, customer: saved ?? me };
   } catch {
     return { ok: false, error: "Не получилось сохранить." };
   }
