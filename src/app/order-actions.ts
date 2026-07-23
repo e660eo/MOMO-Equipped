@@ -5,6 +5,7 @@ import { addOrder, setOrderPayment } from "@/lib/orders";
 import { notifyNewOrder } from "@/lib/order-mail";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
+import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
 import type { OrderItem } from "@/lib/types";
 
@@ -20,6 +21,8 @@ import type { OrderItem } from "@/lib/types";
 */
 
 const MAX_PER_HOUR = 10;
+/** Потолок штук одного товара в заказе — на случай, если остаток не ведётся. */
+const MAX_QTY = 99;
 const recent = new Map<string, number[]>();
 
 /*
@@ -86,23 +89,52 @@ export async function submitOrder(payload: {
   }
 
   const catalog = new Map(getProducts().map((p) => [p.slug, p]));
-  const items: OrderItem[] = [];
+
+  /*
+    Складываем повторы одного товара. Корзина такого не присылает, но
+    действие вызывается и в обход неё, а без сложения потолок остатка
+    обходится разбиением покупки на несколько строк.
+  */
+  const wanted = new Map<string, number>();
   for (const line of payload.items) {
-    const product = catalog.get(line.slug);
+    wanted.set(line.slug, (wanted.get(line.slug) ?? 0) + Math.round(line.qty));
+  }
+
+  const items: OrderItem[] = [];
+  let missing = false;
+  for (const [slug, requested] of wanted) {
+    const product = catalog.get(slug);
     if (!product) continue; // товар успели снять с витрины
-    const qty = Math.max(1, Math.min(Math.round(line.qty), 99));
+
+    /*
+      Наличие и остаток проверяем здесь. Раньше это жило только в браузере
+      (кнопка «Под заказ» и capFor в cart-store), то есть заказать отсутствующее
+      мешала лишь неактивная кнопка.
+    */
+    if (isInStock(product) === false) {
+      missing = true;
+      continue;
+    }
+    const cap = Math.min(stockLimit(product) ?? MAX_QTY, MAX_QTY);
+    if (cap < 1) {
+      missing = true;
+      continue;
+    }
+
     items.push({
       slug: product.slug,
       title: product.title,
       price: product.price,
-      qty,
+      qty: Math.max(1, Math.min(requested, cap)),
     });
   }
 
   if (!items.length) {
     return {
       ok: false,
-      error: "Товары из корзины больше не продаются — обновите страницу.",
+      error: missing
+        ? "Этих товаров сейчас нет в наличии — напишите нам, привезём под заказ."
+        : "Товары из корзины больше не продаются — обновите страницу.",
     };
   }
 
