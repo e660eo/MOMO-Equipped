@@ -11,12 +11,17 @@ import { uploadsDir, seedUploadsDir } from "@/lib/store";
   годовой immutable-кэш.
 */
 
+/*
+  SVG в списке намеренно нет. Он отдаётся как размеченный документ и умеет
+  выполнять скрипты со своего адреса — то есть с нашего домена. Загрузка
+  фото пропускает всё через sharp и кладёт только webp, так что положить
+  сюда SVG сейчас неоткуда, но и строчки на этот случай быть не должно.
+*/
 const TYPES: Record<string, string> = {
   ".webp": "image/webp",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".png": "image/png",
-  ".svg": "image/svg+xml",
 };
 
 export async function GET(

@@ -291,9 +291,24 @@ export async function verifyWebhook(token: string): Promise<WebhookPayload> {
     throw new Error(`Неожиданный алгоритм подписи: ${header.alg}`);
   }
 
+  /*
+    Ключ строго по kid. Раньше при незнакомом kid брался первый попавшийся:
+    подпись всё равно должна была сойтись с настоящим ключом Яндекса, так
+    что дырой это не было, — но «не нашли, возьмём какой-нибудь» в проверке
+    подписи не должно стоять. Ключей в JWKS обычно несколько, и молчаливый
+    выбор чужого прячет настоящую причину отказа.
+  */
   const keys = await jwks(config);
-  const jwk = keys.find((k) => k.kid === header.kid) ?? keys[0];
-  if (!jwk) throw new Error("Не нашли открытый ключ для проверки подписи.");
+  const jwk = header.kid
+    ? keys.find((k) => k.kid === header.kid)
+    : keys.length === 1
+      ? keys[0]
+      : undefined;
+  if (!jwk) {
+    throw new Error(
+      `Не нашли открытый ключ для проверки подписи (kid: ${header.kid ?? "не указан"}).`,
+    );
+  }
 
   const key = crypto.createPublicKey({ key: jwk as crypto.JsonWebKey, format: "jwk" });
 

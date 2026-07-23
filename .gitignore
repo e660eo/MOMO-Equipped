@@ -29,6 +29,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Логи PM2 и замок автообновления — живут только на сервере
+/logs/
+
 # Данные, которые пишет панель управления (в git не хранятся)
 /data/backups/
 /data/uploads/

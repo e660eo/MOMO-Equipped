@@ -62,6 +62,15 @@ export async function saveProductImage(file: File): Promise<string> {
  * пересохранить дважды, и второй заход уже ничего не найдёт.
  */
 export async function deleteProductImage(name: string): Promise<void> {
-  if (!name || name.includes("/") || name.includes("\\")) return;
+  /*
+    Разрешённый вид имени, а не запрет косых черт. Прежняя проверка
+    пропускала, например, «..» целиком: на нём rm без recursive спотыкался
+    и ничего не удалял — но держаться на этом не стоит.
+
+    Нарочно не привязываемся к нынешнему «UUID.webp» из saveProductImage:
+    смена схемы имён иначе молча сломала бы удаление. Достаточно того, что
+    в имени нет разделителей пути, — выпрыгнуть из папки нечем.
+  */
+  if (!/^[A-Za-z0-9._-]+\.webp$/.test(name)) return;
   await fs.promises.rm(path.join(uploadsDir(), name), { force: true });
 }
