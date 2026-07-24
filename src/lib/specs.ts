@@ -145,29 +145,93 @@ export interface TechSpec {
  * Значения достаём только при явной единице измерения — коды моделей вроде
  * «TS-10.600» цифрами похожи на характеристики, но единиц не содержат.
  */
+/*
+  Диаметр из произвольного куска текста.
+
+  Возвращает первое правдоподобное значение в миллиметрах, перебирая все
+  найденные числа с единицами — а не первое совпадение самой приоритетной
+  единицы. Разница принципиальная: в описаниях прайса рядом с «Диаметр -
+  165mm» стоит «Звуковая катушка - 1 Дюйм», и при жёстком приоритете
+  «дюймы важнее миллиметров» динамик получал диаметр катушки — 25 мм.
+  Плашка с таким числом не показывалась вовсе (мельче 80 мм — это уже не
+  диффузор), и товар оставался без характеристик.
+
+  Правдоподобность проверяем той же корзиной, что и фильтр каталога: если
+  число не попадает ни в один размер динамика, это не диаметр.
+*/
+/*
+  Максимальная мощность из текста.
+
+  Поставщик пишет её тремя способами вперемешку: «Мощность MAX - 160 W»,
+  «MAX: 300 Вт» и по-русски — «Максимальная мощность: 140 Вт». Раньше
+  распознавался только латинский MAX, поэтому половина эстрадных колонок
+  оставалась без плашки мощности, хотя число было прямо в описании.
+
+  «BT» — постоянная опечатка «Вт» в прайсе (латинская раскладка), но
+  принимаем её только сразу после числа.
+*/
+const POWER_MAX_RE =
+  /(?:max|макс[а-яё]*(?:\s+мощност[а-яё]*)?|мощност[а-яё]*\s*max)\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i;
+
+function powerMaxFrom(text: string): number | undefined {
+  const m = text.match(POWER_MAX_RE);
+  if (!m) return undefined;
+  const w = parseInt(m[1], 10);
+  return w <= POWER_SANITY_W ? w : undefined;
+}
+
+function diameterFrom(text: string): number | undefined {
+  const candidates: number[] = [];
+
+  const add = (mm: number) => {
+    if (diameterBucket(mm)) candidates.push(mm);
+  };
+
+  for (const m of text.matchAll(
+    /(?<![\d.,])(\d{2}(?:[.,]\d)?)\s*(?:см|cm)(?![а-яёa-z])/gi,
+  )) {
+    add(Math.round(parseFloat(m[1].replace(",", ".")) * 10));
+  }
+  // Апостроф — тоже дюймы: в прайсе короба записаны как «12'» и «15'».
+  for (const m of text.matchAll(
+    /(?<![\d.,])(\d{1,2}(?:[.,]\d)?)\s*(?:дюйм|″|"|'|’|′)/gi,
+  )) {
+    add(Math.round(parseFloat(m[1].replace(",", ".")) * 25.4));
+  }
+  for (const m of text.matchAll(
+    /(?<![\d.,x×х])(\d{2,3})\s*(?:мм|mm)(?![а-яёa-z2])/gi,
+  )) {
+    add(parseInt(m[1], 10));
+  }
+
+  return candidates[0];
+}
+
 export function parseTech(title: string, description?: string[]): TechSpec {
   const src = [title, ...(description ?? [])].join(" · ");
   const out: TechSpec = {};
 
-  // Диаметр. Приоритет: см → дюймы → мм. Lookbehind отсекает «1.25 дюйма»
-  // (катушка): без него «25 дюйма» матчился бы из середины числа.
-  const cm = src.match(/(?<![\d.,])(\d{2}(?:[.,]\d)?)\s*(?:см|cm)(?![а-яёa-z])/i);
-  const inch = src.match(/(?<![\d.,])(\d{1,2}(?:[.,]\d)?)\s*(?:дюйм|″|")/i);
-  const mm = src.match(/(?<![\d.,x×х])(\d{2,3})\s*(?:мм|mm)(?![а-яёa-z2])/i);
-  if (cm) out.diameterMm = Math.round(parseFloat(cm[1].replace(",", ".")) * 10);
-  else if (inch)
-    out.diameterMm = Math.round(parseFloat(inch[1].replace(",", ".")) * 25.4);
-  else if (mm) out.diameterMm = parseInt(mm[1], 10);
+  /*
+    Диаметр ищем по убыванию надёжности источника:
+      1) строка описания, прямо названная «Диаметр» или «Размер»;
+      2) название товара — там размер пишут для покупателя;
+      3) всё описание целиком.
+    Так подпись поставщика всегда главнее случайного числа из соседней строки.
+  */
+  const labeled = (description ?? []).find((line) =>
+    /^\s*(?:диаметр|размер)\b/i.test(line),
+  );
+  out.diameterMm =
+    (labeled ? diameterFrom(labeled) : undefined) ??
+    diameterFrom(title) ??
+    diameterFrom((description ?? []).join(" · "));
 
-  // Мощность: «MAX: 300 W» / «MAX - 300 W» из описания приоритетнее числа
-  // из названия. «BT» — частая опечатка «Вт» в прайсе, но только после числа.
-  const pMax = src.match(/MAX\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i);
+  // Мощность: подписанный максимум приоритетнее случайного числа с «Вт».
   const pAny = src.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
-  const p = pMax ?? pAny;
-  if (p) {
-    const w = parseInt(p[1], 10);
-    if (w <= POWER_SANITY_W) out.powerMaxW = w;
-  }
+  const anyW = pAny ? parseInt(pAny[1], 10) : undefined;
+  out.powerMaxW =
+    powerMaxFrom(src) ??
+    (anyW !== undefined && anyW <= POWER_SANITY_W ? anyW : undefined);
 
   // Сопротивление: 1/2/4 Ом (диапазон реальный для автозвука)
   const ohm = src.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
@@ -238,18 +302,42 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
   const src = [title, ...(description ?? [])].join(" · ");
 
   const stats: Spec[] = [];
-  const pMax = src.match(/MAX\s*[:\-–—]?\s*(\d{2,5})\s*(?:W|Вт|BT)/i);
+  /*
+    Мощность. Подписанный максимум (хоть «MAX», хоть «Максимальная мощность»)
+    берём откуда угодно — и из названия, и из описания. Неподписанное число
+    с «Вт» — только из названия: в описаниях рядом стоят номинальная
+    мощность, чувствительность и частоты, и первое попавшееся число там
+    запросто окажется не тем.
+  */
+  const maxW = powerMaxFrom(src);
   const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
-  const sane = (m: RegExpMatchArray | null) =>
-    m && parseInt(m[1], 10) <= POWER_SANITY_W ? m : null;
-  if (sane(pMax)) stats.push({ label: "Мощность MAX", value: `${pMax![1]} Вт` });
-  else if (sane(pTitle))
-    stats.push({ label: "Мощность", value: `${pTitle![1]} Вт` });
+  const titleW = pTitle ? parseInt(pTitle[1], 10) : undefined;
+  if (maxW !== undefined) {
+    stats.push({ label: "Мощность MAX", value: `${maxW} Вт` });
+  } else if (titleW !== undefined && titleW <= POWER_SANITY_W) {
+    stats.push({ label: "Мощность", value: `${titleW} Вт` });
+  }
 
   const tech = parseTech(title, description);
-  if (tech.diameterMm) {
-    const bucket = diameterBucket(tech.diameterMm);
-    if (bucket) stats.push({ label: "Диаметр", value: bucket });
+  const bucket = tech.diameterMm ? diameterBucket(tech.diameterMm) : null;
+  if (bucket) {
+    stats.push({ label: "Диаметр", value: bucket });
+  } else if (/овал/i.test(title) && /\b690\b|6\s*[x×х]\s*9/i.test(src)) {
+    /*
+      Овалы. У поставщика на них нет ни диаметра, ни размера: в описании
+      «Диаметр - mm» с пустым значением, а то и вовсе нет описания. Размер
+      сидит в самом коде модели — SBS-690, US-690, MR-690.
+
+      Берём его только когда в названии прямо написано «овал»: 690 в коде
+      овальной колонки — это 6×9 дюймов, общепринятое обозначение в
+      автозвуке. Одного числа в артикуле без слова «овал» для такого вывода
+      мало, поэтому условие двойное.
+
+      Отдельная подпись «Размер», а не «Диаметр»: у овала диаметра нет, и
+      в корзину фильтра по диаметру он не попадает — там размеры круглых
+      динамиков, и 6×9 среди них выглядел бы неправдой.
+    */
+    stats.push({ label: "Размер", value: "6×9″ (15×23 см)" });
   }
   const ohmTitle = title.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
   if (ohmTitle) stats.push({ label: "Сопротивление", value: `${ohmTitle[1]} Ом` });
