@@ -1,11 +1,12 @@
 "use client";
 
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice, splitPayment, productImageUrl, isInStock } from "@/lib/format";
 import { shortSpecs } from "@/lib/specs";
+import { cn } from "@/lib/utils";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";
 
@@ -34,6 +35,21 @@ function ProductCardImpl({
   const specs = useMemo(() => shortSpecs(product.title), [product.title]);
 
   /*
+    Подмена снимка при наведении.
+
+    Второй кадр не рисуем заранее: сейчас дополнительные фото есть не у всех
+    товаров, а если бы были у всех — каталог тянул бы вдвое больше картинок
+    ради того, чего покупатель может и не увидеть. Поэтому файл заказывается
+    в момент первого наведения, а показывается только когда доехал: проявить
+    пустое место хуже, чем секунду подождать.
+  */
+  const second = product.images?.[0];
+  const [wanted, setWanted] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const swapped = Boolean(second) && hovered && ready;
+
+  /*
     Свечение под курсором.
 
     Раньше каждое движение мыши вызывало getBoundingClientRect прямо в
@@ -49,6 +65,15 @@ function ProductCardImpl({
   const onEnter = useCallback((e: PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     rectRef.current = { left: r.left, top: r.top };
+
+    /*
+      Только мышь. Касание тоже поднимает pointerenter, но там за ним сразу
+      идёт переход на карточку товара — качать второй снимок незачем, а на
+      мобильном канале это прямой вред.
+    */
+    if (e.pointerType !== "mouse") return;
+    setHovered(true);
+    setWanted(true);
   }, []);
 
   const onMove = useCallback((e: PointerEvent<HTMLDivElement>) => {
@@ -66,6 +91,7 @@ function ProductCardImpl({
 
   const onLeave = useCallback(() => {
     rectRef.current = null;
+    setHovered(false);
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
@@ -77,18 +103,45 @@ function ProductCardImpl({
       onPointerEnter={onEnter}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="spotlight-card group flex flex-col overflow-hidden rounded border border-border bg-surface p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow)]"
+      className="spotlight-card product-tile group flex flex-col overflow-hidden rounded border border-border bg-surface p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow)]"
     >
       <Link
         href={`/product/${product.slug}`}
-        className="flex aspect-square items-center justify-center overflow-hidden rounded-sm border border-border bg-tile"
+        className="tile-media flex aspect-square items-center justify-center overflow-hidden rounded-sm border border-border bg-tile"
       >
         <ProductImage
           src={productImageUrl(product.image)}
           alt={product.title}
           priority={priority}
-          className="h-[86%] w-[86%] object-contain mix-blend-multiply"
+          className={cn(
+            "h-[86%] w-[86%] object-contain mix-blend-multiply transition-opacity duration-300",
+            swapped && "opacity-0",
+          )}
         />
+
+        {/*
+          Второй кадр поверх первого. Обёртка absolute, а не сама картинка:
+          `.spotlight-card > *` принудительно ставит прямым детям карточки
+          position: relative, но сюда это правило не достаёт — мы уже внутри
+          ссылки.
+
+          alt пустой намеренно: это тот же товар, что и на первом снимке, и
+          читалке экрана незачем произносить название дважды. Наведения она
+          всё равно не видит.
+        */}
+        {second && wanted && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <ProductImage
+              src={productImageUrl(second)}
+              alt=""
+              onLoad={() => setReady(true)}
+              className={cn(
+                "h-[86%] w-[86%] object-contain mix-blend-multiply transition-opacity duration-300",
+                swapped ? "opacity-100" : "opacity-0",
+              )}
+            />
+          </span>
+        )}
       </Link>
 
       <div className="mt-4 flex items-center gap-2">

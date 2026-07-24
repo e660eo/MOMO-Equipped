@@ -21,6 +21,7 @@ export function ProductImage({
   className,
   sizes = "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 280px",
   priority = false,
+  onLoad,
 }: {
   src: string;
   alt: string;
@@ -29,6 +30,11 @@ export function ProductImage({
   sizes?: string;
   /** Для снимка, который виден сразу: грузим без задержки. */
   priority?: boolean;
+  /**
+   * Снимок догрузился. Нужен там, где картинку показывают только после
+   * загрузки: проявлять пустое место, пока файл едет, — хуже, чем подождать.
+   */
+  onLoad?: () => void;
 }) {
   const [failed, setFailed] = useState(false);
 
@@ -47,6 +53,7 @@ export function ProductImage({
       priority={priority}
       loading={priority ? undefined : "lazy"}
       onError={() => setFailed(true)}
+      onLoad={onLoad}
       className={className}
     />
   );
