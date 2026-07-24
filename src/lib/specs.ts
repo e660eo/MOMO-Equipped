@@ -180,6 +180,34 @@ function powerMaxFrom(text: string): number | undefined {
   return w <= POWER_SANITY_W ? w : undefined;
 }
 
+/*
+  Номинальная мощность из кода модели сабвуфера.
+
+  У поставщика код устроен как «размер в дюймах . мощность»: B-12.750 —
+  12″ и 750 Вт номинала, UB-12.350 — 350, TS-15.1100 — 1100. Подтверждено
+  владельцем и сходится с единственным описанием, которое в прайсе есть:
+  у TS-10.600 указано «Мощность RMS - 600 BT».
+
+  Требуем ровно эту форму — буквы, дефис, одно-два числа размера, точка и
+  три-четыре цифры мощности. Артикулы вида MR-6.1 или HE-1000 под неё не
+  подходят и мощности не получают.
+
+  ⚠️ Только сабвуферы. Точно так же выглядят коды усилителей — FR-2.1800,
+  AB-4.120, M-1.800, — но там первое число это каналы, а не дюймы, и что
+  означает второе (мощность на канал или суммарную), из прайса не видно.
+  Владелец подтвердил расшифровку для сабвуферов и только для них, поэтому
+  усилители под правило не попадают и остаются без плашки.
+*/
+const MODEL_RMS_RE = /(?:^|[\s+(])[A-Za-zА-Яа-я]{1,3}-\d{1,2}\.(\d{3,4})(?![\d.])/;
+
+function rmsFromModel(title: string): number | undefined {
+  if (!/сабвуфер/i.test(title)) return undefined;
+  const m = title.match(MODEL_RMS_RE);
+  if (!m) return undefined;
+  const w = parseInt(m[1], 10);
+  return w <= POWER_SANITY_W ? w : undefined;
+}
+
 function diameterFrom(text: string): number | undefined {
   const candidates: number[] = [];
 
@@ -312,8 +340,12 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
   const maxW = powerMaxFrom(src);
   const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
   const titleW = pTitle ? parseInt(pTitle[1], 10) : undefined;
+  const rmsW = rmsFromModel(title);
   if (maxW !== undefined) {
     stats.push({ label: "Мощность MAX", value: `${maxW} Вт` });
+  } else if (rmsW !== undefined) {
+    // Номинал из кода модели — подпись честная: это RMS, а не пиковая.
+    stats.push({ label: "Мощность RMS", value: `${rmsW} Вт` });
   } else if (titleW !== undefined && titleW <= POWER_SANITY_W) {
     stats.push({ label: "Мощность", value: `${titleW} Вт` });
   }
@@ -336,8 +368,12 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
       Отдельная подпись «Размер», а не «Диаметр»: у овала диаметра нет, и
       в корзину фильтра по диаметру он не попадает — там размеры круглых
       динамиков, и 6×9 среди них выглядел бы неправдой.
+
+      В сантиметрах пишем 16×23 — так эти овалы называют в рознице и так
+      их назвал владелец. Точный перевод 6″ даёт 15,2 см, но продавцы
+      считают по посадочной рамке, которая крупнее номинала.
     */
-    stats.push({ label: "Размер", value: "6×9″ (15×23 см)" });
+    stats.push({ label: "Размер", value: "6×9″ (16×23 см)" });
   }
   const ohmTitle = title.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
   if (ohmTitle) stats.push({ label: "Сопротивление", value: `${ohmTitle[1]} Ом` });

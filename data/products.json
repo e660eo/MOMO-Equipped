@@ -218,7 +218,11 @@
     "category": "dinamiki-rupora",
     "price": 3406,
     "image": "k_2a8830c3854e48a29be610779496db57.webp",
-    "isClearance": false
+    "isClearance": false,
+    "description": [
+      "Диаметр - 165mm",
+      "Максимальная мощность: 150 Вт"
+    ]
   },
   {
     "slug": "dinamiki-koaksialnye-zeus-ac-165-517978",
