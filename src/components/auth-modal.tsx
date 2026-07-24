@@ -12,8 +12,11 @@ import { ConsentCheckbox } from "./consent-checkbox";
 import { attemptAdminLogin } from "@/app/admin-entry";
 import { signIn, signUp } from "@/app/customer-actions";
 
+// text-base на узком экране: при шрифте меньше 16px Safari на iPhone
+// приближает страницу при фокусе в поле и обратно уже не отдаляет.
+// Для формы входа это особенно скверно — окно и так прижато к низу экрана.
 const inputCls =
-  "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
+  "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-base text-foreground transition-colors focus:border-signal focus:outline-none sm:text-sm";
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
@@ -133,7 +136,9 @@ export function AuthModal() {
       <div
         onClick={closeModal}
         className={cn(
-          "fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm transition-opacity",
+          // Без backdrop-blur: размытие всего экрана каждый кадр, пока окно
+          // выезжает, — самая дорогая часть открытия, особенно на телефоне.
+          "fixed inset-0 z-[90] bg-black/60 transition-opacity",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
@@ -148,21 +153,30 @@ export function AuthModal() {
         role="dialog"
         aria-modal="true"
         aria-label="Личный кабинет"
+        /*
+          Закрытое окно прячем ещё и через visibility (класс invisible).
+          Одной прозрачности мало: поля закрытой формы оставались в порядке
+          обхода табом и в дереве доступности — с клавиатуры фокус проваливался
+          в невидимое окно входа, а экранный диктор его зачитывал. Поскольку
+          переход здесь transition-all, visibility переключается ступенькой в
+          конце анимации, и выезд не обрывается.
+        */
+        aria-hidden={!open}
         className={cn(
-          "fixed z-[100] overflow-y-auto border border-border bg-surface shadow-xl transition-all",
+          "fixed z-[100] overflow-y-auto overscroll-contain border border-border bg-surface shadow-xl transition-all",
           "inset-x-0 bottom-0 max-h-[92dvh] rounded-t-2xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
           "sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[90dvh] sm:w-[min(440px,calc(100vw-32px))] sm:rounded-md sm:p-8",
           open
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-full opacity-0 sm:translate-y-3",
+            ? "visible translate-y-0 opacity-100"
+            : "invisible pointer-events-none translate-y-full opacity-0 sm:translate-y-3",
         )}
       >
         <button
           onClick={closeModal}
           aria-label="Закрыть"
-          className="absolute right-3.5 top-3.5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+          className="absolute right-2.5 top-2.5 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
         >
-          <X size={15} />
+          <X size={16} />
         </button>
 
         <h3 className="font-display text-lg font-semibold uppercase">

@@ -138,25 +138,34 @@ export function BannerCarousel() {
         <button
           onClick={() => goTo(current - 1)}
           aria-label="Предыдущий баннер"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+          className="tap-44 relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
         >
           ←
         </button>
-        {Array.from({ length: slides }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Баннер ${i + 1}`}
-            className={cn(
-              "h-[3px] w-7 rounded-sm transition-colors",
-              i === current ? "bg-signal" : "bg-border",
-            )}
-          />
-        ))}
+        {/*
+          Чёрточки рисуются в три пикселя высотой — попасть по такой пальцем
+          нельзя вовсе. Вид оставляем, а область нажатия растягиваем до 44px
+          невидимым псевдоэлементом (.tap-44 в globals.css). Промежуток между
+          ними при этом ровно 44px: вплотную, но без наложения — иначе соседняя
+          чёрточка перехватывала бы касание.
+        */}
+        <span className="flex items-center gap-4">
+          {Array.from({ length: slides }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              aria-label={`Баннер ${i + 1}`}
+              className={cn(
+                "tap-44 relative h-[3px] w-7 rounded-sm transition-colors",
+                i === current ? "bg-signal" : "bg-border",
+              )}
+            />
+          ))}
+        </span>
         <button
           onClick={() => goTo(current + 1)}
           aria-label="Следующий баннер"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+          className="tap-44 relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
         >
           →
         </button>

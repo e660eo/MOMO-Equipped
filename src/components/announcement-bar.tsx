@@ -51,7 +51,7 @@ export function AnnouncementBar() {
 
         <a
           href={`tel:${phone.replace(/[^+\d]/g, "")}`}
-          className="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-70"
+          className="tap-44 relative flex shrink-0 items-center gap-2 transition-opacity hover:opacity-70"
         >
           <Phone size={14} strokeWidth={2.4} />
           <span className="hidden sm:inline">{phone}</span>

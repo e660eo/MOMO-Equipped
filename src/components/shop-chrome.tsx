@@ -2,8 +2,7 @@ import ClickSpark from "@/components/ui/ClickSpark";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { CartDrawer } from "@/components/cart-drawer";
-import { AuthModal } from "@/components/auth-modal";
+import { Overlays } from "@/components/overlays";
 import { Toaster } from "@/components/toaster";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
 import { JsonLd } from "@/components/json-ld";
@@ -74,8 +73,8 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
         позиционировалась бы относительно шапки, а не экрана (окно входа
         уезжало вверх на мобильном).
       */}
-      <CartDrawer />
-      <AuthModal />
+      {/* Корзина и окно входа — отдельными кусками, по требованию */}
+      <Overlays />
       <Toaster />
       <WhatsAppFab />
       </CustomerProvider>

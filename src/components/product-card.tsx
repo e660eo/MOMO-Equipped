@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback, useMemo, useRef } from "react";
 import type { PointerEvent } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
@@ -8,20 +9,74 @@ import { shortSpecs } from "@/lib/specs";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";
 
-export function ProductCard({ product }: { product: Product }) {
-  const specs = shortSpecs(product.title);
+/*
+  Плитка товара.
 
-  // Двигаем центр свечения за курсором внутри карточки (обновляется только
-  // наведённая карточка — без глобальных слушателей).
-  function onMove(e: PointerEvent<HTMLDivElement>) {
+  memo здесь не для красоты: в каталоге сетка перерисовывается на каждое
+  нажатие в поиске и на каждый кадр перетаскивания ползунка цены, а карточек
+  на экране двадцать четыре. Товар — объект из статических данных, ссылка на
+  него не меняется, поэтому сравнения по ссылке достаточно.
+*/
+function ProductCardImpl({
+  product,
+  priority = false,
+}: {
+  product: Product;
+  /**
+   * Плитка из первого экрана: её снимок и есть кандидат в LCP, поэтому он
+   * грузится сразу, а не по мере доскролла. Ставить всем подряд нельзя —
+   * тогда полсотни снимков наперегонки съедят канал у того единственного,
+   * по которому и меряется время отрисовки.
+   */
+  priority?: boolean;
+}) {
+  // Разбор характеристик из названия — не на каждый рендер
+  const specs = useMemo(() => shortSpecs(product.title), [product.title]);
+
+  /*
+    Свечение под курсором.
+
+    Раньше каждое движение мыши вызывало getBoundingClientRect прямо в
+    обработчике: браузер вынужден был досчитать раскладку немедленно
+    (forced reflow), и так — на каждое событие, по всей сетке. Теперь размер
+    карточки замеряется один раз при входе курсора, а движения складываются в
+    один кадр: в обработчике только запись двух переменных.
+  */
+  const rectRef = useRef<{ left: number; top: number } | null>(null);
+  const frameRef = useRef(0);
+  const posRef = useRef({ x: 0, y: 0 });
+
+  const onEnter = useCallback((e: PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
-  }
+    rectRef.current = { left: r.left, top: r.top };
+  }, []);
+
+  const onMove = useCallback((e: PointerEvent<HTMLDivElement>) => {
+    const rect = rectRef.current;
+    if (!rect) return;
+    posRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    if (frameRef.current) return;
+    const el = e.currentTarget;
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = 0;
+      el.style.setProperty("--mx", `${posRef.current.x}px`);
+      el.style.setProperty("--my", `${posRef.current.y}px`);
+    });
+  }, []);
+
+  const onLeave = useCallback(() => {
+    rectRef.current = null;
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = 0;
+    }
+  }, []);
 
   return (
     <div
+      onPointerEnter={onEnter}
       onPointerMove={onMove}
+      onPointerLeave={onLeave}
       className="spotlight-card group flex flex-col overflow-hidden rounded border border-border bg-surface p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow)]"
     >
       <Link
@@ -31,6 +86,7 @@ export function ProductCard({ product }: { product: Product }) {
         <ProductImage
           src={productImageUrl(product.image)}
           alt={product.title}
+          priority={priority}
           className="h-[86%] w-[86%] object-contain mix-blend-multiply"
         />
       </Link>
@@ -53,7 +109,8 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <Link href={`/product/${product.slug}`} className="mt-1.5">
-        <h3 className="min-h-[2.8em] text-[0.92rem] font-medium leading-snug transition-colors group-hover:text-signal">
+        {/* min-h-11 вместо 2.8em: та же высота в две строки, но не меньше 44px */}
+        <h3 className="min-h-11 text-[0.92rem] font-medium leading-snug transition-colors group-hover:text-signal">
           {product.title}
         </h3>
       </Link>
@@ -92,3 +149,5 @@ export function ProductCard({ product }: { product: Product }) {
     </div>
   );
 }
+
+export const ProductCard = memo(ProductCardImpl);

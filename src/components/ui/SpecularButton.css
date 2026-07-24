@@ -1,9 +1,28 @@
+/*
+  Кнопка с бликом по кромке.
+
+  Раньше блик рисовал WebGL: на каждую кнопку — свой контекст ogl, свой
+  бесконечный requestAnimationFrame и свой слушатель pointermove с
+  getBoundingClientRect внутри. В шапке таких кнопок три, а с открытым
+  мега-меню — девять, и все они считали кадры даже когда блик не виден.
+
+  Теперь то же самое делает CSS. Кольцо — маска по кромке, блик — конический
+  градиент на дочернем слое, который просто вращается. Меняются только
+  transform и opacity, то есть работа уходит на композитор: ни пересчёта
+  раскладки, ни перерисовки.
+*/
 .specular-button {
   --sb-radius: 18px;
   --sb-tint: #ffffff;
   --sb-tint-opacity: 0;
   --sb-blur: 0px;
   --sb-text-color: #f5f5f5;
+  --sb-line: #ffffff;
+  --sb-base: #525252;
+  --sb-thickness: 1.5px;
+  /* Угол блика и его яркость ведёт указатель — см. SpecularButton.tsx */
+  --sb-angle: 130deg;
+  --sb-bright: 0;
 
   position: relative;
   display: inline-flex;
@@ -26,6 +45,25 @@
   cursor: pointer;
   outline: none;
   transition: transform 0.15s ease;
+}
+
+/*
+  Тёмная подложка по кромке — она была в шейдере отдельным слагаемым и давала
+  кнопке ощущение толщины. Рисуется всегда, от указателя не зависит.
+*/
+.specular-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--sb-base);
+  opacity: 0.45;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
 }
 
 .specular-button:active {
@@ -61,18 +99,64 @@
   padding: 18px 40px;
 }
 
-/* Canvas extends past the button so the rim glow can bleed outside the edge */
+/* Кольцо по кромке: маска вырезает середину, внутри вращается градиент */
 .specular-button__fx {
   position: absolute;
-  inset: -20px;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
   pointer-events: none;
   z-index: 1;
+  padding: var(--sb-thickness);
+  opacity: var(--sb-bright);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
 }
 
-.specular-button__fx canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+/*
+  Два противоположных лепестка — как в исходном шейдере: подсвечивается и
+  кромка, обращённая к свету, и противоположная ей.
+*/
+.specular-button__spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 240%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotate(var(--sb-angle));
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--sb-line) 14deg,
+    transparent 40deg,
+    transparent 180deg,
+    var(--sb-line) 194deg,
+    transparent 220deg
+  );
+}
+
+/*
+  Указателя нет — блика тоже: на телефоне вести луч нечем, а лишний слой с
+  маской и градиентом там только стоит времени на композиции.
+*/
+@media (hover: none), (pointer: coarse) {
+  .specular-button__fx {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specular-button {
+    transition: none;
+  }
+  .specular-button__fx {
+    opacity: 0.35;
+  }
+  .specular-button__spin {
+    transform: translate(-50%, -50%) rotate(130deg);
+  }
 }
 
 .specular-button__label {

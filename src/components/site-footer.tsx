@@ -48,8 +48,13 @@ const legal = [
 export function SiteFooter() {
   const { contacts, requisites } = siteConfig;
 
+  /*
+    Ссылки в футере — это списки навигации, а не текст с ссылками внутри:
+    строчный <a> в 14px высотой пальцем не берётся. Растягиваем до 44px и
+    убираем внешний зазор в списках, чтобы футер не вырос вдвое.
+  */
   const linkCls =
-    "text-[0.88rem] text-white/65 transition-colors hover:text-signal";
+    "inline-flex min-h-11 items-center text-[0.88rem] text-white/65 transition-colors hover:text-signal";
   const headCls =
     "mb-4 font-label text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-white/40";
 
@@ -75,7 +80,7 @@ export function SiteFooter() {
           {cols.map((col) => (
             <div key={col.title}>
               <h4 className={headCls}>{col.title}</h4>
-              <ul className="flex flex-col gap-2.5">
+              <ul className="flex flex-col">
                 {col.links.map((l) => (
                   <li key={l.href}>
                     <Link href={l.href} className={linkCls}>
@@ -89,7 +94,7 @@ export function SiteFooter() {
 
           <div>
             <h4 className={headCls}>Контакты</h4>
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-col">
               <li>
                 <a
                   href={`tel:${contacts.phone.replace(/[^+\d]/g, "")}`}
@@ -117,7 +122,7 @@ export function SiteFooter() {
               <a
                 href={contacts.whatsapp}
                 aria-label="WhatsApp"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-signal hover:text-signal"
+                className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-signal hover:text-signal"
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden>
                   <path d="M12 2a10 10 0 0 0-8.66 15L2 22l5.16-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.16l-.3-.18-3.06.77.8-2.98-.2-.31A8.2 8.2 0 1 1 12 20.2Zm4.5-6.13c-.25-.12-1.46-.72-1.68-.8-.23-.09-.4-.13-.56.12-.17.25-.64.8-.79.97-.14.16-.29.18-.53.06a6.7 6.7 0 0 1-3.35-2.93c-.25-.43.25-.4.72-1.34.08-.16.04-.3-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.16 0-.43.06-.66.3-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.6.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.2-.58.2-1.07.14-1.18-.06-.1-.22-.16-.47-.28Z" />
@@ -126,7 +131,7 @@ export function SiteFooter() {
               <a
                 href={contacts.telegram}
                 aria-label="Telegram"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-signal hover:text-signal"
+                className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-signal hover:text-signal"
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden>
                   <path d="M21.9 4.6 18.9 19c-.23 1-.83 1.26-1.68.78l-4.65-3.43-2.24 2.16c-.25.25-.46.46-.94.46l.33-4.73 8.6-7.77c.37-.33-.08-.52-.58-.19L7.1 12.97l-4.58-1.43c-1-.31-1.02-1 .2-1.47L20.6 3.2c.83-.31 1.55.19 1.3 1.4Z" />
@@ -147,7 +152,7 @@ export function SiteFooter() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/70 underline-offset-4 transition-colors hover:text-signal hover:underline"
+                className="inline-flex min-h-11 items-center font-label text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/70 underline-offset-4 transition-colors hover:text-signal hover:underline"
               >
                 {l.label}
               </Link>

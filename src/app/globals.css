@@ -79,10 +79,44 @@ body {
   transition: background 0.25s, color 0.25s;
 }
 
+/*
+  Смена темы: на один кадр глушим все переходы и анимации.
+  Иначе переключатель заставляет браузер анимировать background, color и
+  border-color разом по всему дереву — см. комментарий в theme-toggle.tsx.
+*/
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+  animation-play-state: paused !important;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-signal);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/*
+  ── Область нажатия ──
+  Мелкие круглые кнопки (количество в корзине, закрыть, стрелки карусели)
+  рисуются небольшими намеренно — но пальцем в 24-28px не попасть. Псевдоэлемент
+  растягивает область нажатия до рекомендованных 44px, не трогая ни размер
+  самой кнопки, ни соседей по строке.
+*/
+.tap-44::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+/* Мышью и так попадают — расширять область только там, где касаются */
+@media (hover: hover) and (pointer: fine) {
+  .tap-44::after { display: none; }
 }
 
 /* ── Мега-меню каталога: анимация появления ── */
@@ -110,41 +144,81 @@ body {
   position: relative;
   z-index: 1;
 }
-.spotlight-card::before,
-.spotlight-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 0;
+
+/*
+  Свечение существует только там, где есть чем наводить. На телефоне ховера
+  нет, а два псевдоэлемента с градиентами и маской по каждой из двадцати
+  четырёх плиток — это чистая работа по отрисовке впустую, ровно на том
+  устройстве, где её меньше всего можно себе позволить.
+*/
+@media (hover: hover) and (pointer: fine) {
+  .spotlight-card::before,
+  .spotlight-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+  /* мягкая заливка поверхности */
+  .spotlight-card::before {
+    background: radial-gradient(
+      200px 200px at var(--mx, 50%) var(--my, 0%),
+      hsl(22 100% 55% / 0.16),
+      transparent 65%
+    );
+  }
+  /* яркая кромка, идущая за курсором */
+  .spotlight-card::after {
+    padding: 1.5px;
+    background: radial-gradient(
+      240px 240px at var(--mx, 50%) var(--my, 0%),
+      hsl(24 100% 60% / 0.9),
+      transparent 60%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+  }
+  .spotlight-card:hover::before,
+  .spotlight-card:hover::after {
+    opacity: 1;
+  }
 }
-/* мягкая заливка поверхности */
-.spotlight-card::before {
-  background: radial-gradient(
-    200px 200px at var(--mx, 50%) var(--my, 0%),
-    hsl(22 100% 55% / 0.16),
-    transparent 65%
-  );
+
+/* ── Звуковая линия на первом экране ──
+   Рисуется разметкой, без WebGL: см. hero-backdrop.tsx. Движется только
+   transform — ни пересчёта раскладки, ни перерисовки, работа на композиторе. */
+.hero-wave {
+  /* было className="opacity-70" на канвасе шейдера */
+  opacity: 0.7;
 }
-/* яркая кромка, идущая за курсором */
-.spotlight-card::after {
-  padding: 1.5px;
-  background: radial-gradient(
-    240px 240px at var(--mx, 50%) var(--my, 0%),
-    hsl(24 100% 60% / 0.9),
-    transparent 60%
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
+/*
+  10.5s — скорость исходного шейдера: он прибавлял к time 0.01 за кадр, а
+  период синуса равен 2π, то есть при 60 к/с волна проходила период за 10.5 с.
+*/
+.hero-wave__track {
+  animation: hero-wave-scroll 10.5s linear infinite;
+  will-change: transform;
 }
-.spotlight-card:hover::before,
-.spotlight-card:hover::after {
-  opacity: 1;
+/* Размытие на неподвижном содержимом: считается один раз, дальше — текстура */
+.hero-wave__ink {
+  filter: blur(22px);
+}
+@keyframes hero-wave-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-1200px); }
+}
+/*
+  Гасим именно animation-name: общее правило reduced-motion ниже режет
+  длительность до 0.01ms, из-за чего линия застыла бы в конце периода.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-wave__track { animation-name: none !important; }
 }
 
 /* ── Осциллограмма-разделитель ── */
@@ -191,10 +265,16 @@ body {
   .search-glow__spin { animation: none; }
 }
 
-/* ── Двойной ползунок цены в каталоге ── */
+/*
+  ── Двойной ползунок цены в каталоге ──
+  Полоса рисуется в 4px, но сама область нажатия — 44px в высоту: у ползунка
+  промах означает не «не сработало», а рывок цены к случайному значению и
+  пересборку выдачи. Видимой высоты это не добавляет, дорожка и ручки стоят
+  по центру.
+*/
 .range-dual {
   position: relative;
-  height: 20px;
+  height: 44px;
   display: flex;
   align-items: center;
 }
@@ -216,7 +296,7 @@ body {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 20px;
+  height: 44px;
   margin: 0;
   background: transparent;
   pointer-events: none;
@@ -224,19 +304,25 @@ body {
   appearance: none;
 }
 .range-dual input[type="range"]::-webkit-slider-runnable-track {
-  height: 20px;
+  height: 44px;
   background: transparent;
 }
 .range-dual input[type="range"]::-moz-range-track {
-  height: 20px;
+  height: 44px;
   background: transparent;
 }
+/*
+  Ручку центрируем по дорожке вручную: при явной высоте runnable-track WebKit
+  прижимает её к верху, а не ставит посередине. --sb-thumb — размер ручки,
+  отступ считается от него.
+*/
 .range-dual input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   pointer-events: auto;
-  height: 16px;
-  width: 16px;
+  height: var(--thumb, 16px);
+  width: var(--thumb, 16px);
+  margin-top: calc((44px - var(--thumb, 16px)) / 2);
   border-radius: 9999px;
   background: var(--color-signal);
   border: 2px solid var(--surface);
@@ -245,13 +331,17 @@ body {
 }
 .range-dual input[type="range"]::-moz-range-thumb {
   pointer-events: auto;
-  height: 16px;
-  width: 16px;
+  height: var(--thumb, 16px);
+  width: var(--thumb, 16px);
   border: 2px solid var(--surface);
   border-radius: 9999px;
   background: var(--color-signal);
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
   cursor: pointer;
+}
+/* Пальцем целятся хуже, чем мышью, — там ручка крупнее */
+@media (hover: none), (pointer: coarse) {
+  .range-dual { --thumb: 24px; }
 }
 
 /* ── Левитация 3D-логотипа на главном экране ── */

@@ -26,7 +26,8 @@ export function SectionHead({
       {linkHref && linkLabel && (
         <Link
           href={linkHref}
-          className="whitespace-nowrap font-mono text-[0.78rem] uppercase tracking-wider text-muted-foreground transition-colors hover:text-signal"
+          // min-h-11 — область нажатия пальцем; строка в 19px для этого мала
+          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap font-mono text-[0.78rem] uppercase tracking-wider text-muted-foreground transition-colors hover:text-signal"
         >
           {linkLabel}
         </Link>

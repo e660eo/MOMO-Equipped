@@ -38,6 +38,14 @@ export function HeroLogo({ className }: { className?: string }) {
 
   useEffect(() => {
     if (reduce) return;
+    /*
+      Доворот за курсором нужен там, где курсор есть. На телефоне pointermove
+      всё равно приходит — при каждом протягивании по экрану, — и заводил
+      пружину, которая потом кадр за кадром доезжала до цели: работа ради
+      эффекта, которого на тачскрине не видно.
+    */
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
     const onMove = (e: PointerEvent) => {
       mx.set(e.clientX / window.innerWidth - 0.5);
       my.set(e.clientY / window.innerHeight - 0.5);

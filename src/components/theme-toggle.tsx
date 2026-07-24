@@ -25,13 +25,34 @@ export function ThemeToggle({
   function toggle() {
     const next = !dark;
     setDark(next);
+
+    /*
+      Переключение темы меняет значения переменных на :root, и вместе с ними
+      перекрашивается всё дерево разом. При этом на body висит переход по
+      background и color на 0.25s, а на десятках элементов — свои transition
+      по border-color и цвету текста: браузер честно начинает анимировать
+      каждый из них, и вместо мгновенной смены получается ощутимая просадка
+      кадров, тем заметнее, чем длиннее страница.
+
+      Поэтому на время подмены переходы глушим целиком (класс theme-switching),
+      а снимаем его следующим кадром — когда новые цвета уже применены.
+      Тема меняется мгновенно и без дёрганья.
+    */
+    const root = document.documentElement;
+    root.classList.add("theme-switching");
+
     if (next) {
-      document.documentElement.dataset.theme = "dark";
+      root.dataset.theme = "dark";
     } else {
-      delete document.documentElement.dataset.theme;
+      delete root.dataset.theme;
     }
+
     // Cookie читает сервер при следующем рендере — тема применяется без вспышки.
     document.cookie = `momo-theme=${next ? "dark" : "light"}; path=/; max-age=31536000; samesite=lax`;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => root.classList.remove("theme-switching"));
+    });
   }
 
   const label = dark ? "Включить светлую тему" : "Включить тёмную тему";
@@ -43,8 +64,8 @@ export function ThemeToggle({
       className={cn(
         "text-foreground transition-colors hover:text-signal",
         variant === "icon"
-          ? "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border hover:border-signal"
-          : "flex w-full items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground",
+          ? "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border hover:border-signal"
+          : "flex min-h-11 w-full items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground",
         className,
       )}
     >

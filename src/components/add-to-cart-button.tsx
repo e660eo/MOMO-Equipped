@@ -30,10 +30,16 @@ export function AddToCartButton({
   const inCart = items.find((i) => i.slug === product.slug)?.qty ?? 0;
   const reachedLimit = limit !== null && inCart >= limit;
 
+  /*
+    Маленькая кнопка была 34px в высоту — это главное действие на плитке, и по
+    нему промахиваются пальцем. Поднято до 44px: ниже этого попадание
+    перестаёт быть надёжным, а на плитке каталога промах означает переход на
+    страницу товара вместо покупки.
+  */
   const base =
     size === "lg"
       ? "w-full rounded-sm px-8 py-4 text-sm font-semibold transition-all active:scale-[0.98] sm:w-auto"
-      : "rounded-sm px-3 py-2 text-xs font-semibold transition-all active:scale-[0.97]";
+      : "min-h-11 rounded-sm px-3 py-2 text-xs font-semibold transition-all active:scale-[0.97]";
 
   if (soldOut) {
     return (

@@ -1,20 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { User, ShoppingCart, Menu, Search } from "lucide-react";
+import { User, ShoppingCart, Menu } from "lucide-react";
 import { useCart, cartCount } from "@/lib/cart-store";
 import { useAccount } from "@/lib/account-store";
 import { useCustomer } from "@/components/customer-provider";
 import { ThemeToggle } from "./theme-toggle";
 import { CatalogMenu } from "./catalog-menu";
 import { HeaderExtras, CityPicker } from "./header-extras";
-import { AnimatedGlowingSearch } from "./ui/animated-glowing-search-bar";
-import { SearchSuggestions } from "./search-suggestions";
+import { HeaderSearch } from "./header-search";
 import { cn } from "@/lib/utils";
-import { cleanQuery } from "@/lib/sanitize";
 
 // Реквизиты намеренно не здесь — они живут в нижней плашке футера,
 // это служебная информация, а не пункт основной навигации.
@@ -39,8 +37,6 @@ export function SiteHeader() {
   const authed = customer !== null;
   const openAuth = useAccount((s) => s.openModal);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [hintsOpen, setHintsOpen] = useState(false);
   const count = cartCount(items);
 
   // Вошедшего ведём в кабинет, остальным открываем вход
@@ -50,21 +46,23 @@ export function SiteHeader() {
     else openAuth();
   }
 
-  function submitSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const q = cleanQuery(query);
-    router.push(q ? `/catalog?search=${encodeURIComponent(q)}` : "/catalog");
-    setMenuOpen(false);
-    setHintsOpen(false);
-  }
+  // Ссылка стабильна — иначе поиск перерисовывался бы вслед за шапкой
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
+  /*
+    Размытие подложки — только на десктопе. Шапка липкая, поэтому на телефоне
+    backdrop-filter пересчитывался на каждом кадре прокрутки по всей ширине
+    экрана: это самый дорогой из здешних эффектов и самая заметная просадка
+    при листании каталога. Там шапка просто непрозрачная — разницы на глаз
+    нет, а прокрутка становится ровной.
+  */
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border bg-bg md:bg-bg/90 md:backdrop-blur-md">
       <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-2 px-4 sm:gap-4 sm:px-6">
         <Link
           href="/"
           aria-label="MOMO Equipped — на главную"
-          className="shrink-0 font-wordmark text-base font-extrabold uppercase leading-none tracking-tight sm:text-lg md:text-xl"
+          className="inline-flex min-h-11 shrink-0 items-center font-wordmark text-base font-extrabold uppercase leading-none tracking-tight sm:text-lg md:text-xl"
         >
           MOMO <span className="font-bold text-signal">Equipped</span>
         </Link>
@@ -74,38 +72,8 @@ export function SiteHeader() {
           <CatalogMenu />
         </div>
 
-        {/* Поиск с живыми подсказками */}
-        <form
-          onSubmit={submitSearch}
-          className="relative hidden flex-1 md:block"
-          role="search"
-        >
-          <AnimatedGlowingSearch className="w-full">
-            <div className="relative">
-              <Search
-                size={17}
-                className="pointer-events-none absolute left-4 top-1/2 z-[1] -translate-y-1/2 text-muted-foreground"
-              />
-              <input
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setHintsOpen(true);
-                }}
-                onFocus={() => setHintsOpen(true)}
-                placeholder="Найти товары…"
-                aria-label="Поиск товаров"
-                autoComplete="off"
-                className="w-full rounded-full bg-surface py-2.5 pl-11 pr-4 text-sm text-foreground focus:outline-none"
-              />
-            </div>
-          </AnimatedGlowingSearch>
-          <SearchSuggestions
-            query={query}
-            open={hintsOpen}
-            onClose={() => setHintsOpen(false)}
-          />
-        </form>
+        {/* Поиск с живыми подсказками — со своим состоянием, см. header-search */}
+        <HeaderSearch />
 
         {/*
           На узком экране логотип и четыре кнопки в строку не помещались —
@@ -133,7 +101,7 @@ export function SiteHeader() {
           <button
             onClick={openCart}
             className={cn(
-              "relative inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-colors hover:border-signal hover:text-signal sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2",
+              "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-colors hover:border-signal hover:text-signal sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2",
               count > 0 ? "border-signal/50 text-signal" : "border-border",
             )}
             aria-label={`Корзина, товаров: ${count}`}
@@ -164,7 +132,7 @@ export function SiteHeader() {
           </button>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border md:hidden"
+            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border md:hidden"
             aria-label="Меню"
             aria-expanded={menuOpen}
           >
@@ -204,24 +172,13 @@ export function SiteHeader() {
         style={{ transition: "max-height .25s ease" }}
       >
         <div className="mx-auto max-w-[1200px] px-4 py-3 sm:px-6">
-          <form onSubmit={submitSearch} role="search" className="relative mb-2">
-            <Search
-              size={17}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Найти товары…"
-              aria-label="Поиск товаров"
-              className="w-full rounded-full border border-border bg-surface py-2.5 pl-11 pr-4 text-sm text-foreground focus:border-signal focus:outline-none"
-            />
-          </form>
+          <HeaderSearch variant="mobile" onNavigate={closeMenu} />
+          {/* Пункты меню — не меньше 44px в высоту, это область нажатия пальцем */}
           <nav className="flex flex-col">
             <Link
               href="/catalog"
-              onClick={() => setMenuOpen(false)}
-              className="border-b border-border py-3.5 text-sm font-semibold text-signal"
+              onClick={closeMenu}
+              className="flex min-h-11 items-center border-b border-border py-3.5 text-sm font-semibold text-signal"
             >
               Каталог
             </Link>
@@ -229,8 +186,8 @@ export function SiteHeader() {
               <Link
                 key={n.href}
                 href={n.href}
-                onClick={() => setMenuOpen(false)}
-                className="border-b border-border py-3.5 text-sm font-medium text-muted-foreground"
+                onClick={closeMenu}
+                className="flex min-h-11 items-center border-b border-border py-3.5 text-sm font-medium text-muted-foreground"
               >
                 {n.label}
               </Link>
@@ -238,7 +195,7 @@ export function SiteHeader() {
             {/* Вытеснены из шапки нехваткой места — см. комментарий выше */}
             <button
               onClick={accountAction}
-              className="flex items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-signal sm:hidden"
+              className="flex min-h-11 items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-signal sm:hidden"
             >
               <User size={16} />
               Личный кабинет

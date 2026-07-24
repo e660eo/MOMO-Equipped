@@ -11,12 +11,16 @@ import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { cn } from "@/lib/utils";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 // Данные получателя запоминаем — при повторном заказе не вводить заново.
 const RECIPIENT_KEY = "momo-recipient";
 
+// text-base на узком экране: при шрифте меньше 16px Safari на iPhone
+// приближает страницу, как только человек ставит курсор в поле, и обратно
+// уже не отдаляет. См. тот же комментарий в catalog-view.tsx.
 const inputCls =
-  "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
+  "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-base text-foreground transition-colors focus:border-signal focus:outline-none sm:text-sm";
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
@@ -43,6 +47,31 @@ export function CartDrawer() {
       if (d.address) setAddress(d.address);
     } catch {}
   }, []);
+
+  /*
+    Корзина грузится отдельным куском, и в редком случае — если по ней успели
+    нажать раньше, чем кусок доехал, — она смонтируется уже открытой и просто
+    возникнет на экране без выезда. Первый кадр всегда рисуем закрытым, а
+    открываем со следующего: переход получает от чего оттолкнуться.
+  */
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const shown = isOpen && entered;
+
+  // Фон под корзиной не должен прокручиваться — раньше он уезжал вместе с ней
+  useEffect(() => {
+    if (!shown) return;
+    lockScroll();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeCart();
+    window.addEventListener("keydown", onKey);
+    return () => {
+      unlockScroll();
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [shown, closeCart]);
 
   const { contacts, trust, payEnabled, paySandbox } = useSiteConfig();
   const total = cartTotal(items);
@@ -152,28 +181,40 @@ export function CartDrawer() {
 
   return (
     <>
+      {/*
+        Затемнение без backdrop-blur: размытие всего экрана пересчитывалось
+        каждый кадр, пока корзина выезжает, и на телефоне съедало ровно ту
+        плавность, ради которой этот выезд и сделан.
+      */}
       <div
         onClick={closeCart}
         className={cn(
-          "fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm transition-opacity",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+          "fixed inset-0 z-[90] bg-black/60 transition-opacity",
+          shown ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="Корзина"
+        /*
+          Закрытая корзина не должна ни перехватывать касания, ни попадать в
+          порядок обхода табом: поля формы заказа оставались доступны с
+          клавиатуры и в дереве доступности при закрытой корзине. visibility
+          переключается ступенькой в конце перехода, поэтому выезд цел.
+        */
+        aria-hidden={!shown}
         className={cn(
-          "fixed bottom-0 right-0 top-0 z-[100] w-[min(460px,100vw)] overflow-y-auto border-l border-border bg-surface p-7 transition-transform duration-300",
-          isOpen ? "translate-x-0" : "translate-x-full",
+          "fixed bottom-0 right-0 top-0 z-[100] w-[min(460px,100vw)] overflow-y-auto overscroll-contain border-l border-border bg-surface p-7 transition-[transform,visibility] duration-300 will-change-transform",
+          shown ? "visible translate-x-0" : "invisible pointer-events-none translate-x-full",
         )}
       >
         <button
           onClick={closeCart}
           aria-label="Закрыть корзину"
-          className="absolute right-3.5 top-3.5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+          className="absolute right-2.5 top-2.5 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
         >
-          <X size={15} />
+          <X size={16} />
         </button>
 
         <h3 className="mb-6 font-display text-lg font-semibold uppercase">
@@ -242,28 +283,36 @@ export function CartDrawer() {
                     <span className="block text-[0.84rem] font-medium leading-snug">
                       {i.title}
                     </span>
+                    {/*
+                      Кружки были по 24px — попасть пальцем можно только со
+                      второго раза. Видимый размер оставляем прежним, а область
+                      нажатия растягиваем псевдоэлементом до 44px: разметка от
+                      этого не расходится.
+                    */}
                     <span className="mt-1.5 inline-flex items-center gap-2">
                       <button
                         aria-label="Убавить"
                         onClick={() => setQty(i.slug, i.qty - 1)}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+                        className="tap-44 relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
                       >
-                        <Minus size={11} />
+                        <Minus size={12} />
                       </button>
-                      <span className="font-mono text-xs">{i.qty}</span>
+                      <span className="min-w-4 text-center font-mono text-xs tabular-nums">
+                        {i.qty}
+                      </span>
                       <button
                         aria-label="Прибавить"
                         onClick={() => setQty(i.slug, i.qty + 1)}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+                        className="tap-44 relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
                       >
-                        <Plus size={11} />
+                        <Plus size={12} />
                       </button>
                       <button
                         aria-label="Удалить из корзины"
                         onClick={() => remove(i.slug)}
-                        className="ml-1 text-muted-foreground transition-colors hover:text-signal"
+                        className="tap-44 relative ml-1 inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors hover:text-signal"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={14} />
                       </button>
                     </span>
                   </span>

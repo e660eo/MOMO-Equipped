@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { ProductImage } from "./product-image";
 import { cn } from "@/lib/utils";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 /*
   Галерея фото товара. Обложка кликабельна — открывается крупный просмотр
@@ -32,11 +33,12 @@ export function ProductGallery({
       if (e.key === "ArrowLeft") prev();
       if (e.key === "ArrowRight") next();
     };
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Общая блокировка: компенсирует ширину полосы прокрутки, иначе страница
+    // под лайтбоксом дёргается вбок в момент открытия
+    lockScroll();
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prevOverflow;
+      unlockScroll();
       window.removeEventListener("keydown", onKey);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

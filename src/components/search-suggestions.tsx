@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { searchProducts, countMatches } from "@/lib/search-index";
+import { searchCatalog } from "@/lib/search-index";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { ProductImage } from "./product-image";
 
@@ -25,8 +25,14 @@ export function SearchSuggestions({
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  const hits = useMemo(() => searchProducts(query), [query]);
-  const total = useMemo(() => countMatches(query), [query]);
+  /*
+    Поиск идёт по отложенному значению: буква в поле появляется сразу, а
+    перебор каталога и перерисовка списка — следующим проходом и с правом
+    прерваться на новое нажатие. Раньше каждая буква считалась синхронно
+    внутри рендера и держала ввод.
+  */
+  const deferred = useDeferredValue(query);
+  const { hits, total } = useMemo(() => searchCatalog(deferred), [deferred]);
 
   useEffect(() => {
     if (!open) return;
@@ -53,7 +59,7 @@ export function SearchSuggestions({
     >
       {hits.length === 0 ? (
         <p className="px-4 py-5 text-center text-sm text-muted-foreground">
-          Ничего не нашлось по запросу «{query.trim()}»
+          Ничего не нашлось по запросу «{deferred.trim()}»
         </p>
       ) : (
         <>
@@ -87,7 +93,7 @@ export function SearchSuggestions({
           ))}
 
           <Link
-            href={`/catalog?search=${encodeURIComponent(query.trim())}`}
+            href={`/catalog?search=${encodeURIComponent(deferred.trim())}`}
             onClick={onClose}
             className="mt-1 flex items-center gap-2 border-t border-border px-4 py-3 font-mono text-[0.72rem] uppercase tracking-wider text-signal transition-colors hover:bg-muted"
           >

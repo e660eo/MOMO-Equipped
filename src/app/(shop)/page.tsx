@@ -20,7 +20,7 @@ import {
 } from "@/lib/data";
 import { BundleCard } from "@/components/bundle-card";
 import { cn, plural } from "@/lib/utils";
-import { WebGLShader } from "@/components/ui/web-gl-shader";
+import { HeroBackdrop } from "@/components/hero-backdrop";
 import { BannerCarousel } from "@/components/banner-carousel";
 import { SplitProgress } from "@/components/split-progress";
 import { ProductCard } from "@/components/product-card";
@@ -77,10 +77,8 @@ export default function Home() {
       {/* HERO — «Не громкость. Давление.» на белой плашке, за которой переливается звуковая линия */}
       <section className="border-b border-border">
         <div className="relative overflow-hidden bg-white text-zinc-900">
-          {/* фон: переливающаяся звуковая линия (WebGL) */}
-          <div className="pointer-events-none absolute inset-0">
-            <WebGLShader className="opacity-70" />
-          </div>
+          {/* фон: переливающаяся звуковая линия */}
+          <HeroBackdrop />
           {/* мягкое высветление за текстом для читаемости */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_54%_at_50%_44%,rgba(255,255,255,0.92),rgba(255,255,255,0.45)_58%,transparent_82%)]" />
 
@@ -330,7 +328,7 @@ export default function Home() {
 
             <a
               href={`tel:${siteConfig.contacts.phone.replace(/[^+\d]/g, "")}`}
-              className="relative z-[1] mt-4 block font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold leading-none tracking-tight transition-colors hover:text-signal"
+              className="relative z-[1] mt-4 flex min-h-11 items-center font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold leading-none tracking-tight transition-colors hover:text-signal"
             >
               {siteConfig.contacts.phone}
             </a>
@@ -342,7 +340,7 @@ export default function Home() {
                 <Mail size={14} className="shrink-0 text-signal" />
                 <a
                   href={`mailto:${siteConfig.contacts.email}`}
-                  className="transition-colors hover:text-white"
+                  className="inline-flex min-h-11 items-center transition-colors hover:text-white"
                 >
                   {siteConfig.contacts.email}
                 </a>

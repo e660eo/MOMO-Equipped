@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 import type { Product, Category, Brand } from "@/lib/types";
@@ -16,6 +16,7 @@ import {
 import { ProductCard } from "./product-card";
 import { cn, plural } from "@/lib/utils";
 import { cleanQuery } from "@/lib/sanitize";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 // «Популярное» намеренно нет: статистики продаж и просмотров у нас не собирается,
 // а прежний пункт «Сначала популярные» просто отдавал порядок строк в JSON.
@@ -47,8 +48,17 @@ const categoryRank = (slug: string) => {
   return i === -1 ? CATEGORY_ORDER.length : i;
 };
 
+/*
+  На узком экране размер текста 16px, а не 14px, и это не про читаемость:
+  Safari на iPhone принудительно приближает страницу при фокусе в поле, если
+  шрифт в нём меньше 16px, — и обратно уже не отдаляет. Человек проваливается
+  в увеличенную вёрстку, стоит ему тронуть фильтр. С sm и выше возвращаем 14px.
+
+  py-3 вместо py-2.5 — чтобы поля и списки были не ниже 44px: пальцем в 42px
+  попадают заметно хуже.
+*/
 const selectCls =
-  "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
+  "w-full rounded-sm border border-input bg-surface px-3 py-3 text-base text-foreground transition-colors focus:border-signal focus:outline-none sm:text-sm";
 
 const PAGE = 24;
 
@@ -94,10 +104,15 @@ export function CatalogView({
   const [powFilter, setPowFilter] = useState("");
   const [impFilter, setImpFilter] = useState("");
 
+  /*
+    Разобранные характеристики и приведённое название — по одному проходу на
+    весь каталог. Название в нижнем регистре лежит здесь же: без него фильтр
+    звал toLowerCase на каждый товар при каждом нажатии клавиши.
+  */
   const techMap = useMemo(() => {
     const m = new Map<
       string,
-      { dia: string | null; pow: string | null; imp: number | null }
+      { dia: string | null; pow: string | null; imp: number | null; lcTitle: string }
     >();
     for (const p of products) {
       const t = parseTech(p.title, p.description);
@@ -105,19 +120,33 @@ export function CatalogView({
         dia: t.diameterMm ? diameterBucket(t.diameterMm) : null,
         pow: t.powerMaxW ? powerBucket(t.powerMaxW) : null,
         imp: t.impedanceOhm ?? null,
+        lcTitle: p.title.toLowerCase(),
       });
     }
     return m;
   }, [products]);
 
-  // Опции с количеством товаров; пустые корзины не показываем
+  /*
+    Опции с количеством товаров; пустые корзины не показываем.
+    Считается одним проходом: раньше на каждую корзину (а их около двадцати)
+    шёл отдельный filter по всему каталогу.
+  */
   const techOptions = useMemo(() => {
-    const count = (f: (t: { dia: string | null; pow: string | null; imp: number | null }) => boolean) =>
-      products.filter((p) => f(techMap.get(p.slug)!)).length;
+    const dia = new Map<string, number>();
+    const pow = new Map<string, number>();
+    const imp = new Map<number, number>();
+    for (const p of products) {
+      const t = techMap.get(p.slug)!;
+      if (t.dia) dia.set(t.dia, (dia.get(t.dia) ?? 0) + 1);
+      if (t.pow) pow.set(t.pow, (pow.get(t.pow) ?? 0) + 1);
+      if (t.imp !== null) imp.set(t.imp, (imp.get(t.imp) ?? 0) + 1);
+    }
     return {
-      dia: DIAMETER_ORDER.map((b) => ({ v: b, n: count((t) => t.dia === b) })).filter((o) => o.n > 0),
-      pow: POWER_ORDER.map((b) => ({ v: b, n: count((t) => t.pow === b) })).filter((o) => o.n > 0),
-      imp: [1, 2, 4].map((v) => ({ v: String(v), n: count((t) => t.imp === v) })).filter((o) => o.n > 0),
+      dia: DIAMETER_ORDER.map((b) => ({ v: b, n: dia.get(b) ?? 0 })).filter((o) => o.n > 0),
+      pow: POWER_ORDER.map((b) => ({ v: b, n: pow.get(b) ?? 0 })).filter((o) => o.n > 0),
+      imp: [1, 2, 4]
+        .map((v) => ({ v: String(v), n: imp.get(v) ?? 0 }))
+        .filter((o) => o.n > 0),
     };
   }, [products, techMap]);
 
@@ -144,6 +173,24 @@ export function CatalogView({
   }, [category, brand, query, sort, price, inStockOnly, diaFilter, powFilter, impFilter]);
 
   /*
+    Тяжёлое считаем по отложенным значениям.
+
+    Поле поиска и ползунок цены меняются часто: буква за буквой и по кадру на
+    каждое движение пальца. Раньше каждое такое изменение синхронно
+    пересобирало и пересортировывало весь каталог и перерисовывало все
+    двадцать четыре карточки — прямо в обработчике ввода. Курсор отставал от
+    печати, ползунок дёргался.
+
+    useDeferredValue разводит это на два прохода: поле и ручка ползунка
+    двигаются немедленно, перебор идёт следом и с правом прерваться, если
+    человек продолжил печатать или тянуть.
+  */
+  const deferredQuery = useDeferredValue(query);
+  const deferredPrice = useDeferredValue(price);
+  // Пока отложенный проход догоняет, выдача чуть отстаёт — показываем это
+  const pending = deferredQuery !== query || deferredPrice !== price;
+
+  /*
     На узком экране фильтры занимали весь первый экран — до первой карточки
     приходилось листать 855px. Поэтому там они уезжают в шторку, а на десктопе
     остаются обычной колонкой слева: разметка одна, меняется только обёртка.
@@ -153,24 +200,29 @@ export function CatalogView({
   useEffect(() => {
     if (!filtersOpen) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFiltersOpen(false);
-    // Фон под шторкой не должен прокручиваться вместе с ней
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Фон под шторкой не должен прокручиваться вместе с ней. Ширину полосы
+    // прокрутки компенсируем отступом — иначе макет дёргается вбок.
+    lockScroll();
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      unlockScroll();
       window.removeEventListener("keydown", onKey);
     };
   }, [filtersOpen]);
 
-  function setFilter(key: string, value: string) {
-    const next = new URLSearchParams(params.toString());
-    if (value) next.set(key, value);
-    else next.delete(key);
-    router.push(`${pathname}?${next.toString()}`, { scroll: false });
-  }
+  // Обработчики стабильны между рендерами — иначе каждая перерисовка каталога
+  // раздавала детям новые функции и обесценивала их memo.
+  const setFilter = useCallback(
+    (key: string, value: string) => {
+      const next = new URLSearchParams(params.toString());
+      if (value) next.set(key, value);
+      else next.delete(key);
+      router.push(`${pathname}?${next.toString()}`, { scroll: false });
+    },
+    [params, router, pathname],
+  );
 
-  function resetAll() {
+  const resetAll = useCallback(() => {
     setQuery("");
     setPrice([priceBounds.min, priceBounds.max]);
     setInStockOnly(false);
@@ -178,21 +230,23 @@ export function CatalogView({
     setPowFilter("");
     setImpFilter("");
     router.push(pathname, { scroll: false });
-  }
+  }, [priceBounds.min, priceBounds.max, router, pathname]);
 
   const filtered = useMemo(() => {
+    const q = deferredQuery.toLowerCase();
+    const [minPrice, maxPrice] = deferredPrice;
     let list = products.filter((p) => {
       const t = techMap.get(p.slug)!;
       return (
         (!category || p.category === category) &&
         (!brand || p.brand === brand) &&
-        (!query || p.title.toLowerCase().includes(query.toLowerCase())) &&
+        (!q || t.lcTitle.includes(q)) &&
         (!inStockOnly || isInStock(p) === true) &&
         (!diaFilter || t.dia === diaFilter) &&
         (!powFilter || t.pow === powFilter) &&
         (!impFilter || String(t.imp) === impFilter) &&
-        p.price >= price[0] &&
-        p.price <= price[1]
+        p.price >= minPrice &&
+        p.price <= maxPrice
       );
     });
     // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
@@ -225,49 +279,80 @@ export function CatalogView({
         break;
     }
     return list;
-  }, [products, category, brand, query, price, sort, inStockOnly, diaFilter, powFilter, impFilter, techMap]);
+  }, [
+    products,
+    category,
+    brand,
+    deferredQuery,
+    deferredPrice,
+    sort,
+    inStockOnly,
+    diaFilter,
+    powFilter,
+    impFilter,
+    techMap,
+  ]);
 
-  const shown = filtered.slice(0, visible);
-  const activeCategory = categories.find((c) => c.slug === category);
+  const shown = useMemo(() => filtered.slice(0, visible), [filtered, visible]);
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.slug === category),
+    [categories, category],
+  );
   const hasFilters = Boolean(
     category || brand || query || priceActive || inStockOnly ||
     diaFilter || powFilter || impFilter,
   );
 
   // Чипы активных фильтров.
-  const chips: { key: string; label: string; clear: () => void }[] = [];
-  if (activeCategory)
-    chips.push({
-      key: "category",
-      label: activeCategory.title,
-      clear: () => setFilter("category", ""),
-    });
-  if (brand)
-    chips.push({ key: "brand", label: brand, clear: () => setFilter("brand", "") });
-  if (query)
-    chips.push({ key: "query", label: `«${query}»`, clear: () => setQuery("") });
-  if (priceActive)
-    chips.push({
-      key: "price",
-      label: `${formatPrice(price[0])} – ${formatPrice(price[1])}`,
-      clear: () => setPrice([priceBounds.min, priceBounds.max]),
-    });
-  if (inStockOnly)
-    chips.push({
-      key: "instock",
-      label: "В наличии",
-      clear: () => setInStockOnly(false),
-    });
-  if (diaFilter)
-    chips.push({ key: "dia", label: diaFilter, clear: () => setDiaFilter("") });
-  if (powFilter)
-    chips.push({ key: "pow", label: powFilter, clear: () => setPowFilter("") });
-  if (impFilter)
-    chips.push({
-      key: "imp",
-      label: `${impFilter} Ом`,
-      clear: () => setImpFilter(""),
-    });
+  const chips = useMemo(() => {
+    const list: { key: string; label: string; clear: () => void }[] = [];
+    if (activeCategory)
+      list.push({
+        key: "category",
+        label: activeCategory.title,
+        clear: () => setFilter("category", ""),
+      });
+    if (brand)
+      list.push({ key: "brand", label: brand, clear: () => setFilter("brand", "") });
+    if (query)
+      list.push({ key: "query", label: `«${query}»`, clear: () => setQuery("") });
+    if (priceActive)
+      list.push({
+        key: "price",
+        label: `${formatPrice(price[0])} – ${formatPrice(price[1])}`,
+        clear: () => setPrice([priceBounds.min, priceBounds.max]),
+      });
+    if (inStockOnly)
+      list.push({
+        key: "instock",
+        label: "В наличии",
+        clear: () => setInStockOnly(false),
+      });
+    if (diaFilter)
+      list.push({ key: "dia", label: diaFilter, clear: () => setDiaFilter("") });
+    if (powFilter)
+      list.push({ key: "pow", label: powFilter, clear: () => setPowFilter("") });
+    if (impFilter)
+      list.push({
+        key: "imp",
+        label: `${impFilter} Ом`,
+        clear: () => setImpFilter(""),
+      });
+    return list;
+  }, [
+    activeCategory,
+    brand,
+    query,
+    priceActive,
+    price,
+    priceBounds.min,
+    priceBounds.max,
+    inStockOnly,
+    diaFilter,
+    powFilter,
+    impFilter,
+    setFilter,
+  ]);
 
   // Счётчик на кнопке «Фильтры»: в свёрнутом виде иначе не видно, что они активны
   const chipCount = chips.length;
@@ -307,8 +392,13 @@ export function CatalogView({
         {/* Затемнение под шторкой */}
         <div
           onClick={() => setFiltersOpen(false)}
+          /*
+            Без backdrop-blur: размытие всего экрана пересчитывается каждый
+            кадр, пока шторка едет вверх, и ровно на телефоне — где эта шторка
+            и нужна — превращает открытие в рывок. Затемнения достаточно.
+          */
           className={cn(
-            "fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm transition-opacity lg:hidden",
+            "fixed inset-0 z-[100] bg-black/60 transition-opacity lg:hidden",
             filtersOpen ? "opacity-100" : "pointer-events-none opacity-0",
           )}
         />
@@ -332,9 +422,9 @@ export function CatalogView({
             <button
               onClick={() => setFiltersOpen(false)}
               aria-label="Закрыть фильтры"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
           <input
@@ -501,13 +591,17 @@ export function CatalogView({
             </div>
           </div>
 
-          {/* Наличие */}
-          <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+          {/*
+            Наличие. Строка целиком — область нажатия в 44px: сам флажок
+            псевдоэлементом не расширить (у полей формы их нет), поэтому
+            цель — подпись вместе с ним, а флажок поднят до 24px.
+          */}
+          <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm">
             <input
               type="checkbox"
               checked={inStockOnly}
               onChange={(e) => setInStockOnly(e.target.checked)}
-              className="h-[1.05rem] w-[1.05rem] shrink-0 cursor-pointer accent-[#FF5500]"
+              className="h-6 w-6 shrink-0 cursor-pointer accent-[#FF5500]"
             />
             <span className="font-medium">Только в наличии</span>
           </label>
@@ -539,7 +633,7 @@ export function CatalogView({
                 <button
                   key={chip.key}
                   onClick={chip.clear}
-                  className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-surface py-1.5 pl-3.5 pr-2.5 text-[0.8rem] font-medium transition-colors hover:border-signal hover:text-signal"
+                  className="group inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface py-1.5 pl-4 pr-3 text-[0.8rem] font-medium transition-colors hover:border-signal hover:text-signal"
                 >
                   {chip.label}
                   <X
@@ -550,7 +644,7 @@ export function CatalogView({
               ))}
               <button
                 onClick={resetAll}
-                className="ml-1 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground underline-offset-4 transition-colors hover:text-signal hover:underline"
+                className="ml-1 inline-flex min-h-11 items-center px-1 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground underline-offset-4 transition-colors hover:text-signal hover:underline"
               >
                 Сбросить всё
               </button>
@@ -559,9 +653,24 @@ export function CatalogView({
 
           {filtered.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-                {shown.map((p) => (
-                  <ProductCard key={p.slug} product={p} />
+              {/*
+                Пока отложенный проход догоняет ввод, сетка чуть притухает —
+                иначе непонятно, показывает она уже новый запрос или ещё
+                старый. Меняется только opacity, то есть работа композитора.
+              */}
+              <div
+                className={cn(
+                  "grid grid-cols-2 gap-5 transition-opacity duration-200 md:grid-cols-3",
+                  pending && "opacity-60",
+                )}
+              >
+                {/*
+                  Первые четыре плитки видны без прокрутки — их снимки грузим
+                  сразу: один из них и станет тем изображением, по которому
+                  меряется время отрисовки главного содержимого.
+                */}
+                {shown.map((p, i) => (
+                  <ProductCard key={p.slug} product={p} priority={i < 4} />
                 ))}
               </div>
 
