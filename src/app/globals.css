@@ -35,18 +35,74 @@
   --color-input: var(--line);
   --color-ring: #ff5500;
 
-  --font-display: var(--font-display-src);
-  --font-body: var(--font-manrope);
+  /*
+    Знак рубля идёт своим файлом — см. блок @font-face ниже. Он стоит первым
+    в стопке, поэтому «₽» берётся из него, а не тянет за собой набор на 115 КБ.
+  */
+  --font-display: "MOMO Ruble Display", var(--font-display-src);
+  --font-body: "MOMO Ruble Body", var(--font-manrope);
   /*
     «Моно» здесь — роль, а не гарнитура: это мелкие подписи-надзаголовки.
     Раньше их набирал JetBrains Mono, из-за чего они читались как вывод
     терминала. Теперь тот же Manrope капслоком с разрядкой — спокойнее
     и дороже. Ровные цифры там, где важно, даёт класс tabular-nums.
   */
-  --font-mono: var(--font-manrope);
+  --font-mono: "MOMO Ruble Body", var(--font-manrope);
   /* Явное имя для мелких надзаголовков-подписей */
-  --font-label: var(--font-manrope);
-  --font-wordmark: var(--font-syne);
+  --font-label: "MOMO Ruble Body", var(--font-manrope);
+  --font-wordmark: "MOMO Wordmark", var(--font-syne);
+}
+
+/*
+  ── Знак рубля отдельным файлом ──
+
+  Google раздаёт гарнитуры разбитыми на наборы символов, и «₽» (U+20BD) лежит
+  в блоке валют U+20AD–20C0, который отдаётся только вместе со всей латинской
+  расширенной частью — чешской, польской, турецкой, вьетнамской. Ничего этого
+  на сайте нет, но цены есть на каждой странице, поэтому браузер честно тянул
+  115 КБ Unbounded и 15 КБ Manrope ради одного глифа.
+
+  Здесь тот же самый глиф, вырезанный из тех же файлов сборки (scripts/
+  make-ruble-subset.mjs), — 1 КБ вместо 130. Начертание не меняется: байты
+  контура взяты из оригинала.
+
+  Работает это через unicode-range: семейство объявлено первым в стопке, но
+  покрывает ровно один символ, поэтому на всё остальное подхватывается
+  следующая гарнитура. Порядок объявлений тут ни при чём — важна только
+  очерёдность в font-family.
+*/
+@font-face {
+  font-family: "MOMO Ruble Display";
+  src: url("/fonts/ruble-unbounded.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20BD;
+}
+@font-face {
+  font-family: "MOMO Ruble Body";
+  src: url("/fonts/ruble-manrope.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20BD;
+}
+/*
+  Надпись «MOMO Equipped» в шапке — единственное место, где нужен Syne, и это
+  восемь разных букв против 34 КБ полной латиницы. Диапазон перечисляет ровно
+  те знаки, что вошли в файл (см. вывод scripts/make-font-subsets.mjs); всё
+  остальное подхватит полный Syne, который остался следующим в стопке. Поэтому
+  если текст в шапке когда-нибудь поменяется, новые буквы просто отрисуются —
+  ценой одной дополнительной загрузки, а не поломкой.
+*/
+@font-face {
+  font-family: "MOMO Wordmark";
+  src: url("/fonts/wordmark-syne.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020, U+0044, U+0045, U+0049, U+004D, U+004F, U+0050, U+0051,
+    U+0055, U+0064, U+0065, U+0069, U+0070, U+0071, U+0075;
 }
 
 :root {
