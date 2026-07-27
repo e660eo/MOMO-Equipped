@@ -5,6 +5,8 @@
   уверенно, и показываем чипами. В фазе CMS заменяется реальными полями.
 */
 
+import { plural } from "./utils";
+
 export interface Spec {
   label: string;
   value: string;
@@ -181,32 +183,52 @@ function powerMaxFrom(text: string): number | undefined {
 }
 
 /*
-  Номинальная мощность из кода модели сабвуфера.
+  Разбор кода модели: «буквы-ПЕРВОЕ.ВТОРОЕ».
 
-  У поставщика код устроен как «размер в дюймах . мощность»: B-12.750 —
-  12″ и 750 Вт номинала, UB-12.350 — 350, TS-15.1100 — 1100. Подтверждено
-  владельцем и сходится с единственным описанием, которое в прайсе есть:
-  у TS-10.600 указано «Мощность RMS - 600 BT».
+  Второе число всегда мощность в ваттах, первое читается по типу товара:
+    • сабвуфер   B-12.750  → 12 дюймов и 750 Вт номинала;
+    • усилитель  AB-4.120  → 4 канала и 120 Вт на канал;
+    • моноблок   M-1.800   → 1 канал и 800 Вт.
 
-  Требуем ровно эту форму — буквы, дефис, одно-два числа размера, точка и
-  три-четыре цифры мощности. Артикулы вида MR-6.1 или HE-1000 под неё не
-  подходят и мощности не получают.
+  Расшифровку подтвердил владелец, и она сходится со всеми описаниями, где
+  указаны и код, и мощность: у AB-4.120 в прайсе «4 Ом: 4 × 120 Вт», у
+  M-1.800 «1 Ом: 800 Вт», у сабвуфера TS-10.600 «Мощность RMS - 600 BT».
 
-  ⚠️ Только сабвуферы. Точно так же выглядят коды усилителей — FR-2.1800,
-  AB-4.120, M-1.800, — но там первое число это каналы, а не дюймы, и что
-  означает второе (мощность на канал или суммарную), из прайса не видно.
-  Владелец подтвердил расшифровку для сабвуферов и только для них, поэтому
-  усилители под правило не попадают и остаются без плашки.
+  Требуем строгую форму: 1–3 буквы, дефис, одна-две цифры, точка, две-четыре
+  цифры. Коды вне её мы не трогаем — они означают другое:
+    • BD-5000.1, BD-3000.1 — бразильская схема, тут наоборот мощность.точка.
+      каналы; первое число 5000 не проходит «одна-две цифры» и код мимо;
+    • D-1000, M-600, FR-500 — без точки, мощности отсюда не берём;
+    • MR-6.1, HE-1000 — не подходят под форму вовсе.
 */
-const MODEL_RMS_RE = /(?:^|[\s+(])[A-Za-zА-Яа-я]{1,3}-\d{1,2}\.(\d{3,4})(?![\d.])/;
+const MODEL_CODE_RE =
+  /(?:^|[\s+(])[A-Za-zА-Яа-я]{1,3}-(\d{1,2})\.(\d{2,4})(?!\d)/;
 
-function rmsFromModel(title: string): number | undefined {
-  if (!/сабвуфер/i.test(title)) return undefined;
-  const m = title.match(MODEL_RMS_RE);
-  if (!m) return undefined;
-  const w = parseInt(m[1], 10);
-  return w <= POWER_SANITY_W ? w : undefined;
+interface ModelCode {
+  /** Первое число кода: дюймы у сабвуфера, каналы у усилителя. */
+  first: number;
+  /** Второе число: мощность в ваттах. */
+  power: number;
 }
+
+function modelCode(title: string): ModelCode | null {
+  const m = title.match(MODEL_CODE_RE);
+  if (!m) return null;
+  const power = parseInt(m[2], 10);
+  if (power > POWER_SANITY_W) return null;
+  return { first: parseInt(m[1], 10), power };
+}
+
+// «Плата на усилитель/моноблок» тоже сюда: слова есть в названии.
+const isAmplifier = (title: string) => /усилител|моноблок/i.test(title);
+/*
+  Настоящий сабвуфер, а не «Моноблок … для сабвуфера»: у последнего в
+  названии есть и «сабвуфер», и «моноблок», но по сути это усилитель.
+  Усилитель главнее — иначе моноблок получил бы плашку диаметра из
+  габаритов корпуса в описании.
+*/
+const isSubwoofer = (title: string) =>
+  /сабвуфер/i.test(title) && !isAmplifier(title);
 
 function diameterFrom(text: string): number | undefined {
   const candidates: number[] = [];
@@ -337,24 +359,46 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
     мощность, чувствительность и частоты, и первое попавшееся число там
     запросто окажется не тем.
   */
+  const code = modelCode(title);
+  const amp = isAmplifier(title);
+  // Мощность из кода — у сабвуфера и усилителя; у усилителя это RMS на канал.
+  const codeW = code && (isSubwoofer(title) || amp) ? code.power : undefined;
+
   const maxW = powerMaxFrom(src);
   const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
   const titleW = pTitle ? parseInt(pTitle[1], 10) : undefined;
-  const rmsW = rmsFromModel(title);
   if (maxW !== undefined) {
     stats.push({ label: "Мощность MAX", value: `${maxW} Вт` });
-  } else if (rmsW !== undefined) {
+  } else if (codeW !== undefined) {
     // Номинал из кода модели — подпись честная: это RMS, а не пиковая.
-    stats.push({ label: "Мощность RMS", value: `${rmsW} Вт` });
+    stats.push({ label: "Мощность RMS", value: `${codeW} Вт` });
   } else if (titleW !== undefined && titleW <= POWER_SANITY_W) {
     stats.push({ label: "Мощность", value: `${titleW} Вт` });
   }
 
-  const tech = parseTech(title, description);
+  /*
+    Каналы усилителя — первое число кода. Только у усилителей и моноблоков:
+    у сабвуфера то же место занимает диаметр в дюймах, и «12 каналов» было
+    бы неправдой. Ограничение сверху отсекает случайные совпадения — больше
+    восьми каналов в автоусилителе не бывает.
+  */
+  if (amp && !isSubwoofer(title) && code && code.first >= 1 && code.first <= 8) {
+    stats.push({
+      label: "Каналы",
+      value: `${code.first} ${plural(code.first, "канал", "канала", "каналов")}`,
+    });
+  }
+
+  /*
+    Диаметр — только у динамиков и сабвуферов. У усилителя его нет, а в
+    описании усилителя стоят габариты корпуса («Размеры: 150×226×66 мм») —
+    diameterFrom принял бы 150 мм за диаметр диффузора.
+  */
+  const tech = amp ? {} : parseTech(title, description);
   const bucket = tech.diameterMm ? diameterBucket(tech.diameterMm) : null;
   if (bucket) {
     stats.push({ label: "Диаметр", value: bucket });
-  } else if (/овал/i.test(title) && /\b690\b|6\s*[x×х]\s*9/i.test(src)) {
+  } else if (!amp && /овал/i.test(title) && /\b690\b|6\s*[x×х]\s*9/i.test(src)) {
     /*
       Овалы. У поставщика на них нет ни диаметра, ни размера: в описании
       «Диаметр - mm» с пустым значением, а то и вовсе нет описания. Размер
