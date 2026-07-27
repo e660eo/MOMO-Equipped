@@ -20,7 +20,7 @@ import {
 } from "@/lib/data";
 import { BundleCard } from "@/components/bundle-card";
 import { cn, plural } from "@/lib/utils";
-import { HeroBackdrop } from "@/components/hero-backdrop";
+import { WebGLShader } from "@/components/ui/web-gl-shader";
 import { BannerCarousel } from "@/components/banner-carousel";
 import { SplitProgress } from "@/components/split-progress";
 import { ProductCard } from "@/components/product-card";
@@ -74,17 +74,17 @@ export default function Home() {
 
   return (
     <main className="overflow-x-hidden">
-      {/* HERO — «Не громкость. Давление.» на белой плашке, за которой переливается звуковая линия */}
+      {/* HERO — чёрная звуковая линия на белой плашке за логотипом */}
       <section className="border-b border-border">
         <div className="relative overflow-hidden bg-white text-zinc-900">
-          {/* фон: переливающаяся звуковая линия */}
-          <HeroBackdrop />
+          {/* фон: WebGL-шейдер — чёрная звуковая линия на белом */}
+          <WebGLShader />
           {/* мягкое высветление за текстом для читаемости */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_54%_at_50%_44%,rgba(255,255,255,0.92),rgba(255,255,255,0.45)_58%,transparent_82%)]" />
 
           <div className="relative z-10 mx-auto max-w-[1100px] px-6 pb-14 pt-10 text-center">
             <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-neutral-500 before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
-              Автозвук с 2015
+              В игре с 2015
             </p>
 
             {/*
