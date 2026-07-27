@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { searchCatalog } from "@/lib/search-index";
 import { formatPrice, productImageUrl } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { ProductImage } from "./product-image";
 
 /**
@@ -18,10 +19,18 @@ export function SearchSuggestions({
   query,
   open,
   onClose,
+  onNavigate,
+  variant = "float",
+  limit = 6,
 }: {
   query: string;
   open: boolean;
   onClose: () => void;
+  /** Мобильному меню мало закрыть подсказки — надо свернуть и само меню. */
+  onNavigate?: () => void;
+  /** float — выпадает поверх страницы (десктоп); inline — встаёт в поток (меню). */
+  variant?: "float" | "inline";
+  limit?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,12 +41,21 @@ export function SearchSuggestions({
     внутри рендера и держала ввод.
   */
   const deferred = useDeferredValue(query);
-  const { hits, total } = useMemo(() => searchCatalog(deferred), [deferred]);
+  const { hits, total } = useMemo(
+    () => searchCatalog(deferred, limit),
+    [deferred, limit],
+  );
 
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      /*
+        «Снаружи» — это снаружи всей строки поиска, а не только списка.
+        Иначе нажатие в уже сфокусированное поле закрывало подсказки:
+        mousedown приходит вне списка, а focus второй раз не срабатывает.
+      */
+      const root = ref.current?.closest("form") ?? ref.current;
+      if (root && !root.contains(e.target as Node)) onClose();
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -52,10 +70,23 @@ export function SearchSuggestions({
 
   if (!open || query.trim().length < 2) return null;
 
+  // Уход по подсказке закрывает и список, и меню, из которого его открыли
+  const leave = () => {
+    onClose();
+    onNavigate?.();
+  };
+
   return (
     <div
       ref={ref}
-      className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 overflow-hidden rounded-xl border border-border bg-surface py-1.5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.4)]"
+      className={cn(
+        "overflow-hidden rounded-xl border border-border bg-surface py-1.5",
+        variant === "float"
+          ? "absolute left-0 right-0 top-[calc(100%+10px)] z-50 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.4)]"
+          : // В мобильном меню список стоит в потоке: над ним «шторка» с
+            // overflow-hidden, выпадающий поверх был бы обрезан по её краю.
+            "mt-2 animate-[hints-in_.22s_cubic-bezier(0.16,1,0.3,1)]",
+      )}
     >
       {hits.length === 0 ? (
         <p className="px-4 py-5 text-center text-sm text-muted-foreground">
@@ -67,7 +98,7 @@ export function SearchSuggestions({
             <Link
               key={h.slug}
               href={`/product/${h.slug}`}
-              onClick={onClose}
+              onClick={leave}
               className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-muted"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-tile">

@@ -191,6 +191,18 @@ body {
   }
 }
 
+/* ── Подсказки поиска в мобильном меню: встают в поток, а не поверх ── */
+@keyframes hints-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ── Свечение карточки товара под курсором (spotlight) ── */
 .spotlight-card {
   position: relative;

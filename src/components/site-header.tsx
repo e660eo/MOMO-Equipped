@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -22,6 +22,39 @@ const nav = [
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
 ];
+
+// В мобильном меню каталог идёт первым и выделен — это главный пункт
+const mobileNav: { href: string; label: string; accent?: boolean }[] = [
+  { href: "/catalog", label: "Каталог", accent: true },
+  ...nav,
+];
+
+/*
+  Строка мобильного меню. Проявляется с задержкой по своему месту в списке —
+  получается волна сверху вниз вслед за раскрытием шторки. Закрывается всё
+  разом, без задержек: закрытие должно ощущаться мгновенным.
+*/
+function MenuRow({
+  index,
+  open,
+  children,
+}: {
+  index: number;
+  open: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "transition-[opacity,transform] duration-300 ease-out",
+        open ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0",
+      )}
+      style={{ transitionDelay: open ? `${40 + index * 30}ms` : "0ms" }}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function SiteHeader() {
   const router = useRouter();
@@ -78,8 +111,9 @@ export function SiteHeader() {
         {/*
           На узком экране логотип и четыре кнопки в строку не помещались —
           шапка расходилась на 483px при 375 и уносила за собой горизонтальный
-          скролл всей страницы. Тема и вход переехали в мобильное меню,
-          корзина ужалась до иконки со счётчиком-бейджем.
+          скролл всей страницы. В меню уехала тема, корзина ужалась до иконки
+          со счётчиком-бейджем. Вход остался в шапке: кабинет нужен чаще, чем
+          смена темы, и искать его в меню — лишнее нажатие.
         */}
         <div className="ml-auto flex items-center gap-2 sm:gap-2.5 md:ml-0">
           <span className="hidden sm:block">
@@ -87,7 +121,7 @@ export function SiteHeader() {
           </span>
           <button
             onClick={accountAction}
-            className="relative hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal sm:inline-flex"
+            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
             aria-label="Личный кабинет"
           >
             <User size={16} />
@@ -163,48 +197,50 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Мобильное меню */}
+      {/*
+        Мобильное меню.
+
+        Раскрывается сеткой 0fr → 1fr, а не по max-height: высота считается по
+        настоящему содержимому. Прежние max-h-96 обрезали последний пункт, а
+        подсказкам поиска запаса не хватило бы и подавно. inert убирает
+        свёрнутое меню из обхода клавиатурой — иначе Tab уходит в невидимое.
+      */}
       <div
+        inert={!menuOpen}
         className={cn(
-          "overflow-hidden border-t border-border md:hidden",
-          menuOpen ? "max-h-96" : "max-h-0 border-t-0",
+          "grid border-t border-border transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:hidden",
+          menuOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr] border-t-0",
         )}
-        style={{ transition: "max-height .25s ease" }}
       >
-        <div className="mx-auto max-w-[1200px] px-4 py-3 sm:px-6">
-          <HeaderSearch variant="mobile" onNavigate={closeMenu} />
-          {/* Пункты меню — не меньше 44px в высоту, это область нажатия пальцем */}
-          <nav className="flex flex-col">
-            <Link
-              href="/catalog"
-              onClick={closeMenu}
-              className="flex min-h-11 items-center border-b border-border py-3.5 text-sm font-semibold text-signal"
-            >
-              Каталог
-            </Link>
-            {nav.map((n) => (
-              <Link
-                key={n.href}
-                href={n.href}
-                onClick={closeMenu}
-                className="flex min-h-11 items-center border-b border-border py-3.5 text-sm font-medium text-muted-foreground"
-              >
-                {n.label}
-              </Link>
-            ))}
-            {/* Вытеснены из шапки нехваткой места — см. комментарий выше */}
-            <button
-              onClick={accountAction}
-              className="flex min-h-11 items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-signal sm:hidden"
-            >
-              <User size={16} />
-              Личный кабинет
-              {authed && (
-                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-signal" />
-              )}
-            </button>
-            <ThemeToggle variant="row" className="border-0 sm:hidden" />
-          </nav>
+        <div className="overflow-hidden">
+          {/* С открытой клавиатурой видно немного — длинный список прокручивается */}
+          <div className="mx-auto max-h-[70dvh] max-w-[1200px] overflow-y-auto px-4 py-3 sm:px-6">
+            <MenuRow index={0} open={menuOpen}>
+              <HeaderSearch variant="mobile" onNavigate={closeMenu} />
+            </MenuRow>
+            {/* Пункты меню — не меньше 44px в высоту, это область нажатия пальцем */}
+            <nav className="flex flex-col">
+              {mobileNav.map((n, i) => (
+                <MenuRow key={n.href} index={i + 1} open={menuOpen}>
+                  <Link
+                    href={n.href}
+                    onClick={closeMenu}
+                    className={cn(
+                      "flex min-h-11 items-center border-b border-border py-3.5 text-sm",
+                      n.accent
+                        ? "font-semibold text-signal"
+                        : "font-medium text-muted-foreground",
+                    )}
+                  >
+                    {n.label}
+                  </Link>
+                </MenuRow>
+              ))}
+              <MenuRow index={mobileNav.length + 1} open={menuOpen}>
+                <ThemeToggle variant="row" className="border-0 sm:hidden" />
+              </MenuRow>
+            </nav>
+          </div>
         </div>
       </div>
     </header>

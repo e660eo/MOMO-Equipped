@@ -49,16 +49,37 @@ export function HeaderSearch({
   if (variant === "mobile") {
     return (
       <form onSubmit={submit} role="search" className="relative mb-2">
-        <Search
-          size={17}
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-        />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Найти товары…"
-          aria-label="Поиск товаров"
-          className="w-full rounded-full border border-border bg-surface py-3 pl-11 pr-4 text-base text-foreground focus:border-signal focus:outline-none"
+        {/* Значок держится за само поле, а не за форму: ниже в форме теперь
+            лежит список подсказок, и центр формы уезжает вместе с ним. */}
+        <div className="relative">
+          <Search
+            size={17}
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setHintsOpen(true);
+            }}
+            onFocus={() => setHintsOpen(true)}
+            placeholder="Найти товары…"
+            aria-label="Поиск товаров"
+            autoComplete="off"
+            className="w-full rounded-full border border-border bg-surface py-3 pl-11 pr-4 text-base text-foreground focus:border-signal focus:outline-none"
+          />
+        </div>
+        {/*
+          Подсказок на телефоне меньше, чем на десктопе: под полем ещё пункты
+          меню, а с открытой клавиатурой видно едва половину экрана.
+        */}
+        <SearchSuggestions
+          query={query}
+          open={hintsOpen}
+          onClose={closeHints}
+          onNavigate={onNavigate}
+          variant="inline"
+          limit={4}
         />
       </form>
     );
