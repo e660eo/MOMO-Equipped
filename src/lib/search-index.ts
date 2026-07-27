@@ -1,13 +1,19 @@
-import products from "@data/products.json";
 import type { Product } from "./types";
 
 /*
-  Индекс для мгновенного поиска в шапке.
+  Поиск по каталогу для живых подсказок в шапке.
 
-  Каталог небольшой (145 позиций), поэтому индекс уезжает в браузер целиком
-  (~33 КБ) и поиск работает без единого запроса к серверу — подсказки
-  появляются мгновенно. Когда каталог вырастет, эту же функцию заменит
-  запрос к API, сигнатура сохранится.
+  Раньше модуль импортировал data/products.json на этапе сборки и вшивал
+  прайс в клиентский бандл: подсказки показывали цены на момент последнего
+  коммита данных, а не то, что владелец правит в /admin (карточки и каталог
+  читают живую папку в рантайме — отсюда расходилась цена). Теперь данные
+  приходят из рантайма: серверный ShopChrome строит облегчённый индекс из
+  getProducts() и отдаёт его в браузер через SearchProvider. Здесь остаётся
+  только чистая логика — ни одного импорта данных.
+
+  Каталог небольшой (≈145 позиций, ~33 КБ), поэтому индекс по-прежнему уезжает
+  в браузер целиком и поиск идёт мгновенно, без запроса на каждую букву. Когда
+  каталог вырастет, searchIndex заменит запрос к API — сигнатура сохранится.
 */
 
 export interface SearchHit {
@@ -19,31 +25,44 @@ export interface SearchHit {
   image: string;
 }
 
+/**
+ * Облегчённая карточка для браузера — только поля, видимые в подсказке.
+ * Отсекает всё лишнее из Product, чтобы в бандл не уезжали характеристики,
+ * описания и прочее, чего поиску знать незачем.
+ */
+export function toSearchHits(products: Product[]): SearchHit[] {
+  return products.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    brand: p.brand,
+    category: p.category,
+    price: p.price,
+    image: p.image,
+  }));
+}
+
 const norm = (s: string) => s.toLowerCase().replace(/ё/g, "е").trim();
 
-/*
-  Приведённые названия считаем один раз при загрузке модуля, а не на каждое
-  нажатие клавиши. Раньше и searchProducts, и countMatches проходили по всем
-  145 товарам и для каждого заново звали toLowerCase + replace + trim по
-  названию и бренду — около 580 разборов строк на одну букву, дважды, плюс
-  свежий RegExp на каждый товар. На быстрой печати это и был подтормаживающий
-  выпадающий список.
-*/
 interface Indexed extends SearchHit {
   nTitle: string;
   nBrand: string;
 }
 
-const index: Indexed[] = (products as Product[]).map((p) => ({
-  slug: p.slug,
-  title: p.title,
-  brand: p.brand,
-  category: p.category,
-  price: p.price,
-  image: p.image,
-  nTitle: norm(p.title),
-  nBrand: norm(p.brand),
-}));
+/** Готовый к поиску индекс. Строится один раз в SearchProvider. */
+export type SearchIndex = Indexed[];
+
+/**
+ * Приводит названия к нижнему регистру один раз, а не на каждое нажатие
+ * клавиши. Раньше это делалось при загрузке модуля над вшитым прайсом; теперь
+ * над живыми данными, но так же однократно — при построении индекса.
+ */
+export function buildSearchIndex(hits: SearchHit[]): SearchIndex {
+  return hits.map((h) => ({
+    ...h,
+    nTitle: norm(h.title),
+    nBrand: norm(h.brand),
+  }));
+}
 
 /** Совпадение с начала слова — граница слова слева от позиции вхождения. */
 function startsWord(haystack: string, needle: string) {
@@ -59,13 +78,15 @@ export interface SearchResult {
 }
 
 /**
- * Ищет по названию и бренду. Совпадение с начала слова весит больше,
- * чем совпадение в середине, — так наверху оказывается ожидаемое.
- *
- * Возвращает и верхушку, и общее число: раньше это были два вызова, каждый со
- * своим полным проходом по каталогу.
+ * Ищет по названию и бренду в готовом индексе. Совпадение с начала слова весит
+ * больше, чем в середине, — так наверху оказывается ожидаемое. Возвращает и
+ * верхушку, и общее число: строке «показать все» нужен полный счёт.
  */
-export function searchCatalog(query: string, limit = 6): SearchResult {
+export function searchIndex(
+  index: SearchIndex,
+  query: string,
+  limit = 6,
+): SearchResult {
   const q = norm(query);
   if (q.length < 2) return { hits: [], total: 0 };
 

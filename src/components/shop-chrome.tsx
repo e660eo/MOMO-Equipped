@@ -10,7 +10,9 @@ import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import { YandexMetrica } from "@/components/yandex-metrica";
 import { SiteConfigProvider } from "@/components/site-config-provider";
 import { CustomerProvider } from "@/components/customer-provider";
-import { getSiteConfig } from "@/lib/data";
+import { SearchProvider } from "@/components/search-provider";
+import { getSiteConfig, getProducts } from "@/lib/data";
+import { toSearchHits } from "@/lib/search-index";
 import { currentCustomer } from "@/lib/customer-auth";
 import { requestNonce } from "@/lib/nonce";
 import { payConfig } from "@/lib/yandex-pay";
@@ -33,6 +35,9 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
   // Метка запроса для встроенного загрузчика Метрики: без неё политика
   // безопасности не даст ему выполниться (см. proxy.ts).
   const nonce = await requestNonce();
+  // Живой индекс для подсказок поиска — из той же рантайм-папки, что каталог
+  // и карточки, чтобы цена в подсказке совпадала с ценой товара.
+  const searchHits = toSearchHits(getProducts());
 
   return (
     <SiteConfigProvider
@@ -44,6 +49,7 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
       }}
     >
       <CustomerProvider value={customer}>
+      <SearchProvider hits={searchHits}>
       <YandexMetrica nonce={nonce} />
       {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
       <JsonLd data={organizationSchema()} />
@@ -77,6 +83,7 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
       <Overlays />
       <Toaster />
       <WhatsAppFab />
+      </SearchProvider>
       </CustomerProvider>
     </SiteConfigProvider>
   );

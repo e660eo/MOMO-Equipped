@@ -3,9 +3,9 @@
 import { useDeferredValue, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { searchCatalog } from "@/lib/search-index";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useSearch } from "./search-provider";
 import { ProductImage } from "./product-image";
 
 /**
@@ -33,6 +33,8 @@ export function SearchSuggestions({
   limit?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // Индекс живой — приходит из рантайм-данных через SearchProvider (см. там)
+  const search = useSearch();
 
   /*
     Поиск идёт по отложенному значению: буква в поле появляется сразу, а
@@ -42,8 +44,8 @@ export function SearchSuggestions({
   */
   const deferred = useDeferredValue(query);
   const { hits, total } = useMemo(
-    () => searchCatalog(deferred, limit),
-    [deferred, limit],
+    () => search(deferred, limit),
+    [search, deferred, limit],
   );
 
   useEffect(() => {
