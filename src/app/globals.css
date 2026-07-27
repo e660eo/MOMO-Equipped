@@ -148,6 +148,22 @@ body {
   animation-play-state: paused !important;
 }
 
+/*
+  Анимация переключения темы (View Transitions API): новый слой темы
+  раскрывается кругом из точки клика по тумблеру — сам круг рисует WAAPI в
+  theme-toggle.tsx. Скоуп по data-theme-vt: правила работают только во время
+  нашего переключения и чужих переходов не трогают. Стандартный кроссфейд корня
+  отключаем, чтобы вместо него шёл наш круг.
+*/
+html[data-theme-vt="active"]::view-transition-old(root),
+html[data-theme-vt="active"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html[data-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--theme-vt-duration, 500ms);
+}
+
 :focus-visible {
   outline: 2px solid var(--color-signal);
   outline-offset: 3px;

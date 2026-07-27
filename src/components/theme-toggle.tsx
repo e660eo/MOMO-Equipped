@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
+import { flushSync } from "react-dom";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Длительность раскрытия темы кругом (мс). Держим в паре с CSS-переменной.
+const VT_DURATION = 500;
+
+type ViewTransitionLike = {
+  ready: Promise<void>;
+  finished: Promise<void>;
+};
+type DocumentWithVT = Document & {
+  startViewTransition?: (callback: () => void) => ViewTransitionLike;
+};
 
 /*
   variant="icon"  — круглая кнопка в шапке (десктоп).
@@ -22,22 +34,18 @@ export function ThemeToggle({
     setDark(document.documentElement.dataset.theme === "dark");
   }, []);
 
-  function toggle() {
-    const next = !dark;
-    setDark(next);
+  /*
+    Мгновенная подмена цветов. Переключение темы меняет переменные на :root, и
+    вместе с ними перекрашивается всё дерево разом; на body и десятках элементов
+    висят transition по цвету — браузер честно анимировал бы каждый, отсюда
+    просадка кадров. Поэтому на время подмены глушим переходы (theme-switching),
+    а снимаем класс следующим кадром.
 
-    /*
-      Переключение темы меняет значения переменных на :root, и вместе с ними
-      перекрашивается всё дерево разом. При этом на body висит переход по
-      background и color на 0.25s, а на десятках элементов — свои transition
-      по border-color и цвету текста: браузер честно начинает анимировать
-      каждый из них, и вместо мгновенной смены получается ощутимая просадка
-      кадров, тем заметнее, чем длиннее страница.
-
-      Поэтому на время подмены переходы глушим целиком (класс theme-switching),
-      а снимаем его следующим кадром — когда новые цвета уже применены.
-      Тема меняется мгновенно и без дёрганья.
-    */
+    Для анимации переключения это ещё и обязательное условие: снимок «нового»
+    состояния для View Transitions берётся сразу после подмены — без мгновенной
+    смены он поймал бы ещё старые цвета (CSS-переход не успел бы пройти).
+  */
+  function applyTheme(next: boolean) {
     const root = document.documentElement;
     root.classList.add("theme-switching");
 
@@ -53,6 +61,65 @@ export function ThemeToggle({
     requestAnimationFrame(() => {
       requestAnimationFrame(() => root.classList.remove("theme-switching"));
     });
+  }
+
+  function toggle(e: MouseEvent<HTMLButtonElement>) {
+    const next = !dark;
+    const root = document.documentElement;
+    const doc = document as DocumentWithVT;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Без поддержки View Transitions или при reduced-motion — как было, мгновенно.
+    if (reduce || typeof doc.startViewTransition !== "function") {
+      setDark(next);
+      applyTheme(next);
+      return;
+    }
+
+    // Центр расходящегося круга — центр нажатой кнопки; радиус — до дальнего угла.
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+
+    // Скоуп для CSS перехода: правила действуют только во время нашего переключения.
+    root.dataset.themeVt = "active";
+    root.style.setProperty("--theme-vt-duration", `${VT_DURATION}ms`);
+
+    const transition = doc.startViewTransition(() => {
+      // Синхронно: и иконка, и цвета попадают в «новый» снимок перехода.
+      flushSync(() => {
+        setDark(next);
+        applyTheme(next);
+      });
+    });
+
+    transition.finished.finally(() => {
+      delete root.dataset.themeVt;
+      root.style.removeProperty("--theme-vt-duration");
+    });
+
+    transition.ready
+      .then(() => {
+        // Сам круг рисуем через WAAPI — он не зависит от CSS-глушения переходов.
+        root.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: VT_DURATION,
+            easing: "ease-in-out",
+            pseudoElement: "::view-transition-new(root)",
+          } as KeyframeAnimationOptions,
+        );
+      })
+      .catch(() => {});
   }
 
   const label = dark ? "Включить светлую тему" : "Включить тёмную тему";
