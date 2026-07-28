@@ -6,6 +6,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 import { getOrders } from "@/lib/orders";
 import { getCustomers } from "@/lib/customers";
 import { lastMailResult } from "@/lib/mailer";
+import { getHealthReport } from "@/lib/health";
 
 /*
   Сводка панели: сколько чего в каталоге и куда идти дальше.
@@ -28,6 +29,11 @@ export default async function AdminHomePage() {
   // об этом было бы неоткуда. Сводку владелец видит при каждом входе.
   const mail = lastMailResult();
   const mailBroken = mail && !mail.ok;
+
+  // Тихий отказ под сайтом: некуда писать данные, кончился диск. Владелец
+  // должен упереться в это при входе, а не узнать на потерянном заказе.
+  const health = await getHealthReport();
+  const healthFail = health.status === "fail" ? health.checks.filter((c) => c.level === "fail") : [];
 
   const cards: { href: string; title: string; value: string; note?: string; accent?: boolean }[] = [
     {
@@ -94,6 +100,26 @@ export default async function AdminHomePage() {
           файлы каталога перезаписываются при каждом обновлении сайта.
           Настройка — в DEPLOY.md, раздел «Папка данных».
         </p>
+      )}
+
+      {healthFail.length > 0 && (
+        <div className="mt-5 rounded-sm border border-[var(--signal-text)] px-4 py-3 text-[0.85rem] leading-relaxed text-[var(--signal-text)]">
+          <p className="font-semibold">Сайт работает, но что-то под ним сломано:</p>
+          <ul className="mt-1.5 list-disc space-y-1 pl-5">
+            {healthFail.map((c) => (
+              <li key={c.id}>
+                {c.label}: {c.detail}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1.5">
+            Подробнее —{" "}
+            <Link href="/admin/settings" className="underline underline-offset-2">
+              в настройках
+            </Link>
+            , блок «Состояние сайта».
+          </p>
+        </div>
       )}
 
       {mailBroken && (

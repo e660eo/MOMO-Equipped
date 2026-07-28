@@ -6,9 +6,11 @@ import {
   type MailStatus,
 } from "@/components/admin/mail-status";
 import { PayStatusPanel, type PayStatus } from "@/components/admin/pay-status";
+import { HealthPanel } from "@/components/admin/health-panel";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { mailerConfig, lastMailResult } from "@/lib/mailer";
 import { payConfig } from "@/lib/yandex-pay";
+import { getHealthReport } from "@/lib/health";
 import { SITE_URL } from "@/lib/site-url";
 
 export default async function AdminSettingsPage({
@@ -45,6 +47,8 @@ export default async function AdminSettingsPage({
       : null,
   };
 
+  const health = await getHealthReport();
+
   return (
     <div>
       <h1 className="font-display text-xl font-extrabold uppercase">
@@ -71,6 +75,10 @@ export default async function AdminSettingsPage({
 
       <div className="mt-6">
         <PayStatusPanel status={payStatus} />
+      </div>
+
+      <div className="mt-6">
+        <HealthPanel report={health} endpoint={`${SITE_URL}/api/health`} />
       </div>
 
       <p className="mt-6 max-w-[680px] rounded-sm border border-border bg-surface px-4 py-3 text-[0.82rem] text-muted-foreground">

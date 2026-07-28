@@ -1,9 +1,11 @@
 /*
   Точка, которую Next вызывает один раз при старте сервера.
 
-  Используем её для ежедневного бэкапа данных: планировщик живёт в самом
-  процессе, чтобы владельцу не заводить системный крон вручную (см.
-  lib/backup-scheduler.ts).
+  Держим в самом процессе две фоновые задачи, чтобы владельцу не заводить
+  системный крон вручную:
+    • ежедневный бэкап данных (lib/backup-scheduler.ts);
+    • сторож само-диагностики — письмо владельцу, если сайт тихо сломался
+      (lib/health-watch.ts).
 */
 export async function register() {
   // Только на боевом сервере и только в Node-рантайме: в разработке
@@ -13,4 +15,7 @@ export async function register() {
 
   const { scheduleDailyBackup } = await import("./lib/backup-scheduler");
   scheduleDailyBackup();
+
+  const { scheduleHealthWatch } = await import("./lib/health-watch");
+  scheduleHealthWatch();
 }
