@@ -190,6 +190,72 @@ export async function createAsClearance(formData: FormData): Promise<void> {
 }
 
 /**
+ * Массовый импорт характеристик из файла JSON вида
+ * `{ "слаг-товара": ["Ключ - значение", …] }`. Для каждого совпавшего товара
+ * переписывает поле `description`. Всё через updateJson — читает с диска, так
+ * что параллельная правка не теряется; writeJson делает копию в backups/,
+ * поэтому импорт откатывается копированием файла обратно.
+ */
+export async function importSpecs(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    await requireSession();
+    assertWritable();
+
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      return { error: "Выберите файл JSON с характеристиками." };
+    }
+
+    let data: unknown;
+    try {
+      data = JSON.parse(await file.text());
+    } catch {
+      return { error: "Файл не читается как JSON — проверьте, что это тот самый файл." };
+    }
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return { error: "Ожидается объект вида { \"слаг\": [строки] }." };
+    }
+
+    const entries = Object.entries(data as Record<string, unknown>);
+    let updated = 0;
+    const notFound: string[] = [];
+
+    updateJson<Product[]>(FILE, (all) => {
+      const bySlug = new Map(all.map((p) => [p.slug, p]));
+      for (const [slug, value] of entries) {
+        const p = bySlug.get(slug);
+        if (!p) {
+          notFound.push(slug);
+          continue;
+        }
+        if (!Array.isArray(value)) continue;
+        const lines = value.map((v) => String(v).trim()).filter(Boolean);
+        if (lines.length) {
+          p.description = lines;
+          updated++;
+        }
+      }
+      return all;
+    });
+
+    refreshSite();
+    revalidatePath("/admin/products");
+
+    const tail = notFound.length
+      ? ` Не найдено на сайте: ${notFound.length} (${notFound.join(", ")}).`
+      : "";
+    return {
+      ok: `Готово. Обновлено характеристик у ${updated} ${updated === 1 ? "товара" : "товаров"}.${tail} Изменения уже на сайте.`,
+    };
+  } catch (e) {
+    return { error: messageFor(e, "Не удалось импортировать.", "importSpecs") };
+  }
+}
+
+/**
  * Правка цены и остатка прямо в списке — без захода в карточку.
  * Ради этого сценария всё и затевалось: цены и остатки меняются каждый день,
  * а открывать ради одной цифры полную форму долго.

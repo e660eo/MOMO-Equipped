@@ -143,12 +143,20 @@ export function ProductsList({
             )}
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_20px_-6px_rgba(255,85,0,0.6)] active:scale-95"
-        >
-          Добавить товар
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin/products/import"
+            className="text-[0.85rem] text-muted-foreground transition-colors hover:text-signal"
+          >
+            Импорт характеристик
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_20px_-6px_rgba(255,85,0,0.6)] active:scale-95"
+          >
+            Добавить товар
+          </Link>
+        </div>
       </div>
 
       {saved && (
