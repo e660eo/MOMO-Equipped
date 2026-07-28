@@ -2,9 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { MoreVertical } from "lucide-react";
 import { productImageUrl, isInStock } from "@/lib/format";
-import { plural } from "@/lib/utils";
-import { toggleHidden, deleteProduct } from "@/app/admin/products/actions";
+import { plural, cn } from "@/lib/utils";
+import {
+  toggleHidden,
+  deleteProduct,
+  createAsClearance,
+} from "@/app/admin/products/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { QuickEdit } from "@/components/admin/quick-edit";
 import type { Product, Category } from "@/lib/types";
@@ -20,6 +25,25 @@ import type { Product, Category } from "@/lib/types";
   Действия строки (скрыть/удалить/быстрая правка) остались серверными: форма с
   server action работает и из клиентского компонента.
 */
+
+/*
+  Порядок разделов — как в каталоге на сайте (CATEGORY_ORDER в catalog-view.tsx):
+  основной автозвук сверху, аксессуары и свет — в конце. Держим копию здесь, а
+  не тянем клиентский компонент витрины в панель.
+*/
+const CATEGORY_ORDER = [
+  "sabvufery",
+  "usiliteli-monobloki",
+  "dinamiki-rupora",
+  "multimedia",
+  "aksessuary",
+  "avtosvet",
+];
+const categoryRank = (slug: string) => {
+  const i = CATEGORY_ORDER.indexOf(slug);
+  return i === -1 ? CATEGORY_ORDER.length : i;
+};
+
 export function ProductsList({
   products,
   categories,
@@ -33,6 +57,22 @@ export function ProductsList({
 }) {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
+  // Показывать только товары с нулевым остатком — включается кликом по счётчику.
+  const [onlyOut, setOnlyOut] = useState(false);
+
+  // Нижняя шторка «ещё» для конкретной строки. shown отдельно от sheet, чтобы
+  // при закрытии успел проиграться выезд вниз, а потом узел убрался.
+  const [sheet, setSheet] = useState<Product | null>(null);
+  const [shown, setShown] = useState(false);
+
+  const openSheet = (p: Product) => {
+    setSheet(p);
+    requestAnimationFrame(() => setShown(true));
+  };
+  const closeSheet = () => {
+    setShown(false);
+    setTimeout(() => setSheet(null), 200);
+  };
 
   const titleByCategory = useMemo(
     () => new Map(categories.map((c) => [c.slug, c.title])),
@@ -46,7 +86,9 @@ export function ProductsList({
       : "";
   };
 
-  const filtered = useMemo(() => {
+  // База: фильтр по названию и категории, без учёта «только без остатка» —
+  // чтобы счётчик показывал стабильное число, не зависящее от своего же клика.
+  const base = useMemo(() => {
     const query = q.trim().toLowerCase();
     return products.filter(
       (p) =>
@@ -55,8 +97,18 @@ export function ProductsList({
     );
   }, [products, q, category]);
 
-  const soldOut = filtered.filter((p) => p.stock === 0).length;
-  const active = Boolean(q.trim() || category);
+  const soldOut = useMemo(() => base.filter((p) => p.stock === 0).length, [base]);
+
+  const filtered = useMemo(() => {
+    const list = onlyOut ? base.filter((p) => p.stock === 0) : base;
+    // Стабильная сортировка по разделам: основной звук выше, свет/аксессуары
+    // ниже. Внутри раздела порядок сохраняется как в данных.
+    return [...list].sort(
+      (a, b) => categoryRank(a.category) - categoryRank(b.category),
+    );
+  }, [base, onlyOut]);
+
+  const active = Boolean(q.trim() || category || onlyOut);
 
   return (
     <div>
@@ -67,12 +119,26 @@ export function ProductsList({
             {filtered.length}{" "}
             {plural(filtered.length, "товар", "товара", "товаров")}
             {active && " по запросу"}
-            {soldOut > 0 && (
+            {(soldOut > 0 || onlyOut) && (
               <>
                 {" · "}
-                <span className="text-[var(--signal-text)]">
-                  {soldOut} без остатка
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setOnlyOut((v) => !v)}
+                  className={cn(
+                    "underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80",
+                    onlyOut
+                      ? "font-semibold text-[var(--signal-text)]"
+                      : "text-[var(--signal-text)]",
+                  )}
+                  title={
+                    onlyOut
+                      ? "Показать все товары"
+                      : "Показать только товары без остатка"
+                  }
+                >
+                  {soldOut} без остатка{onlyOut ? " — показаны" : ""}
+                </button>
               </>
             )}
           </p>
@@ -119,6 +185,7 @@ export function ProductsList({
             onClick={() => {
               setQ("");
               setCategory("");
+              setOnlyOut(false);
             }}
             className="rounded-sm border border-border px-4 py-2 text-sm font-medium transition-all hover:border-signal hover:text-signal active:scale-95"
           >
@@ -189,7 +256,7 @@ export function ProductsList({
                   <QuickEdit product={p} />
                 </td>
                 <td className="py-2.5 pr-3">
-                  <div className="flex justify-end gap-3 whitespace-nowrap">
+                  <div className="flex items-center justify-end gap-3 whitespace-nowrap">
                     <form action={toggleHidden}>
                       <input type="hidden" name="slug" value={p.slug} />
                       {!p.hidden && bundleNames[p.slug]?.length ? (
@@ -214,6 +281,14 @@ export function ProductsList({
                         question={`Удалить «${p.title}» насовсем? Чтобы просто убрать с витрины, нажмите «Скрыть».${bundleNote(p.slug)}`}
                       />
                     </form>
+                    <button
+                      type="button"
+                      onClick={() => openSheet(p)}
+                      aria-label="Ещё действия"
+                      className="text-muted-foreground transition-all hover:text-signal active:scale-90"
+                    >
+                      <MoreVertical size={16} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -223,10 +298,62 @@ export function ProductsList({
 
         {filtered.length === 0 && (
           <p className="py-10 text-center text-muted-foreground">
-            Ничего не нашлось — измените запрос.
+            {onlyOut
+              ? "Товаров без остатка нет."
+              : "Ничего не нашлось — измените запрос."}
           </p>
         )}
       </div>
+
+      {/* Нижняя шторка действий: выезжает снизу, фон затемняется. */}
+      {sheet && (
+        <div className="fixed inset-0 z-[200] flex items-end justify-center">
+          <div
+            onClick={closeSheet}
+            className={cn(
+              "absolute inset-0 bg-black/40 transition-opacity duration-200",
+              shown ? "opacity-100" : "opacity-0",
+            )}
+          />
+          <div
+            className={cn(
+              "relative w-full max-w-[520px] rounded-t-2xl border border-border bg-surface p-5 pb-8 shadow-2xl transition-transform duration-200 ease-out",
+              shown ? "translate-y-0" : "translate-y-full",
+            )}
+          >
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+            <p className="text-[0.72rem] uppercase tracking-wider text-muted-foreground">
+              Товар
+            </p>
+            <p className="mt-0.5 truncate text-[0.95rem] font-medium">
+              {sheet.title}
+            </p>
+
+            <form action={createAsClearance} className="mt-5">
+              <input type="hidden" name="slug" value={sheet.slug} />
+              <button
+                type="submit"
+                className="w-full rounded-sm bg-signal px-4 py-3 text-[0.9rem] font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.98]"
+              >
+                Создать как уценку
+              </button>
+            </form>
+            <p className="mt-2.5 text-[0.75rem] leading-relaxed text-muted-foreground">
+              Создаст скрытую копию этого товара с пометкой «уценка» и откроет её
+              на редактирование — поставьте цену уценки, остаток и снимите
+              «Скрыть». Исходный товар не изменится.
+            </p>
+
+            <button
+              type="button"
+              onClick={closeSheet}
+              className="mt-5 w-full rounded-sm border border-border px-4 py-2.5 text-[0.85rem] font-medium transition-colors hover:border-signal hover:text-signal"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

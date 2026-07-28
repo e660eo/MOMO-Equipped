@@ -6,12 +6,15 @@ import { requireAdminPage } from "@/lib/admin-auth";
 
 export default async function EditProductPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ copied?: string }>;
 }) {
   await requireAdminPage();
 
   const { slug } = await params;
+  const { copied } = await searchParams;
   const product = getAllProducts().find((p) => p.slug === slug);
   if (!product) notFound();
 
@@ -30,6 +33,14 @@ export default async function EditProductPage({
         Адрес карточки: /product/{product.slug} — он не меняется при
         переименовании, чтобы не терять ссылки и место в поиске.
       </p>
+
+      {copied && (
+        <p className="mt-4 rounded-sm border border-signal bg-surface px-4 py-3 text-[0.85rem] leading-relaxed">
+          Создана копия в уценку. Поставьте цену уценки и остаток, при желании
+          поправьте название, затем снимите галочку «Скрыть с витрины» — и товар
+          появится на распродаже. Исходный товар не изменился.
+        </p>
+      )}
 
       <div className="mt-7">
         <ProductForm

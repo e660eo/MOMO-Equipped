@@ -151,6 +151,45 @@ export async function saveProduct(
 }
 
 /**
+ * Создать уценённую копию товара.
+ *
+ * Галочка «Уценённый» помечает всю карточку, а не отдельные единицы: чтобы
+ * продавать часть по полной цене, а один экземпляр — со скидкой, нужна вторая
+ * карточка. Это действие её и делает: копия помечена уценкой, скрыта (пока
+ * владелец не поставит цену уценки, иначе попала бы на распродажу по обычной),
+ * остаток 1. Фото копия делит с оригиналом — удаление чистит только файлы, не
+ * используемые другими карточками (см. deleteProduct). Сразу открываем копию
+ * на редактирование.
+ */
+export async function createAsClearance(formData: FormData): Promise<void> {
+  await requireSession();
+  assertWritable();
+
+  const slug = String(formData.get("slug") ?? "");
+  const products = readJson<Product[]>(FILE);
+  const source = products.find((p) => p.slug === slug);
+  if (!source) redirect("/admin/products");
+
+  const newSlug = uniqueSlug(
+    `${source.title} уценка`,
+    products.map((p) => p.slug),
+  );
+
+  const copy: Product = {
+    ...source,
+    slug: newSlug,
+    title: `${source.title} (уценка)`,
+    isClearance: true,
+    hidden: true,
+    stock: 1,
+  };
+
+  updateJson<Product[]>(FILE, (all) => [copy, ...all]);
+  refreshSite();
+  redirect(`/admin/products/${newSlug}?copied=1`);
+}
+
+/**
  * Правка цены и остатка прямо в списке — без захода в карточку.
  * Ради этого сценария всё и затевалось: цены и остатки меняются каждый день,
  * а открывать ради одной цифры полную форму долго.
