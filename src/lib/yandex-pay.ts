@@ -113,14 +113,24 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
   const config = payConfig();
   if (!config) throw new Error("Онлайн-оплата не подключена.");
 
-  const items = order.items.map((item) => ({
+  /*
+    Скидка по промокоду. Уменьшаем каждую позицию на процент из заказа, а не
+    вычитаем скидку строкой: Яндекс требует, чтобы сумма позиций точно равнялась
+    cart.total, а отдельной «минус-строки» в их корзине нет. Итог считаем как
+    сумму уже сниженных позиций — тогда они сходятся по построению.
+  */
+  const factor = 1 - (order.promo?.percent ?? 0) / 100;
+  const lineTotals = order.items.map(
+    (i) => Math.round(i.price * i.qty * factor * 100) / 100,
+  );
+  const items = order.items.map((item, idx) => ({
     productId: item.slug,
     title: item.title,
     quantity: { count: String(item.qty) },
-    total: money(item.price * item.qty),
+    total: money(lineTotals[idx]),
   }));
 
-  const total = order.items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const total = lineTotals.reduce((sum, t) => sum + t, 0);
   // Метка для страницы возврата: без неё чужой заказ открывался бы перебором
   // номера, а там имя, телефон и адрес.
   const token = crypto.randomBytes(16).toString("hex");

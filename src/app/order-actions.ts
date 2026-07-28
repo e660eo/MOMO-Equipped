@@ -7,7 +7,21 @@ import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
-import type { OrderItem } from "@/lib/types";
+import { findValidPromo, discountFor, usePromo } from "@/lib/promos";
+import type { Order, OrderItem } from "@/lib/types";
+
+/* Проверка промокода из корзины: показать скидку до оформления. */
+export async function checkPromo(
+  code: string,
+): Promise<
+  { ok: true; code: string; percent: number } | { ok: false; error: string }
+> {
+  const promo = findValidPromo(typeof code === "string" ? code : "");
+  if (!promo) {
+    return { ok: false, error: "Промокод не найден или больше не действует." };
+  }
+  return { ok: true, code: promo.code, percent: promo.percent };
+}
 
 /*
   Приём заказа с сайта.
@@ -69,6 +83,8 @@ export async function submitOrder(payload: {
   items: { slug: string; qty: number }[];
   /** Покупатель выбрал оплату на сайте, а не переписку с менеджером. */
   pay?: boolean;
+  /** Промокод из корзины — проверяем и применяем ЗДЕСЬ, на сервере. */
+  promoCode?: string;
 }): Promise<OrderResult> {
   const ip = await clientIp();
 
@@ -166,6 +182,23 @@ export async function submitOrder(payload: {
   // это постоянный клиент.
   const me = await currentCustomer();
 
+  /*
+    Промокод применяем на сервере: процент берём из файла промокодов, а не из
+    браузера. total у заказа — уже итог со скидкой; онлайн-оплата (createPayment)
+    считает по проценту из order.promo, чтобы позиции сходились с суммой.
+  */
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  let total = subtotal;
+  let promo: Order["promo"];
+  if (typeof payload.promoCode === "string" && payload.promoCode.trim()) {
+    const valid = findValidPromo(payload.promoCode);
+    if (valid) {
+      const discount = discountFor(subtotal, valid.percent);
+      total = subtotal - discount;
+      promo = { code: valid.code, percent: valid.percent, discount };
+    }
+  }
+
   try {
     const order = addOrder({
       customer: {
@@ -175,9 +208,13 @@ export async function submitOrder(payload: {
         ...(comment ? { comment } : {}),
       },
       items,
-      total: items.reduce((sum, i) => sum + i.price * i.qty, 0),
+      total,
+      ...(promo ? { promo } : {}),
       ...(me ? { customerId: me.id } : {}),
     });
+
+    // Активацию списываем после сохранения заказа — код применён.
+    if (promo) usePromo(promo.code);
 
     /*
       Письмо владельцу отправляем вдогонку, не дожидаясь почтового сервера:

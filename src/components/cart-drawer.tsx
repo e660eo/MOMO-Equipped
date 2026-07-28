@@ -6,7 +6,7 @@ import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { isPhoneComplete } from "@/lib/phone";
-import { submitOrder } from "@/app/order-actions";
+import { submitOrder, checkPromo } from "@/app/order-actions";
 import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
@@ -35,6 +35,12 @@ export function CartDrawer() {
   const [sent, setSent] = useState(false);
   const [lastOrderId, setLastOrderId] = useState("");
   const [sending, setSending] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; percent: number } | null>(
+    null,
+  );
+  const [promoMsg, setPromoMsg] = useState("");
+  const [promoBusy, setPromoBusy] = useState(false);
 
   // Подставляем сохранённые данные получателя при первом открытии
   useEffect(() => {
@@ -80,6 +86,32 @@ export function CartDrawer() {
   const remaining = Math.max(0, freeFrom - total);
   const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
+  // Скидка по промокоду. Процент подтверждает сервер (checkPromo), но настоящую
+  // проверку и списание делает submitOrder — здесь только показ.
+  const discount = promo ? Math.round((total * promo.percent) / 100) : 0;
+  const payable = total - discount;
+
+  async function applyPromo() {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoBusy(true);
+    setPromoMsg("");
+    const res = await checkPromo(code);
+    setPromoBusy(false);
+    if (res.ok) {
+      setPromo({ code: res.code, percent: res.percent });
+      setPromoInput(res.code);
+    } else {
+      setPromo(null);
+      setPromoMsg(res.error);
+    }
+  }
+  function removePromo() {
+    setPromo(null);
+    setPromoInput("");
+    setPromoMsg("");
+  }
+
   async function submit(pay = false) {
     if (!name.trim() || !phone.trim() || !address.trim()) {
       setError("Заполните ФИО, телефон и адрес доставки.");
@@ -112,6 +144,7 @@ export function CartDrawer() {
       comment: comment.trim(),
       items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
       pay,
+      ...(promo ? { promoCode: promo.code } : {}),
     });
     setSending(false);
     const orderNumber = saved.ok ? saved.id : null;
@@ -158,7 +191,10 @@ export function CartDrawer() {
       ...items.map(
         (i) => `• ${i.title} — ${i.qty} шт. × ${formatPrice(i.price)}`,
       ),
-      `Итого: ${formatPrice(total)}`,
+      ...(promo
+        ? [`Промокод ${promo.code}: −${promo.percent}% (−${formatPrice(discount)})`]
+        : []),
+      `Итого: ${formatPrice(payable)}`,
       "",
       `Получатель: ${name.trim()}`,
       `Телефон: ${phone.trim()}`,
@@ -410,22 +446,81 @@ export function CartDrawer() {
               </div>
             </div>
 
+            {/* Промокод */}
+            <div className="mt-4">
+              {promo ? (
+                <div className="flex items-center justify-between gap-2 rounded-sm border border-signal/40 bg-signal/10 px-3 py-2.5 text-[0.82rem]">
+                  <span>
+                    Промокод{" "}
+                    <b className="font-semibold uppercase">{promo.code}</b> —
+                    скидка{" "}
+                    <b className="text-[var(--signal-text)]">{promo.percent}%</b>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removePromo}
+                    aria-label="Убрать промокод"
+                    className="shrink-0 text-muted-foreground transition-colors hover:text-signal"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    value={promoInput}
+                    onChange={(e) => {
+                      setPromoInput(e.target.value);
+                      setPromoMsg("");
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                    placeholder="Промокод"
+                    aria-label="Промокод"
+                    className={cn(inputCls, "uppercase")}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyPromo}
+                    disabled={promoBusy || !promoInput.trim()}
+                    className="shrink-0 rounded-sm border border-border px-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
+                  >
+                    {promoBusy ? "…" : "Применить"}
+                  </button>
+                </div>
+              )}
+              {promoMsg && (
+                <p className="mt-1.5 text-[0.78rem] text-signal">{promoMsg}</p>
+              )}
+            </div>
+
             {error && (
               <p className="mt-3 text-sm text-signal" role="alert">
                 {error}
               </p>
             )}
 
-            <div className="mt-5 flex items-baseline justify-between">
+            {discount > 0 && (
+              <div className="mt-5 space-y-1 text-sm">
+                <div className="flex items-baseline justify-between text-muted-foreground">
+                  <span>Сумма</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+                <div className="flex items-baseline justify-between text-[var(--signal-text)]">
+                  <span>Скидка {promo?.percent}%</span>
+                  <span>−{formatPrice(discount)}</span>
+                </div>
+              </div>
+            )}
+            <div className={cn("flex items-baseline justify-between", discount > 0 ? "mt-2" : "mt-5")}>
               <span className="text-sm">Итого</span>
               <span className="font-display text-xl font-extrabold">
-                {formatPrice(total)}
+                {formatPrice(payable)}
               </span>
             </div>
             <p className="mb-3 mt-1 font-mono text-[0.7rem] text-muted-foreground">
               или сплит{" "}
               <b className="font-medium text-[var(--signal-text)]">
-                {formatPrice(splitPayment(total))} × 4
+                {formatPrice(splitPayment(payable))} × 4
               </b>{" "}
               без процентов
             </p>

@@ -58,6 +58,22 @@ export interface ResolvedBundle extends Omit<Bundle, "items"> {
   saving: number;
 }
 
+/**
+ * Промокод: скидка в процентах с ограничением по числу активаций. Живёт в
+ * папке данных, правится из панели.
+ */
+export interface Promo {
+  /** Название-код (верхний регистр) — его вводит покупатель на оформлении. */
+  code: string;
+  /** Скидка в процентах, 1..100. */
+  percent: number;
+  /** Предел активаций; 0 — без ограничения. */
+  limit: number;
+  /** Сколько раз уже применён. */
+  used: number;
+  createdAt: string;
+}
+
 export interface NewsItem {
   slug: string;
   title: string;
@@ -159,7 +175,10 @@ export interface Order {
     comment?: string;
   };
   items: OrderItem[];
+  /** Итоговая сумма к оплате — уже со скидкой по промокоду, если он был. */
   total: number;
+  /** Применённый промокод: код, процент и сумма скидки в рублях. */
+  promo?: { code: string; percent: number; discount: number };
   /** Заметка менеджера — видна только в панели. */
   note?: string;
   /** Заказ оформлен вошедшим покупателем — для истории в его кабинете. */
