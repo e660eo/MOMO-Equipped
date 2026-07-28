@@ -51,7 +51,16 @@ export default async function AdminOrdersPage({
 
   return (
     <div>
-      <h1 className="font-display text-xl font-extrabold uppercase">Заказы</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-xl font-extrabold uppercase">Заказы</h1>
+        <a
+          href="/admin/export/orders"
+          download
+          className="rounded-sm border border-border px-4 py-2 text-[0.82rem] font-medium transition-all hover:border-signal hover:text-signal active:scale-95"
+        >
+          Скачать CSV
+        </a>
+      </div>
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
         Заявки с сайта. Заказ появляется здесь сразу, даже если покупатель не
         дописал в WhatsApp.

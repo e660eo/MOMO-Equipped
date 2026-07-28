@@ -59,7 +59,16 @@ export default async function AdminCustomersPage({
 
   return (
     <div>
-      <h1 className="font-display text-xl font-extrabold uppercase">Клиенты</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-xl font-extrabold uppercase">Клиенты</h1>
+        <a
+          href="/admin/export/customers"
+          download
+          className="rounded-sm border border-border px-4 py-2 text-[0.82rem] font-medium transition-all hover:border-signal hover:text-signal active:scale-95"
+        >
+          Скачать CSV
+        </a>
+      </div>
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
         Покупатели, создавшие аккаунт на сайте. {rows.length}{" "}
         {plural(rows.length, "человек", "человека", "человек")}
