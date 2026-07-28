@@ -259,7 +259,7 @@ export function ProductGallery({
                 проценты зависят от того, сумел ли браузер посчитать высоту
                 цепочки родителей, и именно на этом снимок вылезал за экран.
               */
-              maxWidth: "min(96vw, 1400px)",
+              maxWidth: "min(96vw, 1600px)",
               maxHeight: "calc(100dvh - 190px)",
               transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
               transition: dragFrom.current ? "none" : "transform 0.18s ease-out",

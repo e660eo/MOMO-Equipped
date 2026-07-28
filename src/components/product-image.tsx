@@ -47,8 +47,8 @@ export function ProductImage({
     <Image
       src={src}
       alt={alt}
-      width={900}
-      height={900}
+      width={1600}
+      height={1600}
       sizes={sizes}
       priority={priority}
       loading={priority ? undefined : "lazy"}
