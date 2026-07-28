@@ -13,7 +13,7 @@ import { ExpectedError } from "./errors";
   новые карточки не выбиваются из ряда — фон и масштаб совпадают.
 */
 
-const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 /** Отказ, написанный для владельца магазина: показывается ему как есть. */
@@ -31,7 +31,7 @@ export async function saveProductImage(file: File): Promise<string> {
     );
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    throw new ImageError("Файл больше 15 МБ — уменьшите размер снимка.");
+    throw new ImageError("Файл больше 20 МБ — уменьшите размер снимка.");
   }
 
   const input = Buffer.from(await file.arrayBuffer());
