@@ -9,6 +9,7 @@ import { shortSpecs } from "@/lib/specs";
 import { cn } from "@/lib/utils";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";
+import { CompareToggle } from "./compare-toggle";
 
 /*
   Плитка товара.
@@ -144,7 +145,7 @@ function ProductCardImpl({
         )}
       </Link>
 
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
           {product.brand}
         </span>
@@ -159,6 +160,7 @@ function ProductCardImpl({
             Под заказ
           </span>
         )}
+        <CompareToggle product={product} className="ml-auto" />
       </div>
 
       <Link href={`/product/${product.slug}`} className="mt-1.5">

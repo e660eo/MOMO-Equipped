@@ -6,6 +6,7 @@ import { Overlays } from "@/components/overlays";
 import { Toaster } from "@/components/toaster";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
 import { CookieNotice } from "@/components/cookie-notice";
+import { CompareBar } from "@/components/compare-bar";
 import { JsonLd } from "@/components/json-ld";
 import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import { YandexMetrica } from "@/components/yandex-metrica";
@@ -84,6 +85,7 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
       <Overlays />
       <Toaster />
       <WhatsAppFab />
+      <CompareBar />
       <CookieNotice />
       </SearchProvider>
       </CustomerProvider>
