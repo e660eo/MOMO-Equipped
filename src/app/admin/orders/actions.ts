@@ -19,6 +19,8 @@ export async function setOrderStatus(formData: FormData): Promise<void> {
   updateOrder(id, { status });
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
+  // Статус меняют и из раздела «Клиенты» — там он должен освежиться сразу.
+  revalidatePath("/admin/customers");
 }
 
 export async function setOrderNote(formData: FormData): Promise<void> {

@@ -1,14 +1,13 @@
-import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getCustomers, toPublic } from "@/lib/customers";
 import { getOrders } from "@/lib/orders";
-import { formatPrice } from "@/lib/format";
 import { plural } from "@/lib/utils";
-import { ResetPasswordButton } from "@/components/admin/reset-password-button";
+import { CustomerRow } from "@/components/admin/customer-row";
 
 /*
   Клиенты с аккаунтом. Показываем не просто список, а то, ради чего его
-  открывают: кто сколько заказал и когда приходил в последний раз.
+  открывают: кто сколько заказал, когда приходил — и по клику полный состав
+  каждого заказа с кнопками статуса (см. CustomerRow).
 */
 export default async function AdminCustomersPage({
   searchParams,
@@ -21,22 +20,25 @@ export default async function AdminCustomersPage({
   const orders = getOrders();
 
   /*
-    toPublic снимает passwordHash. Сейчас в клиентский компонент уходят
-    только id и имя, так что хеш никуда не утекал, — но он лежал в объекте,
-    который страница таскает по разметке, и одного невнимательного
-    <Что-нибудь customer={customer}/> хватило бы, чтобы он уехал в разметку
-    RSC. Проще не носить его сюда вовсе.
+    toPublic снимает passwordHash. В строку уходят только публичные поля клиента
+    и обрезанный состав его заказов (без лишних данных), поэтому хеш пароля не
+    попадает в разметку RSC даже случайно.
   */
   const rows = getCustomers()
     .map((c) => {
       const mine = orders.filter((o) => o.customerId === c.id);
       return {
         customer: toPublic(c),
-        count: mine.length,
         spent: mine
           .filter((o) => o.status !== "canceled")
           .reduce((sum, o) => sum + o.total, 0),
-        last: mine[0]?.createdAt,
+        orders: mine.map((o) => ({
+          id: o.id,
+          createdAt: o.createdAt,
+          total: o.total,
+          status: o.status,
+          items: o.items.map((it) => ({ title: it.title, qty: it.qty })),
+        })),
       };
     })
     .filter(({ customer }) => {
@@ -54,9 +56,6 @@ export default async function AdminCustomersPage({
         b.spent - a.spent ||
         b.customer.createdAt.localeCompare(a.customer.createdAt),
     );
-
-  const date = (iso?: string) =>
-    iso ? new Date(iso).toLocaleDateString("ru-RU") : "—";
 
   return (
     <div>
@@ -103,50 +102,13 @@ export default async function AdminCustomersPage({
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ customer, count, spent, last }) => (
-                <tr key={customer.id} className="admin-row border-b border-border">
-                  <td className="py-3 pr-3 font-medium">
-                    {customer.name}
-                    {customer.address && (
-                      <span className="block text-[0.75rem] font-normal text-muted-foreground">
-                        {customer.address}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3 pr-3 text-muted-foreground">
-                    <a href={`tel:${customer.phone.replace(/[^+\d]/g, "")}`} className="hover:text-signal">
-                      {customer.phone}
-                    </a>
-                    <span className="block text-[0.75rem]">{customer.email}</span>
-                  </td>
-                  <td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
-                    {date(customer.createdAt)}
-                  </td>
-                  <td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
-                    {date(customer.lastLoginAt)}
-                  </td>
-                  <td className="py-3 pr-3 text-right">
-                    {count > 0 ? (
-                      <Link
-                        href={`/admin/orders?customer=${customer.id}`}
-                        className="transition-colors hover:text-signal"
-                      >
-                        {count}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">0</span>
-                    )}
-                  </td>
-                  <td className="py-3 pr-3 text-right font-medium">
-                    {spent > 0 ? formatPrice(spent) : "—"}
-                  </td>
-                  <td className="py-3 pr-3 text-right">
-                    <ResetPasswordButton
-                      customerId={customer.id}
-                      name={customer.name}
-                    />
-                  </td>
-                </tr>
+              {rows.map(({ customer, spent, orders }) => (
+                <CustomerRow
+                  key={customer.id}
+                  customer={customer}
+                  spent={spent}
+                  orders={orders}
+                />
               ))}
             </tbody>
           </table>
