@@ -174,6 +174,22 @@ export function resetPassword(id: string): string | null {
   return temp;
 }
 
+/**
+ * Установить конкретный пароль — сброс по ссылке из письма. В отличие от
+ * resetPassword (случайный временный от владельца), пароль задаёт сам
+ * покупатель на странице сброса.
+ */
+export function setCustomerPassword(id: string, password: string): boolean {
+  assertWritable();
+  if (!findCustomer(id)) return false;
+  updateJson<Customer[]>(FILE, (all) =>
+    all.map((c) =>
+      c.id === id ? { ...c, passwordHash: hashPassword(password) } : c,
+    ),
+  );
+  return true;
+}
+
 export function touchLogin(id: string): void {
   try {
     assertWritable();

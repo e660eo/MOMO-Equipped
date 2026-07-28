@@ -112,3 +112,50 @@ export async function currentCustomer(): Promise<PublicCustomer | null> {
 
   return toPublic(customer);
 }
+
+/* -------------------------- сброс пароля письмом ------------------------- */
+
+const RESET_TTL_MS = 60 * 60 * 1000; // ссылка живёт час
+
+/*
+  Подпись токена сброса — с доменом «reset:», отдельным от сессии («customer:»).
+  Тем же секретом сервера, но одну нельзя предъявить вместо другой.
+*/
+function resetSign(payload: string): string {
+  return crypto
+    .createHmac("sha256", secret())
+    .update(`reset:${payload}`)
+    .digest("base64url");
+}
+
+/**
+ * Токен для ссылки сброса пароля. Одноразовость — через отпечаток пароля:
+ * как пароль сменится, отпечаток изменится и ссылка перестанет подходить,
+ * даже если её перехватили. Ничего серверного хранить не нужно.
+ */
+export function makeResetToken(customerId: string): string | null {
+  const customer = findCustomer(customerId);
+  if (!customer || !secret()) return null;
+  const payload = `${customerId}.${Date.now() + RESET_TTL_MS}.${fingerprint(customer.passwordHash)}`;
+  return `${payload}.${resetSign(payload)}`;
+}
+
+/** Проверить токен сброса и вернуть id покупателя или null. */
+export function verifyResetToken(token: string | undefined): string | null {
+  if (!token || !secret()) return null;
+  const parts = token.split(".");
+  if (parts.length !== 4) return null;
+  const [id, expires, fp, signature] = parts;
+
+  const expected = Buffer.from(resetSign(`${id}.${expires}.${fp}`));
+  const actual = Buffer.from(signature);
+  if (expected.length !== actual.length) return null;
+  if (!crypto.timingSafeEqual(expected, actual)) return null;
+  if (Number(expires) < Date.now()) return null;
+
+  const customer = findCustomer(id);
+  if (!customer) return null;
+  // Отпечаток не сходится — пароль этой ссылкой уже меняли, токен отработан.
+  if (fingerprint(customer.passwordHash) !== fp) return null;
+  return id;
+}

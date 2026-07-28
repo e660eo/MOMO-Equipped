@@ -9,12 +9,23 @@ import {
   updateCustomer,
   touchLogin,
   deleteCustomer,
+  findByLogin,
+  setCustomerPassword,
 } from "@/lib/customers";
 import {
   startCustomerSession,
   endCustomerSession,
   currentCustomer,
+  makeResetToken,
+  verifyResetToken,
 } from "@/lib/customer-auth";
+import {
+  sendMailWithRetry,
+  isMailerConfigured,
+  type Letter,
+} from "@/lib/mailer";
+import { SITE_URL } from "@/lib/site-url";
+import { escapeHtml } from "@/lib/sanitize";
 import type { PublicCustomer } from "@/lib/types";
 
 /*
@@ -223,5 +234,100 @@ export async function saveProfile(patch: {
   } catch (e) {
     console.error("saveProfile:", e);
     return { ok: false, error: "Не получилось сохранить." };
+  }
+}
+
+/* ---------------------- сброс пароля письмом со ссылкой ------------------- */
+
+async function sendResetEmail(
+  email: string,
+  name: string,
+  link: string,
+): Promise<void> {
+  if (!isMailerConfigured()) return;
+  const hi = name ? `, ${escapeHtml(name)}` : "";
+  const letter: Letter = {
+    to: [email],
+    subject: "Сброс пароля — MOMO Equipped",
+    text: [
+      `Здравствуйте${name ? ", " + name : ""}!`,
+      "",
+      "Вы запросили смену пароля на momo-eq.ru.",
+      "Откройте ссылку и задайте новый пароль (действует один час):",
+      link,
+      "",
+      "Если это были не вы — просто не открывайте ссылку, пароль останется прежним.",
+    ].join("\n"),
+    html: `<div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#151515;">
+  <p>Здравствуйте${hi}!</p>
+  <p>Вы запросили смену пароля на <b>momo-eq.ru</b>. Нажмите кнопку и задайте новый пароль — ссылка действует один час.</p>
+  <p style="margin:20px 0;"><a href="${link}" style="display:inline-block;background:#e2571f;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 22px;border-radius:6px;">Задать новый пароль</a></p>
+  <p style="color:#767676;font-size:13px;">Если это были не вы — не открывайте ссылку, пароль останется прежним.</p>
+</div>`,
+  };
+  try {
+    await sendMailWithRetry(letter);
+  } catch (e) {
+    console.error("sendResetEmail:", e);
+  }
+}
+
+/**
+ * Запрос сброса пароля. Всегда отвечает «ок»: есть аккаунт с такой почтой или
+ * нет — не сообщаем, иначе форма превращается в проверку «зарегистрирован ли
+ * человек». Письмо со ссылкой уходит, только если аккаунт найден.
+ */
+export async function requestPasswordReset(
+  email: string,
+): Promise<{ ok: true }> {
+  const ip = await clientIp();
+  // Тот же лимит, что у входа: не даём слать письма пачками на чужой ящик.
+  if (throttled(ip)) return { ok: true };
+  noteFailure(ip);
+
+  const login = typeof email === "string" ? email.trim() : "";
+  if (login) {
+    const customer = findByLogin(login);
+    if (customer?.email) {
+      const token = makeResetToken(customer.id);
+      if (token) {
+        const link = `${SITE_URL}/reset-password?token=${encodeURIComponent(token)}`;
+        void sendResetEmail(customer.email, customer.name, link);
+      }
+    }
+  }
+  return { ok: true };
+}
+
+/** Установить новый пароль по токену из письма и сразу войти. */
+export async function resetPassword(
+  token: string,
+  password: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const id = verifyResetToken(typeof token === "string" ? token : "");
+  if (!id) {
+    return {
+      ok: false,
+      error: "Ссылка недействительна или истекла. Запросите сброс заново.",
+    };
+  }
+  if (typeof password !== "string" || password.length < 6) {
+    return { ok: false, error: "Пароль — от шести символов." };
+  }
+  if (password.length > 200) {
+    return { ok: false, error: "Пароль слишком длинный." };
+  }
+
+  try {
+    if (!setCustomerPassword(id, password)) {
+      return { ok: false, error: "Аккаунт не найден." };
+    }
+    // Смена пароля рвёт старые сессии (отпечаток), поэтому сразу выдаём новую.
+    await startCustomerSession(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    console.error("resetPassword:", e);
+    return { ok: false, error: "Не получилось изменить пароль." };
   }
 }

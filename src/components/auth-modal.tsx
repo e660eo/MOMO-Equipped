@@ -10,7 +10,7 @@ import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { attemptAdminLogin } from "@/app/admin-entry";
-import { signIn, signUp } from "@/app/customer-actions";
+import { signIn, signUp, requestPasswordReset } from "@/app/customer-actions";
 
 // text-base на узком экране: при шрифте меньше 16px Safari на iPhone
 // приближает страницу при фокусе в поле и обратно уже не отдаляет.
@@ -51,10 +51,25 @@ export function AuthModal() {
   const [rgEmail, setRgEmail] = useState("");
   const [rgPhone, setRgPhone] = useState("");
   const [rgPass, setRgPass] = useState("");
+  // Сброс пароля: подрежим формы входа, а не отдельная вкладка.
+  const [forgot, setForgot] = useState(false);
+  const [fgEmail, setFgEmail] = useState("");
+  const [fgSent, setFgSent] = useState(false);
 
   function switchTab(next: "login" | "register") {
     setTab(next);
     setError("");
+    setForgot(false);
+  }
+
+  async function onForgot(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    // Ответ всегда одинаков — есть аккаунт или нет, форма этого не выдаёт.
+    await requestPasswordReset(fgEmail);
+    setBusy(false);
+    setError("");
+    setFgSent(true);
   }
 
   async function onLogin(e: React.FormEvent) {
@@ -208,6 +223,65 @@ export function AuthModal() {
         </div>
 
         {tab === "login" ? (
+          forgot ? (
+            <form className="space-y-3.5" onSubmit={onForgot}>
+              {fgSent ? (
+                <div className="space-y-4">
+                  <p className="text-sm leading-relaxed">
+                    Если аккаунт с такой почтой есть, мы отправили на неё ссылку
+                    для смены пароля. Проверьте почту, в том числе папку «Спам».
+                    Ссылка действует один час.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgot(false);
+                      setFgSent(false);
+                    }}
+                    className="w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+                  >
+                    Вернуться ко входу
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Впишите почту от аккаунта — пришлём ссылку, чтобы задать
+                    новый пароль.
+                  </p>
+                  <div>
+                    <label className={labelCls} htmlFor="fg-email">
+                      Email
+                    </label>
+                    <input
+                      id="fg-email"
+                      type="email"
+                      required
+                      value={fgEmail}
+                      onChange={(e) => setFgEmail(e.target.value)}
+                      autoComplete="email"
+                      placeholder="you@mail.ru"
+                      className={inputCls}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={busy}
+                    className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f] disabled:opacity-60"
+                  >
+                    {busy ? "Отправляем…" : "Прислать ссылку"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForgot(false)}
+                    className="w-full text-center font-mono text-[0.66rem] uppercase tracking-wide text-muted-foreground transition-colors hover:text-signal"
+                  >
+                    Назад ко входу
+                  </button>
+                </>
+              )}
+            </form>
+          ) : (
           <form className="space-y-3.5" onSubmit={onLogin}>
             <div>
               <label className={labelCls} htmlFor="lg-contact">
@@ -261,15 +335,18 @@ export function AuthModal() {
             >
               {busy ? "Проверяем…" : "Войти"}
             </button>
-            {/*
-              Восстановления пароля нет: письма сайт пока не отправляет, а
-              кнопка, которая ничего не делает, хуже её отсутствия. Забывшему
-              поможет менеджер — этот путь работает на самом деле.
-            */}
-            <p className="text-center font-mono text-[0.66rem] leading-relaxed tracking-wide text-muted-foreground">
-              Забыли пароль? Напишите нам в WhatsApp — поможем войти.
-            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setForgot(true);
+                setError("");
+              }}
+              className="w-full text-center font-mono text-[0.66rem] uppercase tracking-wide text-muted-foreground transition-colors hover:text-signal"
+            >
+              Забыли пароль?
+            </button>
           </form>
+          )
         ) : (
           <form className="space-y-3.5" onSubmit={onRegister}>
             <div>
