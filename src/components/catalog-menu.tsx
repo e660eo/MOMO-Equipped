@@ -11,6 +11,7 @@ import {
   MonitorPlay,
   Lightbulb,
   Cable,
+  Tag,
   type LucideIcon,
 } from "lucide-react";
 import SpecularButton from "./ui/SpecularButton";
@@ -194,6 +195,18 @@ export function CatalogMenu() {
                     </ul>
                   </div>
                 ))}
+              </div>
+
+              {/* «Уценка» переехала сюда из верхней навигации — товары со скидкой */}
+              <div className="mt-8 border-t border-border pt-6">
+                <Link
+                  href="/sale"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-sm border border-signal/40 bg-signal/5 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-signal transition-colors hover:bg-signal/10"
+                >
+                  <Tag size={15} />
+                  Уценка — товары со скидкой
+                </Link>
               </div>
             </div>
           </div>

@@ -18,14 +18,15 @@ import { cn } from "@/lib/utils";
 // это служебная информация, а не пункт основной навигации.
 const nav = [
   { href: "/about", label: "О компании" },
-  { href: "/sale", label: "Уценка" },
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
 ];
 
-// В мобильном меню каталог идёт первым и выделен — это главный пункт
+// «Уценка» уехала из верхней навигации в каталог: на десктопе — ссылкой в
+// мега-меню «Каталог», на телефоне держим её сразу за «Каталогом».
 const mobileNav: { href: string; label: string; accent?: boolean }[] = [
   { href: "/catalog", label: "Каталог", accent: true },
+  { href: "/sale", label: "Уценка" },
   ...nav,
 ];
 
@@ -121,7 +122,7 @@ export function SiteHeader() {
           </span>
           <button
             onClick={accountAction}
-            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition duration-150 hover:border-signal hover:text-signal active:scale-90"
             aria-label="Личный кабинет"
           >
             <User size={16} />
@@ -135,7 +136,7 @@ export function SiteHeader() {
           <button
             onClick={openCart}
             className={cn(
-              "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-colors hover:border-signal hover:text-signal sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2",
+              "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition duration-150 hover:border-signal hover:text-signal active:scale-90 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2",
               count > 0 ? "border-signal/50 text-signal" : "border-border",
             )}
             aria-label={`Корзина, товаров: ${count}`}
@@ -166,7 +167,7 @@ export function SiteHeader() {
           </button>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border md:hidden"
+            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition duration-150 hover:border-signal hover:text-signal active:scale-90 md:hidden"
             aria-label="Меню"
             aria-expanded={menuOpen}
           >

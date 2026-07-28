@@ -17,7 +17,11 @@ export const metadata: Metadata = {
 */
 export default function AboutPage() {
   const { contacts, requisites, trust } = siteConfig;
-  const brands = getBrands();
+  // «Наши бренды» — только собственные марки (MOMO, ZEUS), а не бренды товаров
+  // из каталога (Android, CAP, Starlight и т.п., которые тоже даёт getBrands).
+  const brands = getBrands().filter((b) =>
+    ["MOMO", "МОМО", "ZEUS"].includes(b.title.trim().toUpperCase()),
+  );
 
   const facts = [
     { value: "2015", label: "год, с которого мы в автозвуке" },
@@ -92,6 +96,12 @@ export default function AboutPage() {
         <h2 className="font-display text-lg font-extrabold uppercase">
           Наши бренды
         </h2>
+        <p className="mt-4 max-w-[72ch] text-[0.98rem] leading-relaxed text-muted-foreground">
+          <b className="font-semibold text-foreground">MOMO</b> и{" "}
+          <b className="font-semibold text-foreground">ZEUS</b> — наши
+          собственные бренды: мы официальный производитель этой автоакустики.
+          ZEUS — дочерняя марка более доступного, бюджетного сегмента.
+        </p>
         <div className="mt-5 flex flex-wrap gap-3">
           {brands.map((b) => (
             <Link

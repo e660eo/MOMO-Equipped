@@ -129,9 +129,9 @@ export function ThemeToggle({
       onClick={toggle}
       aria-label={label}
       className={cn(
-        "text-foreground transition-colors hover:text-signal",
+        "text-foreground transition duration-150 hover:text-signal",
         variant === "icon"
-          ? "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border hover:border-signal"
+          ? "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border hover:border-signal active:scale-90"
           : "flex min-h-11 w-full items-center gap-3 border-b border-border py-3.5 text-sm font-medium text-muted-foreground",
         className,
       )}
