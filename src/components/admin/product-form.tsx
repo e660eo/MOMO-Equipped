@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { productImageUrl } from "@/lib/format";
 import type { Product, Category, Brand } from "@/lib/types";
@@ -35,6 +35,16 @@ export function ProductForm({
   const [photos, setPhotos] = useState<string[]>(
     product ? [product.image, ...(product.images ?? [])] : [],
   );
+  // Превью только что выбранных файлов. Без него выбор нескольких снимков
+  // выглядел как «ничего не произошло»: миниатюры появлялись лишь после
+  // сохранения. Сами файлы уходят обычным input[type=file] — это только показ.
+  const [picked, setPicked] = useState<{ name: string; url: string }[]>([]);
+
+  function previewPicked(e: ChangeEvent<HTMLInputElement>) {
+    picked.forEach((p) => URL.revokeObjectURL(p.url));
+    const files = Array.from(e.target.files ?? []);
+    setPicked(files.map((f) => ({ name: f.name, url: URL.createObjectURL(f) })));
+  }
 
   const stock = product?.inStock === true ? "yes" : product?.inStock === false ? "no" : "";
 
@@ -174,8 +184,10 @@ export function ProductForm({
       <fieldset className="mt-8">
         <legend className="text-[0.78rem] font-medium">Фото</legend>
         <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
-          Первое фото — обложка в каталоге. Снимки обрезаются по краям и
-          сжимаются автоматически.
+          Можно добавить сразу несколько фото — в окне выбора отметьте нужные
+          с зажатым Ctrl. Первое станет обложкой в каталоге («На обложку»
+          переставляет), остальные — галереей в карточке. Снимки обрезаются по
+          краям и сжимаются автоматически.
         </p>
 
         {photos.length > 0 && (
@@ -228,8 +240,35 @@ export function ProductForm({
           name="newPhotos"
           multiple
           accept="image/jpeg,image/png,image/webp"
+          onChange={previewPicked}
           className="mt-3 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-signal file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-white"
         />
+
+        {picked.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[0.75rem] text-muted-foreground">
+              Добавятся после «Сохранить» ({picked.length}):
+            </p>
+            <div className="mt-2 flex flex-wrap gap-3">
+              {picked.map((p) => (
+                <div
+                  key={p.url}
+                  className="w-[132px] rounded-sm border border-dashed border-signal bg-surface p-2"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.url}
+                    alt=""
+                    className="h-[104px] w-full rounded-sm bg-tile object-contain"
+                  />
+                  <p className="mt-2 truncate text-[0.7rem] font-semibold text-signal">
+                    Новое фото
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </fieldset>
 
       {/* Флаги */}
