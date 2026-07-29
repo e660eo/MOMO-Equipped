@@ -60,7 +60,13 @@ function sizeToEnd(t: string): string {
   const m = t.match(re);
   if (!m || m.index === undefined) return (t + suffix).trim();
   const idx = m.index;
-  const size = m[1] + m[2]; // «16»+«см» → «16см», слитно, как в данных
+  /*
+    Опечатка единицы: у динамика диаметр в см ≥ 50 физически невозможен (это
+    1,3 метра). Реальные ≤ 38 см (15″), поэтому такое «см» — на деле мм.
+    Ловит SBS-130 «130см» → «130мм»; настоящие 10–25 см не трогает.
+  */
+  const unit = /см/i.test(m[2]) && parseInt(m[1], 10) >= 50 ? "мм" : m[2];
+  const size = m[1] + unit; // «16»+«см» → «16см», слитно, как в данных
   const rest = (t.slice(0, idx) + t.slice(idx + m[0].length))
     .replace(/\s{2,}/g, " ")
     .replace(/\s+([.,])/g, "$1")
