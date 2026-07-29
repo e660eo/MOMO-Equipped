@@ -1,5 +1,12 @@
 import { readJson, updateJson, assertWritable } from "./store";
-import type { Order, OrderStatus, OrderPayment, PaymentStatus } from "./types";
+import type {
+  Order,
+  OrderItem,
+  OrderStatus,
+  OrderPayment,
+  PaymentStatus,
+  Product,
+} from "./types";
 
 export { STATUS_LABELS } from "./order-status";
 
@@ -84,13 +91,58 @@ export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Ord
   return full;
 }
 
+/* Статусы, при которых товар считается проданным и остаток списан. */
+const COMMITTED = new Set<OrderStatus>(["in_work", "done"]);
+
+/*
+  Меняет остаток товаров по позициям заказа: sign −1 — списать (продажа),
+  +1 — вернуть (отмена). Трогаем только товары, где остаток ведётся (stock —
+  число); товары без учёта (флаг inStock) не при чём. Ниже нуля не опускаем —
+  отрицательный остаток на витрине смысла не имеет. Отдельный updateJson по
+  products.json: заказы и каталог лежат в разных файлах.
+*/
+function adjustProductStock(items: OrderItem[], sign: 1 | -1): void {
+  updateJson<Product[]>("products.json", (all) => {
+    const bySlug = new Map(all.map((p) => [p.slug, p]));
+    for (const item of items) {
+      const p = bySlug.get(item.slug);
+      if (!p || typeof p.stock !== "number") continue;
+      p.stock = Math.max(0, p.stock + sign * item.qty);
+    }
+    return all;
+  });
+}
+
 export function updateOrder(
   id: string,
   patch: { status?: OrderStatus; note?: string },
 ): void {
   assertWritable();
+
+  /*
+    Списание/возврат остатка привязано к смене статуса. Флаг stockDeducted на
+    заказе не даёт списать дважды: остаток уходит при первом переводе в
+    «в работе»/«выполнен» и возвращается при откате в «новый»/«отменён».
+    Правку остатка делаем ДО записи заказа, а сам флаг пишем тем же патчем.
+  */
+  let stockPatch: { stockDeducted: boolean } | undefined;
+  if (patch.status) {
+    const order = getOrder(id);
+    if (order && order.status !== patch.status) {
+      const wasDeducted = order.stockDeducted === true;
+      const shouldDeduct = COMMITTED.has(patch.status);
+      if (shouldDeduct && !wasDeducted) {
+        adjustProductStock(order.items, -1);
+        stockPatch = { stockDeducted: true };
+      } else if (!shouldDeduct && wasDeducted) {
+        adjustProductStock(order.items, 1);
+        stockPatch = { stockDeducted: false };
+      }
+    }
+  }
+
   updateJson<Order[]>(FILE, (all) =>
-    all.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+    all.map((o) => (o.id === id ? { ...o, ...patch, ...stockPatch } : o)),
   );
 }
 
