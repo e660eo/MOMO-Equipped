@@ -863,7 +863,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3075,
-    "image": "k_d078c8e947c54dd8a2fe1811b48bf489.webp",
+    "image": "he-612-cover-fa74ce356b.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -872,6 +872,11 @@
       "Диапазон частот 100-15000Гц",
       "Звуковая катушка 1.25KCCAW",
       "Магнит 120х20 / SPL 101Дб"
+    ],
+    "images": [
+      "he-612-g1-7edefc4e9b.webp",
+      "he-612-g2-451959d2bf.webp",
+      "he-612-g3-4f84d7e99e.webp"
     ]
   },
   {
@@ -880,8 +885,13 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 4449,
-    "image": "k_aad6567788884d74bbf6a810fb92f739.webp",
-    "isClearance": false
+    "image": "us-690-cover-939cbf023f.webp",
+    "isClearance": false,
+    "images": [
+      "us-690-g1-383a7672b5.webp",
+      "us-690-g2-140a98668b.webp",
+      "us-690-g3-d39647d7ef.webp"
+    ]
   },
   {
     "slug": "kolonki-koaksialnye-shirokopolosnye-16sm-us-310-677887",
@@ -1074,7 +1084,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 4485,
-    "image": "k_0937ab5020514cdd96db24dfb32e944e.webp",
+    "image": "fr-500-cover-99dc369fa7.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1091,6 +1101,11 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 30 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
+    ],
+    "images": [
+      "fr-500-g1-ad432141d2.webp",
+      "fr-500-g2-ffbc6cf875.webp",
+      "fr-500-g3-a2bb94cbc3.webp"
     ]
   },
   {

@@ -25,6 +25,16 @@ export async function register() {
     console.error("[title-cleanup] пропущено:", err);
   }
 
+  // Проставление новых фото товарам (photo-updates.json). Тоже самоограничивается
+  // и не роняет старт: данные живут на сервере, поэтому правим их здесь.
+  try {
+    const { applyPhotoUpdates } = await import("./lib/photo-updates");
+    const { changed } = applyPhotoUpdates();
+    if (changed) console.log(`[photo-updates] обновлено фото у товаров: ${changed}`);
+  } catch (err) {
+    console.error("[photo-updates] пропущено:", err);
+  }
+
   const { scheduleDailyBackup } = await import("./lib/backup-scheduler");
   scheduleDailyBackup();
 
