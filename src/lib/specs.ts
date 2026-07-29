@@ -219,6 +219,53 @@ function modelCode(title: string): ModelCode | null {
   return { first: parseInt(m[1], 10), power };
 }
 
+/*
+  Мощность из названия усилителя для кодов вне строгого «буквы-N.M».
+  Две схемы, которые тот код намеренно не трогал:
+    • бразильская  BD-5000.1  — «мощность.каналы» (первое число большое,
+      второе — одна цифра каналов, у всех наших это .1 = моноблок);
+    • без точки    D-1000, M-600, FR-500 — в коде только мощность.
+
+  Владелец выбрал показывать мощность именно из названия (D-1000 → 1000),
+  а не паспортную при 1 Ом из описания (там у того же D-1000 бывает 1100).
+  Число НЕ помечаем как RMS или MAX: для этих бюджетных моноблоков неизвестно,
+  что именно значит цифра в коде, поэтому подпись нейтральная — «Мощность».
+
+  Требуем 1–3 ЛАТИНСКИЕ буквы перед дефисом и 3–4 цифры мощности — так
+  «4GA», «4-канального» и Y-разветвители (все они матчат isAmplifier по слову
+  «усилитель») мимо, а сам код модели ловится.
+*/
+const BRAZIL_CODE_RE = /(?:^|[\s+(])[A-Za-z]{1,3}-(\d{3,4})\.(\d)(?!\d)/;
+/*
+  Мощность без точки. Отвергаем цифру сразу за числом (иначе съели бы часть
+  бразильского кода) и точку-с-цифрой (та же бразильская схема, .каналы), но
+  точку-конец-предложения пропускаем: у копии в уценку название
+  «Моноблок … FR-500. Товар уцененный» — точка тут разделитель, не часть кода.
+*/
+const DOTLESS_CODE_RE = /(?:^|[\s+(])[A-Za-z]{1,3}-(\d{3,4})(?!\d)(?!\.\d)/;
+
+interface AmpNamePower {
+  power: number;
+  /** Каналы, если их даёт код (бразильский .N) или слово «моноблок». */
+  channels?: number;
+}
+
+function ampNamePower(title: string): AmpNamePower | null {
+  const bz = title.match(BRAZIL_CODE_RE);
+  if (bz) {
+    const power = parseInt(bz[1], 10);
+    if (power <= POWER_SANITY_W)
+      return { power, channels: parseInt(bz[2], 10) };
+  }
+  const dl = title.match(DOTLESS_CODE_RE);
+  if (dl) {
+    const power = parseInt(dl[1], 10);
+    if (power <= POWER_SANITY_W)
+      return { power, channels: /моноблок/i.test(title) ? 1 : undefined };
+  }
+  return null;
+}
+
 // «Плата на усилитель/моноблок» тоже сюда: слова есть в названии.
 const isAmplifier = (title: string) => /усилител|моноблок/i.test(title);
 /*
@@ -367,7 +414,15 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
   const maxW = powerMaxFrom(src);
   const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
   const titleW = pTitle ? parseInt(pTitle[1], 10) : undefined;
-  if (maxW !== undefined) {
+  /*
+    Усилитель с нестандартным кодом (BD-5000.1, D-1000): мощность берём из
+    названия — выбор владельца. Она главнее описания здесь намеренно: паспортная
+    при 1 Ом из описания — как раз тот вариант, который он отклонил.
+  */
+  const nameAmp = amp && !code ? ampNamePower(title) : null;
+  if (nameAmp) {
+    stats.push({ label: "Мощность", value: `${nameAmp.power} Вт` });
+  } else if (maxW !== undefined) {
     stats.push({ label: "Мощность MAX", value: `${maxW} Вт` });
   } else if (codeW !== undefined) {
     // Номинал из кода модели — подпись честная: это RMS, а не пиковая.
@@ -382,10 +437,12 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
     бы неправдой. Ограничение сверху отсекает случайные совпадения — больше
     восьми каналов в автоусилителе не бывает.
   */
-  if (amp && !isSubwoofer(title) && code && code.first >= 1 && code.first <= 8) {
+  const channels =
+    code && code.first >= 1 && code.first <= 8 ? code.first : nameAmp?.channels;
+  if (amp && !isSubwoofer(title) && channels && channels >= 1 && channels <= 8) {
     stats.push({
       label: "Каналы",
-      value: `${code.first} ${plural(code.first, "канал", "канала", "каналов")}`,
+      value: `${channels} ${plural(channels, "канал", "канала", "каналов")}`,
     });
   }
 
