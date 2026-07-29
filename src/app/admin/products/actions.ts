@@ -8,6 +8,7 @@ import { uniqueSlug } from "@/lib/slug";
 import { saveProductImage, deleteProductImage } from "@/lib/image-pipeline";
 import { messageFor, isRedirect } from "@/lib/errors";
 import type { Product } from "@/lib/types";
+import profileSpecs from "./profile-specs.json";
 
 /*
   Действия панели над каталогом.
@@ -196,6 +197,55 @@ export async function createAsClearance(formData: FormData): Promise<void> {
  * что параллельная правка не теряется; writeJson делает копию в backups/,
  * поэтому импорт откатывается копированием файла обратно.
  */
+/*
+  Применение характеристик к каталогу — общий код для загрузки файлом и для
+  готового набора. Всё через updateJson: читает с диска (параллельная правка не
+  теряется), writeJson кладёт копию в backups/, поэтому импорт откатывается.
+*/
+function applySpecs(data: Record<string, unknown>): {
+  updated: number;
+  notFound: string[];
+} {
+  const entries = Object.entries(data);
+  let updated = 0;
+  const notFound: string[] = [];
+
+  updateJson<Product[]>(FILE, (all) => {
+    const bySlug = new Map(all.map((p) => [p.slug, p]));
+    for (const [slug, value] of entries) {
+      const p = bySlug.get(slug);
+      if (!p) {
+        notFound.push(slug);
+        continue;
+      }
+      if (!Array.isArray(value)) continue;
+      const lines = value.map((v) => String(v).trim()).filter(Boolean);
+      if (lines.length) {
+        p.description = lines;
+        updated++;
+      }
+    }
+    return all;
+  });
+
+  refreshSite();
+  revalidatePath("/admin/products");
+  return { updated, notFound };
+}
+
+function specsResult(updated: number, notFound: string[]): ActionState {
+  const tail = notFound.length
+    ? ` Не найдено на сайте: ${notFound.length} (${notFound.join(", ")}).`
+    : "";
+  return {
+    ok: `Готово. Обновлено характеристик у ${updated} ${updated === 1 ? "товара" : "товаров"}.${tail} Изменения уже на сайте.`,
+  };
+}
+
+/**
+ * Импорт характеристик из загруженного файла JSON вида
+ * `{ "слаг-товара": ["Ключ - значение", …] }`.
+ */
 export async function importSpecs(
   _prev: ActionState,
   formData: FormData,
@@ -219,39 +269,33 @@ export async function importSpecs(
       return { error: "Ожидается объект вида { \"слаг\": [строки] }." };
     }
 
-    const entries = Object.entries(data as Record<string, unknown>);
-    let updated = 0;
-    const notFound: string[] = [];
-
-    updateJson<Product[]>(FILE, (all) => {
-      const bySlug = new Map(all.map((p) => [p.slug, p]));
-      for (const [slug, value] of entries) {
-        const p = bySlug.get(slug);
-        if (!p) {
-          notFound.push(slug);
-          continue;
-        }
-        if (!Array.isArray(value)) continue;
-        const lines = value.map((v) => String(v).trim()).filter(Boolean);
-        if (lines.length) {
-          p.description = lines;
-          updated++;
-        }
-      }
-      return all;
-    });
-
-    refreshSite();
-    revalidatePath("/admin/products");
-
-    const tail = notFound.length
-      ? ` Не найдено на сайте: ${notFound.length} (${notFound.join(", ")}).`
-      : "";
-    return {
-      ok: `Готово. Обновлено характеристик у ${updated} ${updated === 1 ? "товара" : "товаров"}.${tail} Изменения уже на сайте.`,
-    };
+    const { updated, notFound } = applySpecs(data as Record<string, unknown>);
+    return specsResult(updated, notFound);
   } catch (e) {
     return { error: messageFor(e, "Не удалось импортировать.", "importSpecs") };
+  }
+}
+
+/**
+ * Применить готовый набор характеристик, зашитый в код (profile-specs.json,
+ * 59 профильных товаров). Нужен, когда скачать и загрузить файл вручную
+ * неудобно: нажал кнопку — характеристики появились.
+ */
+export async function applyBundledSpecs(
+  _prev: ActionState,
+  _formData: FormData,
+): Promise<ActionState> {
+  try {
+    await requireSession();
+    assertWritable();
+    const { updated, notFound } = applySpecs(
+      profileSpecs as Record<string, unknown>,
+    );
+    return specsResult(updated, notFound);
+  } catch (e) {
+    return {
+      error: messageFor(e, "Не удалось применить характеристики.", "applyBundledSpecs"),
+    };
   }
 }
 
