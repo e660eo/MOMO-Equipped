@@ -1,19 +1,39 @@
 "use client";
 
-import { useActionState, useState, type ChangeEvent } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import Link from "next/link";
 import { productImageUrl } from "@/lib/format";
 import type { Product, Category, Brand } from "@/lib/types";
 import { saveProduct, type ActionState } from "@/app/admin/products/actions";
+import { PhotoEditor } from "./photo-editor";
 
 /*
   Форма товара.
 
   Фото хранятся в состоянии: порядок задаёт обложку (первый снимок), поэтому
   «сделать обложкой» — это перемещение в начало списка. Итоговый порядок
-  уезжает скрытым полем, новые файлы — обычным input[type=file] в той же
-  отправке, чтобы не заводить отдельный экран загрузки.
+  уезжает скрытым полем.
+
+  Новые файлы держим в состоянии (с превью-URL), а не читаем прямо из input:
+  так их можно редактировать (поворот/обрезка/фон, см. PhotoEditor) и заменять.
+  Перед отправкой состояние синхронизируется в скрытый input[type=file] через
+  DataTransfer — серверный экшен читает файлы оттуда как обычно.
+
+  Правка уже загруженного снимка = заменяем его отредактированной загрузкой:
+  имя убираем из photos, готовый File кладём в новые. Старый файл на сервере
+  осиротеет — его подчистит удаление товара, как и общие снимки.
 */
+
+type NewItem = { file: File; url: string };
+type Editing =
+  | { kind: "existing"; name: string }
+  | { kind: "new"; index: number };
 
 const field =
   "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm focus:border-signal focus:outline-none";
@@ -35,15 +55,58 @@ export function ProductForm({
   const [photos, setPhotos] = useState<string[]>(
     product ? [product.image, ...(product.images ?? [])] : [],
   );
-  // Превью только что выбранных файлов. Без него выбор нескольких снимков
-  // выглядел как «ничего не произошло»: миниатюры появлялись лишь после
-  // сохранения. Сами файлы уходят обычным input[type=file] — это только показ.
-  const [picked, setPicked] = useState<{ name: string; url: string }[]>([]);
+  // Новые файлы (с превью-URL) — источник правды для отправки и редактирования.
+  const [newItems, setNewItems] = useState<NewItem[]>([]);
+  const [editing, setEditing] = useState<Editing | null>(null);
+  const hiddenRef = useRef<HTMLInputElement>(null);
 
-  function previewPicked(e: ChangeEvent<HTMLInputElement>) {
-    picked.forEach((p) => URL.revokeObjectURL(p.url));
+  // Синхронизация состояния в скрытый input[name=newPhotos] — его читает экшен.
+  useEffect(() => {
+    const input = hiddenRef.current;
+    if (!input) return;
+    const dt = new DataTransfer();
+    newItems.forEach((it) => dt.items.add(it.file));
+    input.files = dt.files;
+  }, [newItems]);
+
+  // Освобождаем объект-URL'ы при размонтировании формы.
+  useEffect(() => {
+    return () => newItems.forEach((it) => URL.revokeObjectURL(it.url));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function addFiles(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    setPicked(files.map((f) => ({ name: f.name, url: URL.createObjectURL(f) })));
+    setNewItems((list) => [
+      ...list,
+      ...files.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
+    ]);
+    e.target.value = ""; // позволяем выбрать тот же файл снова
+  }
+
+  function removeNew(index: number) {
+    setNewItems((list) => {
+      const it = list[index];
+      if (it) URL.revokeObjectURL(it.url);
+      return list.filter((_, i) => i !== index);
+    });
+  }
+
+  function applyEdit(file: File) {
+    if (!editing) return;
+    const item = { file, url: URL.createObjectURL(file) };
+    if (editing.kind === "new") {
+      setNewItems((list) => {
+        const old = list[editing.index];
+        if (old) URL.revokeObjectURL(old.url);
+        return list.map((it, i) => (i === editing.index ? item : it));
+      });
+    } else {
+      // правка уже загруженного: убираем имя из photos, добавляем новый файл
+      setPhotos((list) => list.filter((p) => p !== editing.name));
+      setNewItems((list) => [...list, item]);
+    }
+    setEditing(null);
   }
 
   const stock = product?.inStock === true ? "yes" : product?.inStock === false ? "no" : "";
@@ -186,8 +249,9 @@ export function ProductForm({
         <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
           Можно добавить сразу несколько фото — в окне выбора отметьте нужные
           с зажатым Ctrl. Первое станет обложкой в каталоге («На обложку»
-          переставляет), остальные — галереей в карточке. Снимки обрезаются по
-          краям и сжимаются автоматически.
+          переставляет), остальные — галереей в карточке. «Ред.» — повернуть,
+          обрезать и убрать фон (сделать белым); работает и с уже загруженными.
+          Снимки обрезаются по краям и сжимаются автоматически.
         </p>
 
         {photos.length > 0 && (
@@ -203,7 +267,7 @@ export function ProductForm({
                   alt=""
                   className="h-[104px] w-full rounded-sm bg-tile object-contain"
                 />
-                <div className="mt-2 flex items-center justify-between text-[0.7rem]">
+                <div className="mt-2 flex items-center gap-2 text-[0.7rem]">
                   {i === 0 ? (
                     <span className="font-semibold text-signal">Обложка</span>
                   ) : (
@@ -222,10 +286,17 @@ export function ProductForm({
                   )}
                   <button
                     type="button"
+                    onClick={() => setEditing({ kind: "existing", name: photo })}
+                    className="text-muted-foreground transition-colors hover:text-signal"
+                  >
+                    Ред.
+                  </button>
+                  <button
+                    type="button"
                     onClick={() =>
                       setPhotos((list) => list.filter((p) => p !== photo))
                     }
-                    className="text-muted-foreground transition-colors hover:text-[var(--signal-text)]"
+                    className="ml-auto text-muted-foreground transition-colors hover:text-[var(--signal-text)]"
                   >
                     Убрать
                   </button>
@@ -237,39 +308,79 @@ export function ProductForm({
 
         <input
           type="file"
-          name="newPhotos"
           multiple
           accept="image/jpeg,image/png,image/webp"
-          onChange={previewPicked}
+          onChange={addFiles}
           className="mt-3 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-signal file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-white"
         />
+        {/* Отправляются именно эти файлы: состояние синхронизируется сюда. */}
+        <input
+          ref={hiddenRef}
+          type="file"
+          name="newPhotos"
+          multiple
+          className="hidden"
+          tabIndex={-1}
+          aria-hidden
+        />
 
-        {picked.length > 0 && (
+        {newItems.length > 0 && (
           <div className="mt-3">
             <p className="text-[0.75rem] text-muted-foreground">
-              Добавятся после «Сохранить» ({picked.length}):
+              Добавятся после «Сохранить» ({newItems.length}):
             </p>
             <div className="mt-2 flex flex-wrap gap-3">
-              {picked.map((p) => (
+              {newItems.map((it, i) => (
                 <div
-                  key={p.url}
+                  key={it.url}
                   className="w-[132px] rounded-sm border border-dashed border-signal bg-surface p-2"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={p.url}
+                    src={it.url}
                     alt=""
                     className="h-[104px] w-full rounded-sm bg-tile object-contain"
                   />
-                  <p className="mt-2 truncate text-[0.7rem] font-semibold text-signal">
-                    Новое фото
-                  </p>
+                  <div className="mt-2 flex items-center gap-2 text-[0.7rem]">
+                    <button
+                      type="button"
+                      onClick={() => setEditing({ kind: "new", index: i })}
+                      className="font-semibold text-signal transition-colors hover:text-[#ff6a1f]"
+                    >
+                      Ред.
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeNew(i)}
+                      className="ml-auto text-muted-foreground transition-colors hover:text-[var(--signal-text)]"
+                    >
+                      Убрать
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
       </fieldset>
+
+      {editing &&
+        (editing.kind === "existing" || newItems[editing.index]) && (
+          <PhotoEditor
+            src={
+              editing.kind === "existing"
+                ? productImageUrl(editing.name)
+                : newItems[editing.index].file
+            }
+            fileName={
+              editing.kind === "existing"
+                ? editing.name
+                : newItems[editing.index].file.name
+            }
+            onApply={applyEdit}
+            onCancel={() => setEditing(null)}
+          />
+        )}
 
       {/* Флаги */}
       <div className="mt-7 space-y-2.5 text-[0.85rem]">

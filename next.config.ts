@@ -75,6 +75,10 @@ const nextConfig: NextConfig = {
     постоянным значением защищала бы ровно ни от чего.
   */
   async headers() {
+    // immutable-кэш на сборочные файлы включаем только в проде: в разработке
+    // он заставлял браузер держать устаревший JS и ломал горячую перезагрузку
+    // (Next об этом и предупреждает в консоли dev-сервера).
+    const prod = process.env.NODE_ENV === "production";
     return [
       {
         source: "/:path*",
@@ -115,25 +119,29 @@ const nextConfig: NextConfig = {
         имена. Без этого заголовка каждый повторный заход перепроверял весь
         JS и CSS условными запросами.
       */
-      {
-        source: "/_next/static/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      // Шрифты next/font — те же неизменяемые файлы с хешем в имени
-      {
-        source: "/_next/static/media/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
+      ...(prod
+        ? [
+            {
+              source: "/_next/static/:path*",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ],
+            },
+            // Шрифты next/font — те же неизменяемые файлы с хешем в имени
+            {
+              source: "/_next/static/media/:path*",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ],
+            },
+          ]
+        : []),
       /*
         Снимки товаров отдаёт свой обработчик (/media). Имя файла привязано к
         товару и при замене снимка меняется, поэтому неделя в кэше браузера и
