@@ -185,11 +185,15 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 4035,
-    "image": "k_6db661c4d7e444438b2907411dee8f12.webp",
+    "image": "ph-697-2ea313b2.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Динамики 6.5 С.Ч. (165 мм), 4Om, катушка 1.5 дюйма, RMS 150 ВТ, MAX 300 Вт, 96 Дб, 115 - 10 000 Гц"
+    ],
+    "images": [
+      "ph-698-8f5ef25e.webp",
+      "ph-699-beac32fd.webp"
     ]
   },
   {
@@ -198,7 +202,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1390,
-    "image": "k_cde67747907d4fa7b738db3e753bbf4e.webp",
+    "image": "ph-129-4a35c30f.webp",
     "isClearance": false,
     "inStock": false,
     "description": [
@@ -209,6 +213,10 @@
       "Диапозон частот - 75-15 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
+    ],
+    "images": [
+      "ph-131-737feb95.webp",
+      "ph-134-fee77fcb.webp"
     ]
   },
   {
@@ -217,11 +225,15 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3406,
-    "image": "k_2a8830c3854e48a29be610779496db57.webp",
+    "image": "ph-759-7f681502.webp",
     "isClearance": false,
     "description": [
       "Диаметр - 165mm",
       "Максимальная мощность: 150 Вт"
+    ],
+    "images": [
+      "ph-756-4ad7b905.webp",
+      "ph-757-cec0c252.webp"
     ]
   },
   {
@@ -230,7 +242,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 1142,
-    "image": "k_f3087f40537f4e67b0c060e203b48d4c.webp",
+    "image": "ph-650-ceee36bc.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -241,6 +253,10 @@
       "Диапозон частот - 55-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
+    ],
+    "images": [
+      "ph-652-9f697b39.webp",
+      "ph-651-244b1244.webp"
     ]
   },
   {
@@ -249,8 +265,12 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 2633,
-    "image": "k_cdb5942ea6d745e1beb5eba825660467.webp",
-    "isClearance": false
+    "image": "ph-152-2bf9cb43.webp",
+    "isClearance": false,
+    "images": [
+      "ph-154-f37218d1.webp",
+      "ph-151-480733b7.webp"
+    ]
   },
   {
     "slug": "dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938",
@@ -258,7 +278,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 982,
-    "image": "k_b4b65604ce0948f4bcc5271de13e7e38.webp",
+    "image": "ph-736-672dcbbe.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -269,6 +289,10 @@
       "Чувствительность 92 дб.",
       "Диапазон частот: 80-15000Гц.",
       "Звуковая катушка 1KCCAW VC"
+    ],
+    "images": [
+      "ph-735-f3ca80c2.webp",
+      "ph-737-ce034d2d.webp"
     ]
   },
   {
@@ -277,7 +301,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 2520,
-    "image": "k_ac8c03c67dd94dd0a6d4d614f99bc87b.webp",
+    "image": "ph-374-4ff37ee1.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -288,6 +312,10 @@
       "Диапозон частот - 75-15 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм KSV"
+    ],
+    "images": [
+      "ph-377-441d8d1e.webp",
+      "ph-728-e662b160.webp"
     ]
   },
   {
@@ -296,7 +324,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1442,
-    "image": "k_83e157f2d5b647328d1418d04423a864.webp",
+    "image": "ph-349-59b1c37f.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -307,6 +335,10 @@
       "Диапозон частот- 2 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм"
+    ],
+    "images": [
+      "ph-351-144214d1.webp",
+      "ph-352-fe2fb7f7.webp"
     ]
   },
   {
@@ -315,7 +347,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1278,
-    "image": "k_7e593ec9b92b4595821e96e97749233b.webp",
+    "image": "ph-349-59b1c37f.webp",
     "isClearance": true,
     "description": [
       "Диаметр - 100mm",
@@ -325,6 +357,10 @@
       "Диапозон частот- 2 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюйм"
+    ],
+    "images": [
+      "ph-351-144214d1.webp",
+      "ph-352-fe2fb7f7.webp"
     ]
   },
   {
@@ -333,7 +369,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 1499,
-    "image": "k_718875e89daf4badb3a681a7cc941a1c.webp",
+    "image": "ph-714-e16cfe8a.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -344,6 +380,10 @@
       "Диапозон частот- 120-12000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - Каптон 1 Дюйм"
+    ],
+    "images": [
+      "ph-360-739b127d.webp",
+      "ph-361-d65ff7bd.webp"
     ]
   },
   {
@@ -352,7 +392,7 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 1575,
-    "image": "k_ac7061bed9e64a868158560a7ff0a241.webp",
+    "image": "ph-368-b1aa10ff.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -363,6 +403,10 @@
       "Диапозон частот- 100-10 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1 Дюм KCCAW"
+    ],
+    "images": [
+      "ph-369-9eb4543d.webp",
+      "ph-717-487347ba.webp"
     ]
   },
   {
@@ -371,7 +415,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3563,
-    "image": "k_e4ef5c367ab54a9480bba114fe4330da.webp",
+    "image": "ph-635-dbd480ac.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -382,6 +426,10 @@
       "Диапозон частот- 60 - 20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1,5 Дюйма KSV"
+    ],
+    "images": [
+      "ph-637-2dcce85a.webp",
+      "ph-641-686389d3.webp"
     ]
   },
   {
@@ -390,8 +438,12 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 2653,
-    "image": "k_9f655ed1652d4bb396ee3fd2e9a12a1a.webp",
-    "isClearance": false
+    "image": "ph-316-499c78ad.webp",
+    "isClearance": false,
+    "images": [
+      "ph-315-620d34dc.webp",
+      "ph-319-e2e3c2e8.webp"
+    ]
   },
   {
     "slug": "distribyutor-pitaniya-db-4-105833",
