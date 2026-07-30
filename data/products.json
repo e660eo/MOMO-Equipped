@@ -1572,7 +1572,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 2774,
-    "image": "k_13a04ca57881481491a179d937de6d82.webp",
+    "image": "ph-496-a022b0b4.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1584,6 +1584,10 @@
       "Фильтр низких частот (LPF): 50 Гц – 200 Гц",
       "Фильтр высоких частот (HPF): 50 Гц – 8 кГц",
       "Соотношение сигнал/шум: 90 дБ"
+    ],
+    "images": [
+      "ph-498-662b785b.webp",
+      "ph-499-4403c440.webp"
     ]
   },
   {
@@ -1592,7 +1596,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6435,
-    "image": "k_27b75c539ba74890bbc75847c06dec7b.webp",
+    "image": "ph-962-33220a06.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1607,6 +1611,10 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 40 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
+    ],
+    "images": [
+      "ph-965-358c8c07.webp",
+      "ph-964-89d5bed7.webp"
     ]
   },
   {
@@ -1615,7 +1623,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 3240,
-    "image": "k_dc433fbf59e94fd9a57ffb1459eab4f5.webp",
+    "image": "ph-524-1e0547a9.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1630,6 +1638,10 @@
       "Фильтр низких частот (LPF): 30 Гц – 8 кГц",
       "Фильтр высоких частот (HPF): 30 Гц – 8 кГц",
       "Размеры (Д×Ш×В): 294 × 187 × 52 мм"
+    ],
+    "images": [
+      "ph-526-956ffe70.webp",
+      "ph-527-d8cd2e35.webp"
     ]
   },
   {
@@ -1638,7 +1650,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 9285,
-    "image": "k_3cb7f4bd2f0640aebd6037c95c14b28b.webp",
+    "image": "ph-976-2af3f869.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1652,6 +1664,10 @@
       "Соотношение сигнал/шум: 90 дБ",
       "Коэффициент гармонических искажений (THD): не указан",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
+    ],
+    "images": [
+      "ph-545-44a0bd7c.webp",
+      "ph-975-b221df7c.webp"
     ]
   },
   {
@@ -1660,8 +1676,12 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 22039,
-    "image": "k_1f51af7699bc429cb2b8ac877b9a9df4.webp",
-    "isClearance": false
+    "image": "ph-569-2cb5fff2.webp",
+    "isClearance": false,
+    "images": [
+      "ph-564-b312087a.webp",
+      "ph-568-ec8ad805.webp"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-1800-tovar-ucenennyy-697979",
@@ -1669,8 +1689,12 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 18489,
-    "image": "k_1ecfe684983f4874b4deb441d95b5559.webp",
-    "isClearance": true
+    "image": "ph-569-2cb5fff2.webp",
+    "isClearance": true,
+    "images": [
+      "ph-564-b312087a.webp",
+      "ph-568-ec8ad805.webp"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-500-479742",
@@ -1678,11 +1702,15 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 11055,
-    "image": "k_91d5782e04984bae9c9bd1d9e5515806.webp",
+    "image": "ph-578-093503c3.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
       "Широкополосный усилитель Минимальное сопротивление: 2 Ом количество каналов: 2 Номинальная мощность: 500 Вт Фильтр высоких частот: 30 Гц - 8 кГц Фильтр низких частот: 50 Гц - 300 Гц Класс уссилителя: D Коэффициент гармонических искажений (THD),%: < 0,05 Крутизна спада, дБ/Окт: 12 Усиление баса (BASS BOOST), Дб: 0 - 12 Входной терминал, Ga: 4 Выходной терминал, Ga: 8 Рабочее напряжение, В: 11 - 15 Отношение сигнал/шум, дБ: > 90"
+    ],
+    "images": [
+      "ph-581-3dbe6d13.webp",
+      "ph-580-e8aa5dc0.webp"
     ]
   },
   {
@@ -1724,8 +1752,12 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5551,
-    "image": "k_65fcd82e05154aa49f92b8f794c6e51c.webp",
-    "isClearance": false
+    "image": "ph-953-a9d97ccc.webp",
+    "isClearance": false,
+    "images": [
+      "ph-955-cc1bb7fc.webp",
+      "ph-956-5be300d2.webp"
+    ]
   },
   {
     "slug": "usilitel-avtomobilnyy-zeus-fr-2-1100-421465",
@@ -1778,7 +1810,11 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3858,
-    "image": "k_25bc81664b5d430c9f56140c72479572.webp",
-    "isClearance": false
+    "image": "ph-333-71658b59.webp",
+    "isClearance": false,
+    "images": [
+      "ph-332-31253834.webp",
+      "ph-334-482c3416.webp"
+    ]
   }
 ]
