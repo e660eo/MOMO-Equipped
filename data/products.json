@@ -887,9 +887,13 @@
     "brand": "ZEUS",
     "category": "dinamiki-rupora",
     "price": 2550,
-    "image": "k_e5bf3d37aa0942bf83bb627e9f76938a.webp",
+    "image": "ph-771-5ed329fe.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "images": [
+      "ph-772-f854f083.webp",
+      "ph-770-41a8bafa.webp"
+    ]
   },
   {
     "slug": "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173",
@@ -897,7 +901,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3435,
-    "image": "k_b6e15687488443eea9085ef0c2f076f1.webp",
+    "image": "ph-104-cf90c755.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -907,6 +911,10 @@
       "Диапазон частот: 70–10 000 Гц",
       "Звуковая катушка: 1,5 дюйма",
       "Материал диффузора: целлюлоза, армированная стекловолокном"
+    ],
+    "images": [
+      "ph-101-2253af41.webp",
+      "ph-103-c6dfe005.webp"
     ]
   },
   {
@@ -949,8 +957,12 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3652,
-    "image": "k_e345edacbff949f9acfe9a464e64beb7.webp",
-    "isClearance": false
+    "image": "ph-759-4edcf260.webp",
+    "isClearance": false,
+    "images": [
+      "ph-756-ebecdacf.webp",
+      "ph-757-689425fa.webp"
+    ]
   },
   {
     "slug": "kolonki-rupora-10sm-v-mashinu-he-400-009725",
@@ -958,7 +970,7 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 3299,
-    "image": "k_5b29d33dc38443aaaf71f32d437c3e4c.webp",
+    "image": "ph-303-c0d1a4ea.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -969,6 +981,10 @@
       "Диапозон частот - 3 000-20 000 Гц",
       "Импеданс - 4 Ом",
       "Звуковая катушка - 1.2 Дюйм KSV"
+    ],
+    "images": [
+      "ph-305-884e76e8.webp",
+      "ph-306-7b008c4f.webp"
     ]
   },
   {
@@ -977,8 +993,11 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 2371,
-    "image": "d802ef52-8fa2-4400-95fb-8d5abcf28df7.webp",
-    "isClearance": false
+    "image": "ph-298-49897bc9.webp",
+    "isClearance": false,
+    "images": [
+      "ph-299-5810e166.webp"
+    ]
   },
   {
     "slug": "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149",
@@ -986,8 +1005,12 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 5255,
-    "image": "k_9bbe36b334724916996b253fb6c1e3c5.webp",
-    "isClearance": false
+    "image": "ph-293-1549d4dc.webp",
+    "isClearance": false,
+    "images": [
+      "ph-663-2cffd599.webp",
+      "ph-662-51305b92.webp"
+    ]
   },
   {
     "slug": "komplekt-akusticheskih-kabeley-kit-m-042-304350",
@@ -1065,7 +1088,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 8511,
-    "image": "k_38e682f1014148e4bd61f6ab5c4e1442.webp",
+    "image": "ph-819-55db8e80.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1077,6 +1100,10 @@
       "Фильтр низких частот (LPF): 10 Гц – 1 кГц",
       "Фильтр высоких частот (HPF): 50 Гц – 20 кГц",
       "Соотношение сигнал/шум: 85 дБ"
+    ],
+    "images": [
+      "ph-825-bed29b28.webp",
+      "ph-821-891f7edc.webp"
     ]
   },
   {
@@ -1085,7 +1112,7 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 8373,
-    "image": "k_aba6d9956fac4a178e471f2fdbdec0d5.webp",
+    "image": "ph-866-682bc7b3.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1100,6 +1127,10 @@
       "Соотношение сигнал/шум: >90 дБ",
       "Предохранители: 3 шт (номинал не указан)",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
+    ],
+    "images": [
+      "ph-864-0782e7d7.webp",
+      "ph-865-2da88e3d.webp"
     ]
   },
   {
@@ -1164,8 +1195,13 @@
     "brand": "MOMO",
     "category": "usiliteli-monobloki",
     "price": 3831,
-    "image": "k_57149074a7c44ebbb6ac223bff70677a.webp",
-    "isClearance": true
+    "image": "ph-598-1a74a133.webp",
+    "isClearance": true,
+    "images": [
+      "ph-599-82dd2f5b.webp",
+      "ph-597-5986cadf.webp",
+      "ph-600-2e091939.webp"
+    ]
   },
   {
     "slug": "monoblok-avtomobilnyy-m-1-800-361333",
@@ -1173,7 +1209,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 5850,
-    "image": "k_85ca3fa5b23e4aaa903c4cc621fade0e.webp",
+    "image": "ph-849-bcbffe13.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1189,6 +1225,9 @@
       "Выносной регулятор: в комплекте",
       "Защиты: от перегрузки, короткого замыкания, перегрева",
       "Размеры (Д×Ш×В): 320 × 220 × 50 мм"
+    ],
+    "images": [
+      "ph-851-7e2ae207.webp"
     ]
   },
   {
@@ -1197,7 +1236,7 @@
     "brand": "ZEUS",
     "category": "usiliteli-monobloki",
     "price": 6530,
-    "image": "k_aa10edfa78b34eebbb3c87ccdfd4b001.webp",
+    "image": "ph-856-b6765ffd.webp",
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1212,6 +1251,9 @@
       "Соотношение сигнал/шум: 95 дБ",
       "Входная чувствительность: 0,2 – 6 В",
       "Выносной регулятор: Да Размеры (Д×Ш×В): 340 × 230 × 50 мм"
+    ],
+    "images": [
+      "ph-857-9176de87.webp"
     ]
   },
   {
