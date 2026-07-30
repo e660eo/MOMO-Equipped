@@ -151,6 +151,138 @@ export async function saveProduct(
   redirect("/admin/products?saved=1");
 }
 
+/* -------------------------- мгновенные операции с фото -------------------- */
+
+/*
+  Добавить/заменить/убрать снимок и сменить обложку — сразу, без сохранения
+  всей формы. Каждая операция изолирована в своём try/catch: сбой обработки
+  одного файла возвращается понятным сообщением, а не роняет страницу
+  «server error». Так же щадится память сервера — за раз обрабатывается один
+  файл, а не пачка в одном тяжёлом запросе «Сохранить». Порядок = обложка +
+  галерея, первый снимок всегда обложка.
+*/
+
+export type PhotoResult = { photos?: string[]; error?: string };
+
+/** Применяет fn к списку [обложка, ...галерея] товара и пишет обратно. */
+function withPhotos(
+  slug: string,
+  fn: (photos: string[]) => string[],
+): string[] | undefined {
+  let out: string[] | undefined;
+  updateJson<Product[]>(FILE, (all) =>
+    all.map((p) => {
+      if (p.slug !== slug) return p;
+      const next = fn([p.image, ...(p.images ?? [])]).filter(Boolean);
+      if (!next.length) return p; // без фото не оставляем — вызывающий проверил
+      out = next;
+      const updated: Product = { ...p, image: next[0] };
+      if (next.length > 1) updated.images = next.slice(1);
+      else delete updated.images;
+      return updated;
+    }),
+  );
+  return out;
+}
+
+/** Удаляет файл снимка, если он больше не используется ни одним товаром. */
+function cleanupPhotoFile(name: string): void {
+  const used = readJson<Product[]>(FILE).some(
+    (p) => p.image === name || (p.images ?? []).includes(name),
+  );
+  if (!used) void deleteProductImage(name);
+}
+
+export async function addPhoto(
+  slug: string,
+  formData: FormData,
+): Promise<PhotoResult> {
+  try {
+    await requireSession();
+    assertWritable();
+    const file = formData.get("photo");
+    if (!(file instanceof File) || file.size === 0)
+      return { error: "Файл не выбран." };
+    const name = await saveProductImage(file);
+    const photos = withPhotos(slug, (cur) => [...cur, name]);
+    if (!photos) {
+      void deleteProductImage(name); // товар исчез — не плодим сирот
+      return { error: "Товар не найден." };
+    }
+    refreshSite();
+    return { photos };
+  } catch (e) {
+    return { error: messageFor(e, "Не удалось добавить фото.", "addPhoto") };
+  }
+}
+
+export async function replacePhoto(
+  slug: string,
+  oldName: string,
+  formData: FormData,
+): Promise<PhotoResult> {
+  try {
+    await requireSession();
+    assertWritable();
+    const file = formData.get("photo");
+    if (!(file instanceof File) || file.size === 0)
+      return { error: "Файл не выбран." };
+    const name = await saveProductImage(file);
+    // Заменяем на месте (обложка остаётся обложкой); если старого уже нет —
+    // просто добавляем в конец.
+    const photos = withPhotos(slug, (cur) =>
+      cur.includes(oldName)
+        ? cur.map((p) => (p === oldName ? name : p))
+        : [...cur, name],
+    );
+    if (!photos) {
+      void deleteProductImage(name);
+      return { error: "Товар не найден." };
+    }
+    cleanupPhotoFile(oldName);
+    refreshSite();
+    return { photos };
+  } catch (e) {
+    return { error: messageFor(e, "Не удалось сохранить фото.", "replacePhoto") };
+  }
+}
+
+export async function removePhoto(
+  slug: string,
+  name: string,
+): Promise<PhotoResult> {
+  try {
+    await requireSession();
+    assertWritable();
+    const current = readJson<Product[]>(FILE).find((p) => p.slug === slug);
+    if (!current) return { error: "Товар не найден." };
+    if (1 + (current.images?.length ?? 0) <= 1)
+      return { error: "Нельзя убрать единственное фото — карточке нужен снимок." };
+    const photos = withPhotos(slug, (cur) => cur.filter((p) => p !== name));
+    cleanupPhotoFile(name);
+    refreshSite();
+    return { photos };
+  } catch (e) {
+    return { error: messageFor(e, "Не удалось убрать фото.", "removePhoto") };
+  }
+}
+
+export async function setCover(slug: string, name: string): Promise<PhotoResult> {
+  try {
+    await requireSession();
+    assertWritable();
+    const photos = withPhotos(slug, (cur) => [
+      name,
+      ...cur.filter((p) => p !== name),
+    ]);
+    if (!photos) return { error: "Товар не найден." };
+    refreshSite();
+    return { photos };
+  } catch (e) {
+    return { error: messageFor(e, "Не удалось сменить обложку.", "setCover") };
+  }
+}
+
 /**
  * Создать уценённую копию товара.
  *

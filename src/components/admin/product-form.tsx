@@ -10,7 +10,15 @@ import {
 import Link from "next/link";
 import { productImageUrl } from "@/lib/format";
 import type { Product, Category, Brand } from "@/lib/types";
-import { saveProduct, type ActionState } from "@/app/admin/products/actions";
+import {
+  saveProduct,
+  addPhoto,
+  replacePhoto,
+  removePhoto,
+  setCover,
+  type ActionState,
+  type PhotoResult,
+} from "@/app/admin/products/actions";
 import { PhotoEditor } from "./photo-editor";
 
 /*
@@ -52,15 +60,22 @@ export function ProductForm({
     saveProduct,
     {},
   );
+  const editingProduct = Boolean(product);
+  const slug = product?.slug;
+
   const [photos, setPhotos] = useState<string[]>(
     product ? [product.image, ...(product.images ?? [])] : [],
   );
-  // Новые файлы (с превью-URL) — источник правды для отправки и редактирования.
-  const [newItems, setNewItems] = useState<NewItem[]>([]);
   const [editing, setEditing] = useState<Editing | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoErr, setPhotoErr] = useState<string | null>(null);
+
+  // Новые файлы (с превью) — только для НОВОГО товара: у него ещё нет карточки,
+  // поэтому снимки уезжают вместе с первым «Сохранить» (скрытый input ниже).
+  // У существующего товара фото сохраняются сразу, newItems остаётся пустым.
+  const [newItems, setNewItems] = useState<NewItem[]>([]);
   const hiddenRef = useRef<HTMLInputElement>(null);
 
-  // Синхронизация состояния в скрытый input[name=newPhotos] — его читает экшен.
   useEffect(() => {
     const input = hiddenRef.current;
     if (!input) return;
@@ -69,19 +84,56 @@ export function ProductForm({
     input.files = dt.files;
   }, [newItems]);
 
-  // Освобождаем объект-URL'ы при размонтировании формы.
   useEffect(() => {
     return () => newItems.forEach((it) => URL.revokeObjectURL(it.url));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function addFiles(e: ChangeEvent<HTMLInputElement>) {
+  // Операция над фото существующего товара: сразу на сервер, список — из ответа.
+  async function runPhotoOp(op: Promise<PhotoResult>) {
+    setPhotoBusy(true);
+    setPhotoErr(null);
+    try {
+      const r = await op;
+      if (r.error) setPhotoErr(r.error);
+      else if (r.photos) setPhotos(r.photos);
+    } catch {
+      setPhotoErr("Не удалось — попробуйте ещё раз.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  function onPick(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    setNewItems((list) => [
-      ...list,
-      ...files.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
-    ]);
     e.target.value = ""; // позволяем выбрать тот же файл снова
+    if (!files.length) return;
+    if (!editingProduct) {
+      setNewItems((list) => [
+        ...list,
+        ...files.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
+      ]);
+      return;
+    }
+    // Существующий товар — грузим по одному сразу: каждый файл своим запросом,
+    // это щадит память сервера и не роняет всё, если один снимок не обработался.
+    void (async () => {
+      for (const f of files) {
+        const fd = new FormData();
+        fd.append("photo", f);
+        await runPhotoOp(addPhoto(slug!, fd));
+      }
+    })();
+  }
+
+  function onCover(name: string) {
+    if (editingProduct) void runPhotoOp(setCover(slug!, name));
+    else setPhotos((l) => [name, ...l.filter((p) => p !== name)]);
+  }
+
+  function onRemove(name: string) {
+    if (editingProduct) void runPhotoOp(removePhoto(slug!, name));
+    else setPhotos((l) => l.filter((p) => p !== name));
   }
 
   function removeNew(index: number) {
@@ -94,6 +146,15 @@ export function ProductForm({
 
   function applyEdit(file: File) {
     if (!editing) return;
+    // Существующий товар: правка уже загруженного = замена сразу на сервере.
+    if (editingProduct && editing.kind === "existing") {
+      const fd = new FormData();
+      fd.append("photo", file);
+      void runPhotoOp(replacePhoto(slug!, editing.name, fd));
+      setEditing(null);
+      return;
+    }
+    // Новый товар: правка идёт в состоянии до первого сохранения.
     const item = { file, url: URL.createObjectURL(file) };
     if (editing.kind === "new") {
       setNewItems((list) => {
@@ -102,7 +163,6 @@ export function ProductForm({
         return list.map((it, i) => (i === editing.index ? item : it));
       });
     } else {
-      // правка уже загруженного: убираем имя из photos, добавляем новый файл
       setPhotos((list) => list.filter((p) => p !== editing.name));
       setNewItems((list) => [...list, item]);
     }
@@ -248,10 +308,10 @@ export function ProductForm({
         <legend className="text-[0.78rem] font-medium">Фото</legend>
         <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
           Можно добавить сразу несколько фото — в окне выбора отметьте нужные
-          с зажатым Ctrl. Первое станет обложкой в каталоге («На обложку»
-          переставляет), остальные — галереей в карточке. «Ред.» — повернуть,
-          обрезать и убрать фон (сделать белым); работает и с уже загруженными.
-          Снимки обрезаются по краям и сжимаются автоматически.
+          с зажатым Ctrl. Первое — обложка в каталоге, «На обложку» её меняет.
+          «Ред.» — повернуть, обрезать и убрать фон (сделать белым). У
+          сохранённого товара любое изменение фото применяется сразу, не выходя
+          со страницы. Снимки обрезаются по краям и сжимаются автоматически.
         </p>
 
         {photos.length > 0 && (
@@ -273,13 +333,9 @@ export function ProductForm({
                   ) : (
                     <button
                       type="button"
-                      onClick={() =>
-                        setPhotos((list) => [
-                          photo,
-                          ...list.filter((p) => p !== photo),
-                        ])
-                      }
-                      className="text-muted-foreground transition-colors hover:text-signal"
+                      onClick={() => onCover(photo)}
+                      disabled={photoBusy}
+                      className="text-muted-foreground transition-colors hover:text-signal disabled:opacity-50"
                     >
                       На обложку
                     </button>
@@ -287,16 +343,16 @@ export function ProductForm({
                   <button
                     type="button"
                     onClick={() => setEditing({ kind: "existing", name: photo })}
-                    className="text-muted-foreground transition-colors hover:text-signal"
+                    disabled={photoBusy}
+                    className="text-muted-foreground transition-colors hover:text-signal disabled:opacity-50"
                   >
                     Ред.
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      setPhotos((list) => list.filter((p) => p !== photo))
-                    }
-                    className="ml-auto text-muted-foreground transition-colors hover:text-[var(--signal-text)]"
+                    onClick={() => onRemove(photo)}
+                    disabled={photoBusy}
+                    className="ml-auto text-muted-foreground transition-colors hover:text-[var(--signal-text)] disabled:opacity-50"
                   >
                     Убрать
                   </button>
@@ -310,10 +366,11 @@ export function ProductForm({
           type="file"
           multiple
           accept="image/jpeg,image/png,image/webp"
-          onChange={addFiles}
-          className="mt-3 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-signal file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-white"
+          onChange={onPick}
+          disabled={photoBusy}
+          className="mt-3 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-signal file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-white disabled:opacity-60"
         />
-        {/* Отправляются именно эти файлы: состояние синхронизируется сюда. */}
+        {/* Для нового товара файлы уезжают этим скрытым input при «Сохранить». */}
         <input
           ref={hiddenRef}
           type="file"
@@ -324,7 +381,18 @@ export function ProductForm({
           aria-hidden
         />
 
-        {newItems.length > 0 && (
+        {editingProduct && (
+          <p className="mt-2 text-[0.75rem] text-muted-foreground">
+            {photoBusy
+              ? "Загружаю…"
+              : "Изменения фото сохраняются сразу — форму пересохранять не нужно."}
+          </p>
+        )}
+        {photoErr && (
+          <p className="mt-2 text-[0.8rem] text-[var(--signal-text)]">{photoErr}</p>
+        )}
+
+        {!editingProduct && newItems.length > 0 && (
           <div className="mt-3">
             <p className="text-[0.75rem] text-muted-foreground">
               Добавятся после «Сохранить» ({newItems.length}):
