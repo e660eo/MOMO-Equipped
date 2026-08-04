@@ -59,6 +59,65 @@ export function isPayConfigured(): boolean {
   return payConfig() !== null;
 }
 
+/* ------------------------------ фискализация ------------------------------ */
+
+/*
+  Онлайн-чеки по 54-ФЗ. Когда в кабинете Яндекс Пэй подключена касса (у нас —
+  АТОЛ Онлайн) и включена фискализация, в заказ ОБЯЗАТЕЛЬНО передаются данные
+  чека: контакт покупателя и по каждой позиции — ставка НДС и признаки расчёта.
+  Сам чек формирует Яндекс на стороне кассы; налоговую систему задают в кабинете.
+
+  Пока касса не подключена, чек НЕ шлём (флаг YANDEX_PAY_FISCAL выключен): если
+  отправить данные чека при неподключённой фискализации, Яндекс отклонит заказ и
+  оплата перестанет создаваться. Флаг включаем синхронно с настройкой кабинета.
+
+  ⚠️ Боевой приём денег (YANDEX_PAY_LIVE=1) без фискализации — это приём выручки
+  без чека, нарушение 54-ФЗ. Живой режим включаем только вместе с этим флагом.
+
+  Все коды — из справочника ФНС Яндекс Пэй:
+  https://pay.yandex.ru/ru/docs/custom/backend/fns
+*/
+
+/** Признак предмета расчёта: 1 = «Товар» (у нас автоакустика и аксессуары). */
+const RECEIPT_SUBJECT_GOODS = 1;
+
+interface FiscalConfig {
+  /** Код ставки НДС из справочника ФНС: 8 = «НДС 5%», 6 = «Без НДС», 11 = «НДС 22%». */
+  vatCode: number;
+  /** Признак способа расчёта: 1 = «Полная предоплата до передачи», 4 = «Полный расчёт». */
+  paymentMethod: number;
+}
+
+/**
+ * Настройки чека или null, если фискализация ещё не подключена.
+ *
+ * Ставку НДС и способ расчёта держим в окружении, а не в константах: это
+ * налоговые значения, их точнее выставить при подключении кассы (в т.ч. на
+ * месте, вместе со специалистом), не пересобирая сайт. По умолчанию для этого
+ * магазина — НДС 5% (код 8) и 100% предоплата (код 1).
+ */
+function fiscalConfig(): FiscalConfig | null {
+  if (env("YANDEX_PAY_FISCAL") !== "1") return null;
+  return {
+    vatCode: Number(env("YANDEX_PAY_VAT_CODE")) || 8,
+    paymentMethod: Number(env("YANDEX_PAY_PAYMENT_METHOD")) || 1,
+  };
+}
+
+export function isFiscalEnabled(): boolean {
+  return fiscalConfig() !== null;
+}
+
+/*
+  Контакт для электронного чека — телефон покупателя (email в заказе не
+  собираем). Яндекс принимает строку: нецифры игнорирует, «8» в начале трактует
+  как «+7». Нормализуем к +7XXXXXXXXXX, чтобы чек ушёл на верный номер.
+*/
+function fiscalContact(phone: string): string {
+  const digits = phone.replace(/\D/g, "").replace(/^8/, "7");
+  return digits.startsWith("7") ? `+${digits}` : `+7${digits}`;
+}
+
 /*
   Подмена адреса API — только для разработки: на ней прогоняется вся цепочка
   (создание заказа, статус, подписанный вебхук) без похода в Яндекс.
@@ -123,11 +182,22 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
   const lineTotals = order.items.map(
     (i) => Math.round(i.price * i.qty * factor * 100) / 100,
   );
+  // Данные чека добавляем к позициям, только если подключена фискализация.
+  const fiscal = fiscalConfig();
   const items = order.items.map((item, idx) => ({
     productId: item.slug,
     title: item.title,
     quantity: { count: String(item.qty) },
     total: money(lineTotals[idx]),
+    ...(fiscal
+      ? {
+          receipt: {
+            tax: fiscal.vatCode,
+            paymentSubjectType: RECEIPT_SUBJECT_GOODS,
+            paymentMethodType: fiscal.paymentMethod,
+          },
+        }
+      : {}),
   }));
 
   const total = lineTotals.reduce((sum, t) => sum + t, 0);
@@ -145,6 +215,8 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
       merchantId: config.merchantId,
       orderId: order.id,
       currencyCode: "RUB",
+      // Контакт для чека — только при включённой фискализации.
+      ...(fiscal ? { fiscalContact: fiscalContact(order.customer.phone) } : {}),
       cart: { items, total: { amount: money(total) } },
       // Сплит рядом с картой: покупатель выбирает сам на форме Яндекса.
       // Пока договор на Сплит не заключён, Яндекс его просто не покажет.
