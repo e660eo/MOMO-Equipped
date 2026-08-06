@@ -102,20 +102,12 @@ export default function Home() {
               Автоакустика · с 2015 года
             </p>
 
-            {/*
-              Слоган и логотип разведены: раньше заголовок лежал подложкой
-              позади рендера и читался кусками. Теперь он идёт строкой над
-              логотипом, а логотип остаётся самым крупным объектом экрана.
-            */}
-            <h1 className="mx-auto mt-4 max-w-[22ch] font-display text-[clamp(1.5rem,4.2vw,2.9rem)] font-extrabold uppercase leading-[1.04] tracking-tight text-zinc-900">
-              Автоакустика <span className="text-signal">MOMO</span> и ZEUS
-            </h1>
-            <p className="mt-3 font-display text-[clamp(0.95rem,2vw,1.25rem)] font-semibold uppercase tracking-wide text-neutral-600">
+            {/* Слоган остаётся единственным заголовком первого экрана. */}
+            <h1 className="mt-4 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-neutral-600">
               Звук, который чувствуешь
-            </p>
+            </h1>
 
-            {/* Логотип ужат против прежнего: со слоганом отдельной строкой
-                экран стал выше, и кнопки уходили под сгиб. */}
+            {/* Логотип остаётся самым крупным объектом первого экрана. */}
             <div className="mt-5 flex items-center justify-center">
               <HeroLogo className="w-[clamp(260px,52vw,660px)]" />
             </div>

@@ -45,10 +45,10 @@ export default function AboutPage() {
       <div className="mt-8 grid items-start gap-10 md:grid-cols-[1.4fr_1fr]">
         <div className="space-y-5 text-[1.02rem] leading-relaxed text-muted-foreground">
           <p>
-            MOMO Equipped — магазин и бренд автомобильной акустики из
-            Махачкалы. Мы занимаемся автозвуком с 2015 года: собираем комплекты
-            под конкретные машины и бюджеты, отбираем оборудование, которое
-            держит заявленную мощность, и отвечаем за него гарантией.
+            MOMO Equipped — производитель автомобильной акустики MOMO и ZEUS
+            из Махачкалы. Мы занимаемся автозвуком с 2015 года: разрабатываем
+            оборудование, собираем комплекты под конкретные машины и бюджеты и
+            отвечаем за качество гарантией.
           </p>
           <p>
             В каталоге — сабвуферы, моноблоки и усилители, эстрадные динамики,
@@ -100,7 +100,7 @@ export default function AboutPage() {
         <p className="mt-4 max-w-[72ch] text-[0.98rem] leading-relaxed text-muted-foreground">
           <b className="font-semibold text-foreground">MOMO</b> и{" "}
           <b className="font-semibold text-foreground">ZEUS</b> — наши
-          собственные бренды: мы официальный производитель этой автоакустики.
+          собственные бренды. Мы разрабатываем и производим эту автоакустику.
           ZEUS — дочерняя марка более доступного, бюджетного сегмента.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">

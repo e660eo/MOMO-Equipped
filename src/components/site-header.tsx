@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 // это служебная информация, а не пункт основной навигации.
 const nav = [
   { href: "/about", label: "О компании" },
+  { href: "/news/novinki-momo-2026", label: "Новинки" },
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
 ];
