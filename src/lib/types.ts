@@ -249,4 +249,9 @@ export type PublicSiteConfig = Pick<SiteConfig, "contacts" | "trust"> & {
   payEnabled: boolean;
   /** Оплата идёт в песочнице — предупреждаем, что деньги ненастоящие. */
   paySandbox: boolean;
+  /**
+   * Публичный идентификатор магазина для Web SDK и официальных бейджей.
+   * Это не API-ключ: право создавать платежи по-прежнему остаётся на сервере.
+   */
+  payMerchantId: string | null;
 };

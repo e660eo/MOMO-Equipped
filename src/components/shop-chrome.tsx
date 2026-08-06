@@ -18,6 +18,7 @@ import { toSearchHits } from "@/lib/search-index";
 import { currentCustomer } from "@/lib/customer-auth";
 import { requestNonce } from "@/lib/nonce";
 import { payConfig } from "@/lib/yandex-pay";
+import Script from "next/script";
 
 /*
   Обвязка витрины: шапка, футер, оверлеи, счётчик. Вынесена из layout группы
@@ -48,46 +49,55 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
         trust,
         payEnabled: pay !== null,
         paySandbox: pay?.sandbox ?? false,
+        payMerchantId: pay?.merchantId ?? null,
       }}
     >
       <CustomerProvider value={customer}>
-      <SearchProvider hits={searchHits}>
-      <YandexMetrica nonce={nonce} />
-      {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
-      <JsonLd data={organizationSchema()} />
-      <JsonLd data={websiteSchema()} />
-      {/*
-        Колонка на всю высоту окна: если контента мало (короткая страница,
-        пустой результат фильтра, высокий монитор), растягивается обёртка
-        вокруг children, а тёмный футер остаётся прижатым к низу. Без этого
-        под футером проступала светлая полоса фона body.
-      */}
-      <ClickSpark
-        className="flex min-h-screen flex-col"
-        sparkColor="#ff5500"
-        sparkSize={11}
-        sparkRadius={18}
-        sparkCount={8}
-        duration={450}
-      >
-        <AnnouncementBar />
-        <SiteHeader />
-        <div className="flex-1">{children}</div>
-        <SiteFooter />
-      </ClickSpark>
-      {/*
-        Оверлеи держим вне шапки и ClickSpark: у шапки backdrop-filter, а он
-        создаёт точку отсчёта для position:fixed — внутри неё модалка
-        позиционировалась бы относительно шапки, а не экрана (окно входа
-        уезжало вверх на мобильном).
-      */}
-      {/* Корзина и окно входа — отдельными кусками, по требованию */}
-      <Overlays />
-      <Toaster />
-      <WhatsAppFab />
-      <CompareBar />
-      <CookieNotice />
-      </SearchProvider>
+        <SearchProvider hits={searchHits}>
+          {pay && (
+            <Script
+              id="yandex-pay-web-sdk"
+              src="https://pay.yandex.ru/sdk/v1/pay.js"
+              strategy="afterInteractive"
+              nonce={nonce}
+            />
+          )}
+          <YandexMetrica nonce={nonce} />
+          {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
+          <JsonLd data={organizationSchema()} />
+          <JsonLd data={websiteSchema()} />
+          {/*
+            Колонка на всю высоту окна: если контента мало (короткая страница,
+            пустой результат фильтра, высокий монитор), растягивается обёртка
+            вокруг children, а тёмный футер остаётся прижатым к низу. Без этого
+            под футером проступала светлая полоса фона body.
+          */}
+          <ClickSpark
+            className="flex min-h-screen flex-col"
+            sparkColor="#ff5500"
+            sparkSize={11}
+            sparkRadius={18}
+            sparkCount={8}
+            duration={450}
+          >
+            <AnnouncementBar />
+            <SiteHeader />
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </ClickSpark>
+          {/*
+            Оверлеи держим вне шапки и ClickSpark: у шапки backdrop-filter, а он
+            создаёт точку отсчёта для position:fixed — внутри неё модалка
+            позиционировалась бы относительно шапки, а не экрана (окно входа
+            уезжало вверх на мобильном).
+          */}
+          {/* Корзина и окно входа — отдельными кусками, по требованию */}
+          <Overlays />
+          <Toaster />
+          <WhatsAppFab />
+          <CompareBar />
+          <CookieNotice />
+        </SearchProvider>
       </CustomerProvider>
     </SiteConfigProvider>
   );

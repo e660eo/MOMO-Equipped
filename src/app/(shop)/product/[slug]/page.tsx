@@ -7,7 +7,6 @@ import {
   getProductsByCategory,
   getCategory,
   formatPrice,
-  splitPayment,
   productImageUrl,
   siteConfig,
 } from "@/lib/data";
@@ -20,6 +19,7 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { JsonLd } from "@/components/json-ld";
 import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 import { brandLandingPath } from "@/lib/seo-landings";
+import { YandexSplitBadge } from "@/components/yandex-split-badge";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -35,7 +35,7 @@ export async function generateMetadata({
   if (!product) return { title: "Товар не найден" };
   return {
     title: product.title,
-    description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, сплит ${formatPrice(splitPayment(product.price))} × 4. Гарантия 12 месяцев, доставка по России.`,
+    description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, доступна оплата через Яндекс Сплит. Гарантия 12 месяцев, доставка по России.`,
     alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       title: product.title,
@@ -61,7 +61,6 @@ export default async function ProductPage({
     .filter((p) => p.slug !== product.slug)
     .slice(0, 4);
 
-  const split = splitPayment(product.price);
   const available = isInStock(product);
   const { stats, rows, notes } = fullSpecs(product.title, product.description);
   // Обложка + дополнительные снимки из поля images (владелец пополняет сам)
@@ -153,21 +152,13 @@ export default async function ProductPage({
             )}
           </div>
 
-          {/* Сплит */}
-          <div className="mt-6 rounded border border-border bg-surface p-5">
-            <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
-              Сплит · оплата частями
-            </p>
-            <p className="mt-2 text-sm">
-              4 платежа по{" "}
-              <b className="font-display text-lg text-[var(--signal-text)]">
-                {formatPrice(split)}
-              </b>
-            </p>
-            <p className="mt-1 font-mono text-[0.68rem] text-muted-foreground">
-              Без процентов и переплат · одобрение за минуту
-            </p>
-          </div>
+          <YandexSplitBadge
+            amount={product.price}
+            size="l"
+            variant="detailed"
+            color="primary"
+            className="mt-6"
+          />
 
           <div className="mt-7 flex flex-wrap gap-3">
             <AddToCartButton product={product} size="lg" />

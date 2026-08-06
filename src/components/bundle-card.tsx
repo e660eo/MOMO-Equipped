@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { Package, Plus } from "lucide-react";
 import type { ResolvedBundle } from "@/lib/types";
-import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
+import { formatPrice, productImageUrl } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
 import { ProductImage } from "./product-image";
+import { YandexSplitBadge } from "./yandex-split-badge";
 
 export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
   const addMany = useCart((s) => s.addMany);
@@ -73,9 +74,15 @@ export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
           </span>
         </div>
         <p className="mt-1 font-mono text-[0.72rem] text-[var(--signal-text)]">
-          Выгода {formatPrice(bundle.saving)} · сплит{" "}
-          {formatPrice(splitPayment(bundle.price))} × 4
+          Выгода {formatPrice(bundle.saving)}
         </p>
+        <YandexSplitBadge
+          amount={bundle.price}
+          size="s"
+          variant="simple"
+          color="transparent"
+          className="mt-1.5"
+        />
 
         <button
           onClick={() =>

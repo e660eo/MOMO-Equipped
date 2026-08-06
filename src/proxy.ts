@@ -70,12 +70,12 @@ function contentSecurityPolicy(nonce: string): string {
     // Стили инлайновые по устройству React (style={{…}}) и Tailwind. Отдельной
     // дырой это не является: подмена стилей — не выполнение кода.
     "style-src 'self' 'unsafe-inline'",
-    // data: — заглушки-размытия next/image, mc.yandex.ru — пиксель Метрики.
-    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com",
+    // data: — заглушки next/image; внешние домены — Метрика и Web SDK Пэй.
+    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru",
     "font-src 'self' data:",
     // Куда странице разрешено стучаться. Даже выполнившийся чужой скрипт не
     // отправит отсюда корзину и телефоны покупателей на свой сервер.
-    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com",
+    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru",
     // Карта проезда, служебная рамка Метрики и — когда включат — оплата.
     "frame-src https://yandex.ru https://mc.yandex.ru https://pay.yandex.ru",
     // Нас самих в чужую рамку не затянуть: кликджекинг на форме входа.

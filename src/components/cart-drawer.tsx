@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
-import { formatPrice, splitPayment, productImageUrl } from "@/lib/format";
+import { formatPrice, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { isPhoneComplete } from "@/lib/phone";
 import { submitOrder, checkPromo } from "@/app/order-actions";
@@ -12,6 +12,7 @@ import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { cn } from "@/lib/utils";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { YandexSplitBadge } from "./yandex-split-badge";
 
 // Данные получателя запоминаем — при повторном заказе не вводить заново.
 const RECIPIENT_KEY = "momo-recipient";
@@ -517,13 +518,13 @@ export function CartDrawer() {
                 {formatPrice(payable)}
               </span>
             </div>
-            <p className="mb-3 mt-1 font-mono text-[0.7rem] text-muted-foreground">
-              или сплит{" "}
-              <b className="font-medium text-[var(--signal-text)]">
-                {formatPrice(splitPayment(payable))} × 4
-              </b>{" "}
-              без процентов
-            </p>
+            <YandexSplitBadge
+              amount={payable}
+              size="m"
+              variant="detailed"
+              color="primary"
+              className="mb-4 mt-2"
+            />
             <ConsentCheckbox
               id="rc-consent"
               checked={consent}

@@ -4,12 +4,13 @@ import { memo, useCallback, useMemo, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { formatPrice, splitPayment, productImageUrl, isInStock } from "@/lib/format";
+import { formatPrice, productImageUrl, isInStock } from "@/lib/format";
 import { shortSpecs } from "@/lib/specs";
 import { cn } from "@/lib/utils";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-image";
 import { CompareToggle } from "./compare-toggle";
+import { YandexSplitBadge } from "./yandex-split-badge";
 
 /*
   Плитка товара.
@@ -184,18 +185,17 @@ function ProductCardImpl({
         </div>
       )}
 
-      {/* На узкой плитке (две колонки на телефоне) цена и сплит в одну строку
-          не помещаются и рвутся посреди числа — там они идут друг под другом. */}
-      <div className="mt-3.5 flex flex-col gap-0.5 border-t border-border pt-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+      <div className="mt-3.5 border-t border-border pt-3.5">
         <span className="font-display text-[1.05rem] font-semibold whitespace-nowrap">
           {formatPrice(product.price)}
         </span>
-        <span className="font-mono text-[0.68rem] text-muted-foreground whitespace-nowrap">
-          <b className="font-medium text-[var(--signal-text)]">
-            {formatPrice(splitPayment(product.price))}
-          </b>{" "}
-          × 4
-        </span>
+        <YandexSplitBadge
+          amount={product.price}
+          size="s"
+          variant="simple"
+          color="transparent"
+          className="mt-1.5"
+        />
       </div>
 
       <div className="mt-3">
