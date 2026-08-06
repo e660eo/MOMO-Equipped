@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { HeroLogo } from "@/components/hero-logo";
 import {
   Disc3,
@@ -27,6 +28,20 @@ import { ProductCard } from "@/components/product-card";
 import { WaveDivider } from "@/components/wave-divider";
 import { SectionHead } from "@/components/section-head";
 import { Reveal } from "@/components/reveal";
+
+export const metadata: Metadata = {
+  title: { absolute: "Автоакустика MOMO и ZEUS — официальный каталог" },
+  description:
+    "Официальный каталог автоакустики MOMO и ZEUS: динамики, сабвуферы, усилители и моноблоки. Гарантия 12 месяцев, доставка по России.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Автоакустика MOMO и ZEUS",
+    description:
+      "Динамики, сабвуферы и усилители MOMO и ZEUS. Гарантия 12 месяцев, доставка по всей России.",
+    type: "website",
+    url: "/",
+  },
+};
 
 const categoryIcons: Record<string, LucideIcon> = {
   sabvufery: Disc3,
@@ -84,7 +99,7 @@ export default function Home() {
 
           <div className="relative z-10 mx-auto max-w-[1100px] px-6 pb-14 pt-10 text-center">
             <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-neutral-500 before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
-              В игре с 2015
+              Автоакустика · с 2015 года
             </p>
 
             {/*
@@ -92,9 +107,12 @@ export default function Home() {
               позади рендера и читался кусками. Теперь он идёт строкой над
               логотипом, а логотип остаётся самым крупным объектом экрана.
             */}
-            <h1 className="mx-auto mt-4 max-w-[16ch] font-display text-[clamp(1.5rem,4.2vw,2.9rem)] font-extrabold uppercase leading-[1.04] tracking-tight text-zinc-900">
-              Звук, который <span className="text-signal">чувствуешь.</span>
+            <h1 className="mx-auto mt-4 max-w-[22ch] font-display text-[clamp(1.5rem,4.2vw,2.9rem)] font-extrabold uppercase leading-[1.04] tracking-tight text-zinc-900">
+              Автоакустика <span className="text-signal">MOMO</span> и ZEUS
             </h1>
+            <p className="mt-3 font-display text-[clamp(0.95rem,2vw,1.25rem)] font-semibold uppercase tracking-wide text-neutral-600">
+              Звук, который чувствуешь
+            </p>
 
             {/* Логотип ужат против прежнего: со слоганом отдельной строкой
                 экран стал выше, и кнопки уходили под сгиб. */}
@@ -158,7 +176,7 @@ export default function Home() {
               return (
                 <Link
                   key={slug}
-                  href={`/catalog?category=${slug}`}
+                  href={`/catalog/${slug}`}
                   className={cn(
                     "group relative flex min-h-[172px] flex-col justify-between overflow-hidden rounded-xl border border-border bg-surface p-6 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-signal/60 hover:shadow-[0_18px_50px_-24px_rgba(255,85,0,0.45)]",
                     feature && "lg:p-8",
@@ -244,7 +262,7 @@ export default function Home() {
           <SectionHead
             eyebrow="Старшие модели · линейка MOMO"
             title="Флагманы MOMO"
-            linkHref="/catalog?brand=MOMO"
+            linkHref="/brand/momo"
             linkLabel="Вся линейка →"
           />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

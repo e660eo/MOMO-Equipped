@@ -19,8 +19,8 @@ export const metadata = {
 
 const shortcuts = [
   { href: "/catalog", label: "Весь каталог", icon: Disc3 },
-  { href: "/catalog?category=sabvufery", label: "Сабвуферы", icon: Volume2 },
-  { href: "/catalog?category=usiliteli-monobloki", label: "Усилители", icon: Zap },
+  { href: "/catalog/sabvufery", label: "Сабвуферы", icon: Volume2 },
+  { href: "/catalog/usiliteli-monobloki", label: "Усилители", icon: Zap },
   { href: "/sale", label: "Уценка", icon: Tag },
 ];
 

@@ -82,7 +82,7 @@ export function BannerCarousel() {
             className="object-cover"
           />
           <Link
-            href="/catalog?category=sabvufery"
+            href="/catalog/sabvufery"
             className="absolute bottom-8 left-10 z-[2] inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
           >
             К сабвуферам

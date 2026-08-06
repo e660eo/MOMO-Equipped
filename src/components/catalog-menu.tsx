@@ -171,7 +171,7 @@ export function CatalogMenu() {
                       className="w-full"
                       onClick={() => {
                         setOpen(false);
-                        router.push(`/catalog?category=${g.slug}`);
+                        router.push(`/catalog/${g.slug}`);
                       }}
                     >
                       <span className="flex w-full items-center gap-2">

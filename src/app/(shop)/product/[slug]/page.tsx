@@ -19,6 +19,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { JsonLd } from "@/components/json-ld";
 import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
+import { brandLandingPath } from "@/lib/seo-landings";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -35,6 +36,14 @@ export async function generateMetadata({
   return {
     title: product.title,
     description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, сплит ${formatPrice(splitPayment(product.price))} × 4. Гарантия 12 месяцев, доставка по России.`,
+    alternates: { canonical: `/product/${product.slug}` },
+    openGraph: {
+      title: product.title,
+      description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, гарантия 12 месяцев, доставка по России.`,
+      type: "website",
+      url: `/product/${product.slug}`,
+      images: [productImageUrl(product.image)],
+    },
   };
 }
 
@@ -63,7 +72,7 @@ export default async function ProductPage({
     { name: "Главная", url: "/" },
     { name: "Каталог", url: "/catalog" },
     ...(category
-      ? [{ name: category.title, url: `/catalog?category=${category.slug}` }]
+      ? [{ name: category.title, url: `/catalog/${category.slug}` }]
       : []),
     { name: product.title, url: `/product/${product.slug}` },
   ];
@@ -85,7 +94,7 @@ export default async function ProductPage({
           <>
             <span>/</span>
             <Link
-              href={`/catalog?category=${category.slug}`}
+              href={`/catalog/${category.slug}`}
               className="hover:text-signal"
             >
               {category.title}
@@ -104,7 +113,7 @@ export default async function ProductPage({
         <div>
           <div className="flex items-center gap-3">
             <Link
-              href={`/catalog?brand=${product.brand}`}
+              href={brandLandingPath(product.brand)}
               className="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground hover:text-signal"
             >
               {product.brand}
@@ -302,7 +311,7 @@ export default async function ProductPage({
             </h2>
             {category && (
               <Link
-                href={`/catalog?category=${category.slug}`}
+                href={`/catalog/${category.slug}`}
                 className="font-mono text-[0.78rem] uppercase tracking-wider text-muted-foreground hover:text-signal"
               >
                 Все в категории →

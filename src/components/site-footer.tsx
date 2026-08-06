@@ -6,10 +6,12 @@ const cols = [
   {
     title: "Каталог",
     links: [
-      { href: "/catalog?category=sabvufery", label: "Сабвуферы" },
-      { href: "/catalog?category=usiliteli-monobloki", label: "Усилители" },
-      { href: "/catalog?category=dinamiki-rupora", label: "Динамики" },
-      { href: "/catalog?category=aksessuary", label: "Аксессуары" },
+      { href: "/catalog/sabvufery", label: "Сабвуферы" },
+      { href: "/catalog/usiliteli-monobloki", label: "Усилители" },
+      { href: "/catalog/dinamiki-rupora", label: "Динамики" },
+      { href: "/catalog/aksessuary", label: "Аксессуары" },
+      { href: "/brand/momo", label: "Бренд MOMO" },
+      { href: "/brand/zeus", label: "Бренд ZEUS" },
     ],
   },
   {

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "О компании",
   description:
     "MOMO Equipped — автозвук из Махачкалы с 2015 года: сабвуферы, усилители, эстрадная акустика. Собственные бренды, гарантия 12 месяцев, доставка по всей России.",
+  alternates: { canonical: "/about" },
 };
 
 /*
@@ -92,7 +93,7 @@ export default function AboutPage() {
       </div>
 
       {/* Бренды */}
-      <section className="mt-12">
+      <section id="brands" className="mt-12 scroll-mt-24">
         <h2 className="font-display text-lg font-extrabold uppercase">
           Наши бренды
         </h2>
@@ -106,7 +107,7 @@ export default function AboutPage() {
           {brands.map((b) => (
             <Link
               key={b.slug}
-              href={`/catalog?brand=${encodeURIComponent(b.title)}`}
+              href={`/brand/${b.slug}`}
               className="rounded-sm border border-border px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-wide transition-colors hover:border-signal hover:text-signal"
             >
               {b.title}
