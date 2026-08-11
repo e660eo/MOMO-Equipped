@@ -9,7 +9,7 @@ import { PayStatusPanel, type PayStatus } from "@/components/admin/pay-status";
 import { HealthPanel } from "@/components/admin/health-panel";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { mailerConfig, lastMailResult } from "@/lib/mailer";
-import { payConfig } from "@/lib/yandex-pay";
+import { isFiscalEnabled, payConfig } from "@/lib/yandex-pay";
 import { getHealthReport } from "@/lib/health";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -31,6 +31,7 @@ export default async function AdminSettingsPage({
   const payStatus: PayStatus = {
     configured: pay !== null,
     sandbox: pay?.sandbox ?? false,
+    fiscal: isFiscalEnabled(),
     callbackUrl: `${SITE_URL}/api/pay/callback`,
   };
 

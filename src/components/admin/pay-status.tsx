@@ -9,6 +9,8 @@
 export interface PayStatus {
   configured: boolean;
   sandbox: boolean;
+  /** Передаются ли Яндексу данные для формирования кассового чека. */
+  fiscal: boolean;
   /** Адрес, который нужно вписать в кабинете Яндекс Пэй. */
   callbackUrl: string;
 }
@@ -44,6 +46,20 @@ export function PayStatusPanel({ status }: { status: PayStatus }) {
           Работает в боевом режиме: покупатели платят картой или Сплитом,
           деньги настоящие. Оплата покрывает только товар — доставку
           согласовывает менеджер.
+        </p>
+      )}
+
+      {status.configured && (
+        <p
+          className={`mt-3 rounded-sm border px-3 py-2 text-[0.82rem] font-semibold leading-relaxed ${
+            status.fiscal
+              ? "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "border-[var(--signal-text)] text-[var(--signal-text)]"
+          }`}
+        >
+          {status.fiscal
+            ? "Онлайн-касса: данные для фискальных чеков передаются · НДС 5% · полная предоплата."
+            : "Фискальные чеки отключены. Не принимайте реальные платежи до подключения кассы."}
         </p>
       )}
 
