@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-store";
+import { useCart } from "@/lib/cart-store";
 import { useToast } from "@/lib/toast-store";
 import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
@@ -37,6 +38,7 @@ const labelCls =
 export function AuthModal() {
   const router = useRouter();
   const open = useAccount((s) => s.modalOpen);
+  const modalIntent = useAccount((s) => s.modalIntent);
   const closeModal = useAccount((s) => s.closeModal);
   const pushToast = useToast((s) => s.push);
 
@@ -60,6 +62,16 @@ export function AuthModal() {
     setTab(next);
     setError("");
     setForgot(false);
+  }
+
+  function finishCustomerAuth() {
+    const continueCheckout = modalIntent === "checkout";
+    closeModal();
+    // Сессия хранится в httpOnly-cookie, поэтому серверные данные страницы
+    // должны обновиться. Корзина при этом остаётся открытой и заполненной.
+    router.refresh();
+    if (continueCheckout) useCart.getState().openCart();
+    else router.push("/profile");
   }
 
   async function onForgot(e: React.FormEvent) {
@@ -108,12 +120,8 @@ export function AuthModal() {
     }
     setError("");
     setLgPass("");
-    closeModal();
     pushToast({ title: "С возвращением!", description: "Вы вошли в кабинет." });
-    // Обновляем страницу целиком: сессия живёт в куке, и серверная разметка
-    // (шапка, кабинет) должна перерисоваться с новыми данными.
-    router.refresh();
-    router.push("/profile");
+    finishCustomerAuth();
   }
 
   async function onRegister(e: React.FormEvent) {
@@ -136,13 +144,11 @@ export function AuthModal() {
     }
     setError("");
     setRgPass("");
-    closeModal();
     pushToast({
       title: "Аккаунт создан",
       description: "Теперь заказы видны с любого устройства.",
     });
-    router.refresh();
-    router.push("/profile");
+    finishCustomerAuth();
   }
 
 

@@ -4,8 +4,12 @@ import type { Metadata } from "next";
 import { getOrder } from "@/lib/orders";
 import { fetchPaymentStatus, isPaid, PAYMENT_LABELS } from "@/lib/yandex-pay";
 import { updatePaymentStatus } from "@/lib/orders";
+import { notifyPaidOrder } from "@/lib/order-mail";
 import { formatPrice } from "@/lib/format";
-import { safeHref } from "@/lib/sanitize";
+import {
+  ClearCartAfterPayment,
+  ReturnToCartForNewPayment,
+} from "@/components/payment-return-actions";
 import type { PaymentStatus } from "@/lib/types";
 
 /*
@@ -76,8 +80,14 @@ export default async function OrderStatusPage({
   try {
     const fresh = await fetchPaymentStatus(id);
     if (fresh) {
-      updatePaymentStatus(id, fresh);
+      const changed = updatePaymentStatus(id, fresh);
       status = fresh;
+      // Возврат покупателя может успеть раньше вебхука. В таком случае именно
+      // эта проверка впервые публикует заказ и должна уведомить владельца.
+      if (changed && isPaid(fresh)) {
+        const paidOrder = getOrder(id);
+        if (paidOrder) void notifyPaidOrder(paidOrder);
+      }
     }
   } catch {
     // Оставляем сохранённый статус: вебхук всё равно догонит.
@@ -91,6 +101,7 @@ export default async function OrderStatusPage({
     <main className="mx-auto max-w-[560px] px-6 py-20">
       {paid ? (
         <>
+          <ClearCartAfterPayment />
           <h1 className="font-display text-2xl font-extrabold uppercase">
             Заказ оплачен
           </h1>
@@ -111,18 +122,12 @@ export default async function OrderStatusPage({
             Оплата не прошла
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Заказ <b className="font-mono text-foreground">№{order.id}</b> мы
-            сохранили, деньги не списаны. Можно попробовать оплатить ещё раз
-            или написать нам — оформим без оплаты на сайте.
+            Деньги не списаны, и заказ{" "}
+            <b className="font-mono text-foreground">№{order.id}</b> ещё не
+            отправлен менеджеру. Вернитесь в корзину и начните новую попытку —
+            сайт создаст свежую платёжную ссылку.
           </p>
-          {order.payment?.url && (
-            <a
-              href={safeHref(order.payment.url)}
-              className="mt-6 inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
-            >
-              Попробовать снова
-            </a>
-          )}
+          <ReturnToCartForNewPayment />
         </>
       ) : (
         <>

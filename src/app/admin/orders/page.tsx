@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-auth";
-import { getOrders, STATUS_LABELS } from "@/lib/orders";
+import { getAdminOrders, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { plural, cn } from "@/lib/utils";
@@ -37,8 +37,8 @@ export default async function AdminOrdersPage({
   const { status = "", customer = "" } = await searchParams;
   // Заказы одного покупателя — переход из раздела «Клиенты»
   const all = customer
-    ? getOrders().filter((o) => o.customerId === customer)
-    : getOrders();
+    ? getAdminOrders().filter((o) => o.customerId === customer)
+    : getAdminOrders();
   const orders = status ? all.filter((o) => o.status === status) : all;
 
   const dateFmt = (iso: string) =>
@@ -62,8 +62,8 @@ export default async function AdminOrdersPage({
         </a>
       </div>
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
-        Заявки с сайта. Заказ появляется здесь сразу, даже если покупатель не
-        дописал в WhatsApp.
+        Заявки через WhatsApp появляются сразу, онлайн-заказы — только после
+        подтверждённой оплаты.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">

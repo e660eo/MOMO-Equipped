@@ -5,6 +5,8 @@ import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
+import { useCustomer } from "@/components/customer-provider";
+import { useAccount } from "@/lib/account-store";
 import { isPhoneComplete } from "@/lib/phone";
 import { submitOrder, checkPromo } from "@/app/order-actions";
 import { ProductImage } from "./product-image";
@@ -27,6 +29,8 @@ const labelCls =
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, setQty, remove, clear } = useCart();
+  const customer = useCustomer();
+  const openAuth = useAccount((s) => s.openModal);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -114,6 +118,11 @@ export function CartDrawer() {
   }
 
   async function submit(pay = false) {
+    if (pay && !customer) {
+      setError("Для оплаты на сайте войдите или зарегистрируйтесь.");
+      openAuth("checkout");
+      return;
+    }
     if (!name.trim() || !phone.trim() || !address.trim()) {
       setError("Заполните ФИО, телефон и адрес доставки.");
       return;
@@ -131,12 +140,11 @@ export function CartDrawer() {
     setSending(true);
 
     /*
-      Сначала сохраняем заказ на сервере — он получает номер и появляется в
-      панели. Раньше заявка жила только в переписке: не ответил менеджер —
-      и следов не осталось.
+      Сначала сохраняем заказ на сервере. WhatsApp-заявка сразу появляется в
+      панели; онлайн-запись остаётся скрытой до подтверждённой оплаты.
 
-      Если сохранить не удалось, заказ всё равно уходит в WhatsApp: потерять
-      покупателя из-за нашей поломки хуже, чем остаться без записи.
+      Если обычную WhatsApp-заявку сохранить не удалось, состав всё равно
+      откроется в переписке. Онлайн-платёж без серверной записи не начинаем.
     */
     const saved = await submitOrder({
       name: name.trim(),
@@ -149,6 +157,12 @@ export function CartDrawer() {
     });
     setSending(false);
     const orderNumber = saved.ok ? saved.id : null;
+
+    if (pay && !saved.ok) {
+      setError(saved.error);
+      if (saved.requiresAuth) openAuth("checkout");
+      return;
+    }
 
     /*
       Оплата на сайте: уводим на форму Яндекса тем же переходом, без нового
@@ -166,16 +180,15 @@ export function CartDrawer() {
           JSON.stringify({ name: name.trim(), phone, address: address.trim() }),
         );
       } catch {}
-      clear();
       window.location.href = saved.paymentUrl;
       return;
     }
 
-    // Просили оплату, а ссылки нет — Яндекс Пэй не ответил. Заказ сохранён,
-    // поэтому не бросаем покупателя, а доводим привычным путём.
+    // Просили оплату, а ссылки нет. Техническая заготовка скрыта от панели;
+    // новую попытку начинаем заново, чтобы не переиспользовать старую сессию.
     if (pay) {
       setError(
-        "Оплата на сайте сейчас недоступна. Заказ сохранён — отправьте его в WhatsApp, менеджер подтвердит.",
+        "Яндекс Pay не создал новую ссылку. Попробуйте ещё раз через минуту.",
       );
       return;
     }
@@ -538,7 +551,11 @@ export function CartDrawer() {
                   disabled={sending}
                   className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
                 >
-                  {sending ? "Оформляем заказ…" : "Оплатить на сайте"}
+                  {sending
+                    ? "Оформляем заказ…"
+                    : customer
+                      ? "Оплатить на сайте"
+                      : "Войти и оплатить"}
                 </button>
                 <button
                   onClick={() => submit(false)}
@@ -550,7 +567,9 @@ export function CartDrawer() {
                 <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
                   {paySandbox
                     ? "Оплата работает в тестовом режиме: настоящие деньги не списываются."
-                    : "Оплата картой или Сплитом на странице Яндекс Пэй. Стоимость доставки менеджер согласует отдельно после заказа."}
+                    : customer
+                      ? "Карта берётся из текущего Яндекс ID на странице Яндекс Pay — проверьте аккаунт и последние 4 цифры. Заказ увидит менеджер только после оплаты."
+                      : "Оплата доступна после входа или регистрации. Магазин не хранит карты: их показывает Яндекс Pay из текущего Яндекс ID."}
                 </p>
               </>
             ) : (

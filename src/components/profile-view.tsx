@@ -57,7 +57,7 @@ export function ProfileView({
             заново. Аккаунт работает на всех ваших устройствах.
           </p>
           <button
-            onClick={openModal}
+            onClick={() => openModal()}
             className="mt-6 w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99]"
           >
             Войти или зарегистрироваться

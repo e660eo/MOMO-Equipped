@@ -29,6 +29,32 @@ export function getOrders(): Order[] {
   }
 }
 
+/*
+  Онлайн-заказ сначала сохраняется как техническая заготовка: Яндексу нужен
+  наш orderId до перехода покупателя на платёжную форму. В рабочую панель
+  такую заготовку пускать нельзя — менеджеру нужен только оплаченный заказ.
+
+  Возвращённые заказы оставляем в панели: они уже были оплачены и нужны для
+  истории и бухгалтерии. Старые записи до появления paymentRequested узнаём
+  по самому полю payment.
+*/
+const ADMIN_PAYMENT_STATUSES = new Set<PaymentStatus>([
+  "CAPTURED",
+  "REFUNDED",
+  "PARTIALLY_REFUNDED",
+]);
+
+export function isOrderVisibleInAdmin(order: Order): boolean {
+  const online = order.paymentRequested === true || order.payment !== undefined;
+  if (!online) return true;
+  return Boolean(order.payment && ADMIN_PAYMENT_STATUSES.has(order.payment.status));
+}
+
+/** Только рабочие заказы: WhatsApp-заявки и оплаченные онлайн-заказы. */
+export function getAdminOrders(): Order[] {
+  return getOrders().filter(isOrderVisibleInAdmin);
+}
+
 export function getOrder(id: string): Order | undefined {
   return getOrders().find((o) => o.id === id);
 }
@@ -53,14 +79,21 @@ function nextId(orders: Order[]): string {
  * «в работе» заказ — повод разобраться, а не стереть.
  */
 const KEEP_YEARS = 3;
+const UNPAID_PAYMENT_KEEP_DAYS = 30;
 
 function withoutExpired(orders: Order[]): Order[] {
   const edge = new Date();
   edge.setFullYear(edge.getFullYear() - KEEP_YEARS);
   const stamp = edge.toISOString();
+  const unpaidEdge = new Date(
+    Date.now() - UNPAID_PAYMENT_KEEP_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString();
   return orders.filter(
-    (o) =>
-      o.createdAt > stamp || (o.status !== "done" && o.status !== "canceled"),
+    (o) => {
+      // Неоплаченная техническая попытка не должна лежать вечно как «новая».
+      if (!isOrderVisibleInAdmin(o) && o.createdAt <= unpaidEdge) return false;
+      return o.createdAt > stamp || (o.status !== "done" && o.status !== "canceled");
+    },
   );
 }
 
@@ -148,7 +181,7 @@ export function updateOrder(
 
 /** Сколько заказов ждут обработки — для счётчика в панели. */
 export function countNewOrders(): number {
-  return getOrders().filter((o) => o.status === "new").length;
+  return getAdminOrders().filter((o) => o.status === "new").length;
 }
 
 /* -------------------------------- оплата ---------------------------------- */

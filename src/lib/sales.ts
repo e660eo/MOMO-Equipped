@@ -1,4 +1,4 @@
-import { getOrders } from "./orders";
+import { getAdminOrders } from "./orders";
 import type { Order, OrderStatus } from "./types";
 
 /*
@@ -57,7 +57,7 @@ function stat(label: string, orders: Order[]): PeriodStat {
 }
 
 export function salesSummary(): SalesSummary {
-  const all = getOrders();
+  const all = getAdminOrders();
   const today = moscowTodayIso();
   const d7 = daysAgoIso(7);
   const d30 = daysAgoIso(30);

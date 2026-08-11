@@ -3,7 +3,7 @@ import { getAllProducts, getCategories, getNews, getRawBundles } from "@/lib/dat
 import { isRepoData } from "@/lib/store";
 import { plural, cn } from "@/lib/utils";
 import { requireAdminPage } from "@/lib/admin-auth";
-import { getOrders } from "@/lib/orders";
+import { getAdminOrders } from "@/lib/orders";
 import { getCustomers } from "@/lib/customers";
 import { lastMailResult } from "@/lib/mailer";
 import { getHealthReport } from "@/lib/health";
@@ -21,7 +21,7 @@ export default async function AdminHomePage() {
   const clearance = products.filter((p) => p.isClearance).length;
   const unknownStock = products.filter((p) => p.inStock === undefined).length;
 
-  const orders = getOrders();
+  const orders = getAdminOrders();
   const newOrders = orders.filter((o) => o.status === "new").length;
   const inWork = orders.filter((o) => o.status === "in_work").length;
 

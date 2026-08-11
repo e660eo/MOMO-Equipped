@@ -1,6 +1,6 @@
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getCustomers, toPublic } from "@/lib/customers";
-import { getOrders } from "@/lib/orders";
+import { getAdminOrders } from "@/lib/orders";
 import { plural } from "@/lib/utils";
 import { CustomerRow } from "@/components/admin/customer-row";
 
@@ -17,7 +17,7 @@ export default async function AdminCustomersPage({
   await requireAdminPage();
 
   const { q = "" } = await searchParams;
-  const orders = getOrders();
+  const orders = getAdminOrders();
 
   /*
     toPublic снимает passwordHash. В строку уходят только публичные поля клиента

@@ -30,12 +30,14 @@ if (typeof window !== "undefined") {
 
 interface AccountState {
   modalOpen: boolean;
-  openModal: () => void;
+  modalIntent: "profile" | "checkout";
+  openModal: (intent?: "profile" | "checkout") => void;
   closeModal: () => void;
 }
 
 export const useAccount = create<AccountState>()((set) => ({
   modalOpen: false,
-  openModal: () => set({ modalOpen: true }),
-  closeModal: () => set({ modalOpen: false }),
+  modalIntent: "profile",
+  openModal: (intent = "profile") => set({ modalOpen: true, modalIntent: intent }),
+  closeModal: () => set({ modalOpen: false, modalIntent: "profile" }),
 }));

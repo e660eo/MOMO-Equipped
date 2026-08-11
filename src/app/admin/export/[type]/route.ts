@@ -1,5 +1,5 @@
 import { hasSession } from "@/lib/admin-auth";
-import { getOrders, STATUS_LABELS } from "@/lib/orders";
+import { getAdminOrders, STATUS_LABELS } from "@/lib/orders";
 import { getCustomers } from "@/lib/customers";
 import { PAYMENT_LABELS } from "@/lib/yandex-pay";
 import { toCsv } from "@/lib/csv";
@@ -29,7 +29,7 @@ function ordersCsv(): string {
       "Комментарий",
     ],
   ];
-  for (const o of getOrders()) {
+  for (const o of getAdminOrders()) {
     rows.push([
       o.id,
       new Date(o.createdAt).toLocaleString("ru-RU"),
@@ -49,7 +49,7 @@ function ordersCsv(): string {
 }
 
 function customersCsv(): string {
-  const orders = getOrders();
+  const orders = getAdminOrders();
   const rows: (string | number)[][] = [
     [
       "Имя",
