@@ -147,6 +147,36 @@ bash scripts/deploy.sh
 
 ---
 
+## Ozon Доставка: OAuth-доступ
+
+Реквизиты частного приложения Ozon хранятся только в `.env.local` на сервере:
+
+```bash
+cd ~/momo
+nano .env.local
+```
+
+Добавьте две строки, подставив значения из кабинета разработчика Ozon:
+
+```dotenv
+OZON_OAUTH_CLIENT_ID=идентификатор-приложения
+OZON_OAUTH_CLIENT_SECRET=секрет-приложения
+```
+
+В самом приложении Ozon должен быть разрешён scope `seller-api.ozon-logistics`, а callback URL должен быть
+точно таким: `https://momo-eq.ru/api/ozon/oauth/callback`.
+
+После изменения окружения перезапустите сайт:
+
+```bash
+pm2 reload momo --update-env
+```
+
+Затем войдите в `/admin` и нажмите «Подключить Ozon». Полученные access/refresh tokens сохраняются в
+`MOMO_DATA_DIR/ozon-oauth.json` в зашифрованном виде и не попадают в Git.
+
+---
+
 ## Полезные команды
 
 ```bash

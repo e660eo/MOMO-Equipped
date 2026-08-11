@@ -7,6 +7,7 @@ import { getAdminOrders } from "@/lib/orders";
 import { getCustomers } from "@/lib/customers";
 import { lastMailResult } from "@/lib/mailer";
 import { getHealthReport } from "@/lib/health";
+import { hasOzonTokens, isOzonOAuthConfigured } from "@/lib/ozon-auth";
 
 /*
   Сводка панели: сколько чего в каталоге и куда идти дальше.
@@ -34,6 +35,8 @@ export default async function AdminHomePage() {
   // должен упереться в это при входе, а не узнать на потерянном заказе.
   const health = await getHealthReport();
   const healthFail = health.status === "fail" ? health.checks.filter((c) => c.level === "fail") : [];
+  const ozonConfigured = isOzonOAuthConfigured();
+  const ozonConnected = ozonConfigured && hasOzonTokens();
 
   const cards: { href: string; title: string; value: string; note?: string; accent?: boolean }[] = [
     {
@@ -136,6 +139,32 @@ export default async function AdminHomePage() {
           .
         </p>
       )}
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-border bg-surface px-4 py-3 text-[0.85rem]">
+        <div>
+          <p className="font-semibold">Ozon Доставка</p>
+          <p className="mt-0.5 text-muted-foreground">
+            {!ozonConfigured
+              ? "OAuth-реквизиты ещё не добавлены на сервер."
+              : ozonConnected
+                ? "Подключена, защищённый токен сохранён."
+                : "Реквизиты добавлены, осталось разрешить доступ в Ozon."}
+          </p>
+        </div>
+        {ozonConfigured && !ozonConnected && (
+          <a
+            href="/api/ozon/oauth/start"
+            className="rounded-sm bg-signal px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            Подключить Ozon
+          </a>
+        )}
+        {ozonConnected && (
+          <span className="rounded-full border border-green-600/50 px-3 py-1 font-semibold text-green-600">
+            Подключена
+          </span>
+        )}
+      </div>
 
       <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (

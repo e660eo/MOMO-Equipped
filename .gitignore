@@ -38,3 +38,4 @@ next-env.d.ts
 /data/orders.json
 /data/customers.json
 /data/promos.json
+/data/ozon-oauth.json
