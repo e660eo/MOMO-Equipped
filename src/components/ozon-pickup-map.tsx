@@ -49,6 +49,15 @@ function clusterIcon(pointsCount: number) {
   });
 }
 
+function pointWord(count: number): string {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return "пунктов";
+  if (last === 1) return "пункт";
+  if (last >= 2 && last <= 4) return "пункта";
+  return "пунктов";
+}
+
 function popupContent(point: PublicOzonPoint, onSelect: () => void) {
   const root = document.createElement("div");
   root.className = "momo-map-popup";
@@ -163,7 +172,7 @@ export function OzonPickupMap({
       const marker = L.marker([cluster.lat, cluster.long], {
         icon: clusterIcon(cluster.pointsCount),
         keyboard: true,
-        title: `${cluster.pointsCount} пунктов Ozon`,
+        title: `${cluster.pointsCount} ${pointWord(cluster.pointsCount)} Ozon`,
       });
       marker.on("click", () => {
         const { south, west, north, east } = cluster.viewport;

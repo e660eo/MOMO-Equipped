@@ -149,6 +149,14 @@ export function CartPageClient() {
 
   async function loadMapArea(view: MapView) {
     lastMapViewRef.current = view;
+    if (view.zoom < 5) {
+      mapRequestRef.current += 1;
+      setMapBusy(false);
+      setPoints([]);
+      setClusters([]);
+      setDeliveryMsg("Найдите свой город или приблизьте нужную область карты.");
+      return;
+    }
     const requestId = ++mapRequestRef.current;
     setMapBusy(true);
     const result = await loadOzonPickupMap({
@@ -708,7 +716,9 @@ export function CartPageClient() {
                     <div className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-full bg-white/95 px-3 py-1.5 text-[0.68rem] font-semibold text-[#005bff] shadow-md backdrop-blur dark:bg-[#151515]/95">
                       {mapBusy
                         ? "Обновляем ПВЗ…"
-                        : `На карте: ${points.length + clusters.reduce((sum, cluster) => sum + cluster.pointsCount, 0)}`}
+                        : mapTarget.zoom < 5
+                          ? "Найдите свой город"
+                          : `На карте: ${points.length + clusters.reduce((sum, cluster) => sum + cluster.pointsCount, 0)}`}
                     </div>
                   </div>
                   <div className="bg-surface p-4">
