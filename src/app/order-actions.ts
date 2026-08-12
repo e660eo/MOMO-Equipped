@@ -8,30 +8,48 @@ import { getProducts, siteConfig } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
 import { findValidPromo, discountFor, usePromo } from "@/lib/promos";
+import {
+  searchRussianPlaces,
+  type PublicPlaceResult,
+} from "@/lib/place-search";
 import type { Order, OrderItem } from "@/lib/types";
 import {
   consumeOzonSelection,
-  findOzonPickupPoints,
+  getOzonMapArea,
   quoteOzonPickup,
+  type OzonMapArea,
+  type OzonMapViewport,
   type OzonDeliverySelection,
-  type PublicOzonPoint,
 } from "@/lib/ozon-delivery";
 
-export async function searchOzonPickupPoints(payload: {
-  lat: number;
-  long: number;
+export async function loadOzonPickupMap(payload: {
+  viewport: OzonMapViewport;
+  zoom: number;
 }): Promise<
-  | { ok: true; points: PublicOzonPoint[] }
+  | { ok: true; area: OzonMapArea }
   | { ok: false; error: string }
 > {
   try {
-    const points = await findOzonPickupPoints(Number(payload.lat), Number(payload.long));
-    return points.length
-      ? { ok: true, points }
-      : { ok: false, error: "Рядом не нашлось доступных пунктов Ozon." };
+    const area = await getOzonMapArea(payload.viewport, payload.zoom);
+    return { ok: true, area };
   } catch (error) {
-    console.error("Ozon Доставка: поиск ПВЗ не удался", error);
+    console.error("Ozon Доставка: загрузка карты ПВЗ не удалась", error);
     return { ok: false, error: "Не удалось загрузить пункты Ozon. Попробуйте ещё раз." };
+  }
+}
+
+export async function searchPickupPlace(query: string): Promise<
+  | { ok: true; places: PublicPlaceResult[] }
+  | { ok: false; error: string }
+> {
+  try {
+    const places = await searchRussianPlaces(query);
+    return places.length
+      ? { ok: true, places }
+      : { ok: false, error: "Город или адрес не найден. Уточните запрос." };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Не удалось найти адрес.";
+    return { ok: false, error: message };
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -23,11 +23,14 @@ import { isPhoneComplete } from "@/lib/phone";
 import {
   submitOrder,
   checkPromo,
-  searchOzonPickupPoints,
+  loadOzonPickupMap,
+  searchPickupPlace,
   selectOzonPickup,
 } from "@/app/order-actions";
+import type { PublicPlaceResult } from "@/lib/place-search";
 import type {
   OzonDeliverySelection,
+  PublicOzonCluster,
   PublicOzonPoint,
 } from "@/lib/ozon-delivery";
 import { ProductImage } from "./product-image";
@@ -35,7 +38,7 @@ import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { cn } from "@/lib/utils";
 import { YandexSplitBadge } from "./yandex-split-badge";
-import type { MapCenter } from "./ozon-pickup-map";
+import type { MapTarget, MapView } from "./ozon-pickup-map";
 
 const OzonPickupMap = dynamic(
   () => import("./ozon-pickup-map").then((module) => module.OzonPickupMap),
@@ -60,7 +63,7 @@ const inputCls =
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
-const cityCenters: Record<string, MapCenter> = {
+const cityCenters: Record<string, Omit<MapTarget, "zoom">> = {
   "Махачкала": { lat: 42.9849, long: 47.5047 },
   "Москва": { lat: 55.7558, long: 37.6176 },
   "Санкт-Петербург": { lat: 59.9343, long: 30.3351 },
@@ -70,7 +73,7 @@ const cityCenters: Record<string, MapCenter> = {
   "Екатеринбург": { lat: 56.8389, long: 60.6057 },
   "Новосибирск": { lat: 55.0084, long: 82.9357 },
 };
-const defaultMapCenter = cityCenters["Махачкала"];
+const russiaMapTarget: MapTarget = { lat: 61.2, long: 89.2, zoom: 2 };
 
 export function CartPageClient() {
   const { items, setQty, remove, clear } = useCart();
@@ -92,13 +95,18 @@ export function CartPageClient() {
   const [promoMsg, setPromoMsg] = useState("");
   const [promoBusy, setPromoBusy] = useState(false);
   const [points, setPoints] = useState<PublicOzonPoint[]>([]);
+  const [clusters, setClusters] = useState<PublicOzonCluster[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<PublicOzonPoint | null>(null);
   const [delivery, setDelivery] = useState<OzonDeliverySelection | null>(null);
   const [deliveryBusy, setDeliveryBusy] = useState(false);
+  const [mapBusy, setMapBusy] = useState(false);
   const [deliveryMsg, setDeliveryMsg] = useState("");
-  const [mapCenter, setMapCenter] = useState<MapCenter>(defaultMapCenter);
-  const [mapReady, setMapReady] = useState(false);
-  const initialPointSearch = useRef(false);
+  const [mapTarget, setMapTarget] = useState<MapTarget>(russiaMapTarget);
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeResults, setPlaceResults] = useState<PublicPlaceResult[]>([]);
+  const [placeBusy, setPlaceBusy] = useState(false);
+  const mapRequestRef = useRef(0);
+  const lastMapViewRef = useRef<MapView | null>(null);
   const deliveryPickerRef = useRef<HTMLDivElement>(null);
   const payButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -114,15 +122,12 @@ export function CartPageClient() {
     } catch {}
   }, []);
 
-  // Начинаем с города, который покупатель выбрал в шапке. Карту всегда можно
-  // перетащить в любое другое место — геолокация остаётся необязательной.
+  // Если город действительно выбирали в шапке, начинаем с него. Без сохранённого
+  // выбора показываем всю Россию — карта больше не привязана к Махачкале.
   useEffect(() => {
-    try {
-      const city = localStorage.getItem("momo-city") ?? "Махачкала";
-      setMapCenter(cityCenters[city] ?? defaultMapCenter);
-    } finally {
-      setMapReady(true);
-    }
+    const city = localStorage.getItem("momo-city");
+    const center = city ? cityCenters[city] : undefined;
+    if (center) setMapTarget({ ...center, zoom: 11 });
   }, []);
 
   const { contacts, trust, payEnabled, paySandbox } = useSiteConfig();
@@ -142,28 +147,29 @@ export function CartPageClient() {
     setDelivery(null);
   }, [phone, items]);
 
-  useEffect(() => {
-    if (!mapReady || !onlineDeliveryAvailable || initialPointSearch.current) return;
-    initialPointSearch.current = true;
-    void loadPickupPoints(mapCenter, "Загружаем пункты Ozon в выбранном городе…");
-  }, [mapReady, onlineDeliveryAvailable]);
-
-  async function loadPickupPoints(center: MapCenter, message: string) {
-    setDeliveryBusy(true);
-    setDeliveryMsg(message);
-    const result = await searchOzonPickupPoints({
-      lat: center.lat,
-      long: center.long,
+  async function loadMapArea(view: MapView) {
+    lastMapViewRef.current = view;
+    const requestId = ++mapRequestRef.current;
+    setMapBusy(true);
+    const result = await loadOzonPickupMap({
+      viewport: view.viewport,
+      zoom: view.zoom,
     });
-    setDeliveryBusy(false);
+    if (requestId !== mapRequestRef.current) return;
+    setMapBusy(false);
     if (!result.ok) {
       setDeliveryMsg(result.error);
       return;
     }
-    setPoints(result.points);
-    setSelectedPoint(result.points[0] ?? null);
-    setDelivery(null);
-    setDeliveryMsg("Нажмите на метку или адрес ниже, затем подтвердите ПВЗ.");
+    setPoints(result.area.points);
+    setClusters(result.area.clusters);
+    if (!result.area.points.length && !result.area.clusters.length) {
+      setDeliveryMsg("В этой области пункты Ozon не найдены. Переместите карту.");
+    } else if (result.area.clusters.length) {
+      setDeliveryMsg("Нажмите на синюю группу ПВЗ, чтобы приблизить карту.");
+    } else {
+      setDeliveryMsg("Выберите синюю метку или адрес под картой.");
+    }
   }
 
   async function locatePickupPoints() {
@@ -175,9 +181,9 @@ export function CartPageClient() {
     setDeliveryMsg("Разрешите доступ к геопозиции — покажем ближайшие ПВЗ Ozon.");
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
-        const center = { lat: coords.latitude, long: coords.longitude };
-        setMapCenter(center);
-        await loadPickupPoints(center, "Ищем ближайшие ПВЗ Ozon…");
+        setDeliveryBusy(false);
+        setMapTarget({ lat: coords.latitude, long: coords.longitude, zoom: 13 });
+        setDeliveryMsg("Показываем пункты Ozon рядом с вами…");
       },
       () => {
         setDeliveryBusy(false);
@@ -185,6 +191,31 @@ export function CartPageClient() {
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60 * 1000 },
     );
+  }
+
+  async function findPlace(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (placeQuery.trim().length < 2) {
+      setDeliveryMsg("Введите город, улицу или адрес.");
+      return;
+    }
+    setPlaceBusy(true);
+    setPlaceResults([]);
+    const result = await searchPickupPlace(placeQuery);
+    setPlaceBusy(false);
+    if (!result.ok) {
+      setDeliveryMsg(result.error);
+      return;
+    }
+    setPlaceResults(result.places);
+    setDeliveryMsg("Выберите подходящий адрес из списка.");
+  }
+
+  function choosePlace(place: PublicPlaceResult) {
+    setPlaceQuery(place.label);
+    setPlaceResults([]);
+    setMapTarget({ lat: place.lat, long: place.long, zoom: place.zoom });
+    setDeliveryMsg("Загружаем пункты Ozon в выбранной области…");
   }
 
   async function confirmPickup() {
@@ -247,8 +278,8 @@ export function CartPageClient() {
     }
     if (pay && !delivery) {
       setError("");
-      if (!points.length && !deliveryBusy) {
-        void loadPickupPoints(mapCenter, "Загружаем пункты Ozon в этой области…");
+      if (!points.length && !clusters.length && !mapBusy && lastMapViewRef.current) {
+        void loadMapArea(lastMapViewRef.current);
       }
       requestAnimationFrame(() =>
         deliveryPickerRef.current?.scrollIntoView({
@@ -579,50 +610,107 @@ export function CartPageClient() {
                   ref={deliveryPickerRef}
                   className="overflow-hidden rounded-2xl border border-signal/50 bg-signal/5"
                 >
-                  <div className="flex flex-col gap-3 border-b border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="flex items-center gap-2 text-sm font-semibold">
-                        <MapPin size={16} className="text-signal" />
-                        Выберите пункт Ozon на карте
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Перемещайте карту — доступ к геолокации необязателен.
-                      </p>
+                  <div className="border-b border-border bg-surface p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="flex items-center gap-2 text-sm font-semibold">
+                          <MapPin size={16} className="text-[#005bff]" />
+                          Пункты Ozon по всей России
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Найдите город или адрес либо приблизьте нужную область карты.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={locatePickupPoints}
+                          disabled={deliveryBusy || mapBusy}
+                          className="inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-[#005bff] hover:text-[#005bff] disabled:opacity-60 sm:flex-none"
+                        >
+                          <LocateFixed size={14} />
+                          Рядом со мной
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMapTarget(russiaMapTarget);
+                            setPlaceResults([]);
+                            setDeliveryMsg("Показываем пункты Ozon по всей России.");
+                          }}
+                          className="inline-flex flex-1 items-center justify-center rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-[#005bff] hover:text-[#005bff] sm:flex-none"
+                        >
+                          Вся Россия
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <form onSubmit={findPlace} className="relative mt-3 flex gap-2">
+                      <label htmlFor="ozon-place-search" className="sr-only">
+                        Город или адрес для поиска ПВЗ Ozon
+                      </label>
+                      <div className="relative min-w-0 flex-1">
+                        <Search
+                          size={16}
+                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        />
+                        <input
+                          id="ozon-place-search"
+                          value={placeQuery}
+                          onChange={(event) => {
+                            setPlaceQuery(event.target.value);
+                            setPlaceResults([]);
+                          }}
+                          placeholder="Например: Москва, Тверская улица"
+                          autoComplete="off"
+                          className="w-full rounded-sm border border-input bg-background py-2.5 pl-9 pr-3 text-base outline-none transition-colors focus:border-[#005bff] sm:text-sm"
+                        />
+                      </div>
                       <button
-                        type="button"
-                        onClick={locatePickupPoints}
-                        disabled={deliveryBusy}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60 sm:flex-none"
+                        type="submit"
+                        disabled={placeBusy || placeQuery.trim().length < 2}
+                        className="rounded-sm bg-[#005bff] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#0047c7] disabled:opacity-60"
                       >
-                        <LocateFixed size={14} />
-                        Я рядом
+                        {placeBusy ? "Ищем…" : "Найти"}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          loadPickupPoints(mapCenter, "Ищем ПВЗ Ozon в этой области…")
-                        }
-                        disabled={deliveryBusy}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-sm bg-foreground px-3 py-2 text-xs font-semibold text-background transition-opacity hover:opacity-80 disabled:opacity-60 sm:flex-none"
-                      >
-                        <Search size={14} />
-                        Показать ПВЗ здесь
-                      </button>
+                    </form>
+                    {placeResults.length > 0 && (
+                      <div className="mt-2 overflow-hidden rounded-lg border border-border bg-background shadow-lg">
+                        {placeResults.map((place) => (
+                          <button
+                            key={place.id}
+                            type="button"
+                            onClick={() => choosePlace(place)}
+                            className="flex w-full items-start gap-2 border-b border-border px-3 py-2.5 text-left text-xs leading-relaxed transition-colors last:border-b-0 hover:bg-[#005bff]/5"
+                          >
+                            <MapPin size={14} className="mt-0.5 shrink-0 text-[#005bff]" />
+                            <span>{place.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <OzonPickupMap
+                      target={mapTarget}
+                      points={points}
+                      clusters={clusters}
+                      selectedPointId={selectedPoint?.id}
+                      onViewChange={(view) => {
+                        setMapTarget({ lat: view.lat, long: view.long, zoom: view.zoom });
+                        void loadMapArea(view);
+                      }}
+                      onSelect={(point) => {
+                        setSelectedPoint(point);
+                        setDelivery(null);
+                        setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
+                      }}
+                    />
+                    <div className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-full bg-white/95 px-3 py-1.5 text-[0.68rem] font-semibold text-[#005bff] shadow-md backdrop-blur dark:bg-[#151515]/95">
+                      {mapBusy
+                        ? "Обновляем ПВЗ…"
+                        : `На карте: ${points.length + clusters.reduce((sum, cluster) => sum + cluster.pointsCount, 0)}`}
                     </div>
                   </div>
-                  <OzonPickupMap
-                    center={mapCenter}
-                    points={points}
-                    selectedPointId={selectedPoint?.id}
-                    onCenterChange={setMapCenter}
-                    onSelect={(point) => {
-                      setSelectedPoint(point);
-                      setDelivery(null);
-                      setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
-                    }}
-                  />
                   <div className="bg-surface p-4">
                     {points.length > 0 && (
                       <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">

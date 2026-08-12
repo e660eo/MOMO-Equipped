@@ -34,6 +34,40 @@
   box-shadow: 0 0 0 4px rgb(0 91 255 / 22%), 0 10px 22px rgb(0 91 255 / 38%);
 }
 
+.momo-map-cluster-wrap {
+  background: transparent;
+  border: 0;
+}
+
+.momo-map-cluster {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-content: center;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: #005bff;
+  box-shadow: 0 0 0 7px rgb(0 91 255 / 16%), 0 10px 24px rgb(0 66 187 / 32%);
+  color: white;
+  text-align: center;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.momo-map-cluster:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 9px rgb(0 91 255 / 18%), 0 12px 28px rgb(0 66 187 / 38%);
+}
+
+.momo-map-cluster b {
+  font: 800 14px/1 var(--font-manrope), sans-serif;
+}
+
+.momo-map-cluster small {
+  margin-top: 3px;
+  font: 800 7px/1 var(--font-manrope), sans-serif;
+  letter-spacing: 0.04em;
+}
+
 .leaflet-container {
   background: #e7e5e4;
   font-family: var(--font-manrope), sans-serif;
