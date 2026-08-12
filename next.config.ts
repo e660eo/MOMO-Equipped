@@ -92,10 +92,10 @@ const nextConfig: NextConfig = {
           // Наружу уходит только домен, без пути: адреса кабинета и страницы
           // возврата с оплаты содержат номер заказа и метку.
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Ничего из этого сайт не использует — пусть и не сможет.
+          // Геолокация нужна только для поиска ближайших ПВЗ Ozon; камеру и микрофон запрещаем.
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=()",
+            value: "camera=(), microphone=(), geolocation=(self), payment=()",
           },
           /*
             HSTS на два года. Nginx и так уводит с http на https, но 301
