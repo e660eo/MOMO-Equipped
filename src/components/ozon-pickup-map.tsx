@@ -21,7 +21,7 @@ interface OzonPickupMapProps {
 function markerIcon(selected: boolean) {
   return L.divIcon({
     className: "momo-map-marker-wrap",
-    html: `<span class="momo-map-marker${selected ? " is-selected" : ""}" aria-hidden="true"><span>O</span></span>`,
+    html: `<span class="momo-map-marker${selected ? " is-selected" : ""}" aria-hidden="true"><span>OZON</span></span>`,
     iconSize: selected ? [42, 42] : [34, 34],
     iconAnchor: selected ? [21, 42] : [17, 34],
     popupAnchor: [0, -32],

@@ -9,8 +9,7 @@ import type {
 } from "./types";
 
 const API = "https://api-seller.ozon.ru";
-const MAX_POINTS = 100;
-const POINT_CACHE_MS = 6 * 60 * 60 * 1000;
+const MAX_POINT_DETAILS = 40;
 const SELECTION_TTL_MS = 30 * 60 * 1000;
 
 interface ApiError {
@@ -19,10 +18,11 @@ interface ApiError {
   details?: Array<{ message?: string }>;
 }
 
-interface PointListResponse {
-  points?: Array<{
-    map_point_id: number;
+interface PointMapResponse {
+  clusters?: Array<{
     coordinate?: { lat?: number; long?: number };
+    map_point_ids?: string[];
+    points_count?: number;
   }>;
 }
 
@@ -98,7 +98,6 @@ interface StoredSelection {
 }
 
 const selections = new Map<string, StoredSelection>();
-let pointCache: { at: number; points: PointListResponse["points"] } | null = null;
 
 function cleanPhone(value: string): string {
   const digits = value.replace(/\D/g, "").replace(/^8/, "7");
@@ -144,13 +143,52 @@ function haversine(lat1: number, long1: number, lat2: number, long2: number): nu
   return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-async function allPointCoordinates(): Promise<NonNullable<PointListResponse["points"]>> {
-  if (pointCache && Date.now() - pointCache.at < POINT_CACHE_MS) {
-    return pointCache.points ?? [];
+/**
+ * Ozon отдаёт точки для карты отдельным методом. Запрашивать полный список
+ * ПВЗ по всей стране здесь нельзя: ответ тяжёлый и не предназначен для
+ * интерактивного выбора покупателем.
+ */
+async function pointIdsInMapArea(
+  lat: number,
+  long: number,
+  radiusKm: number,
+): Promise<number[]> {
+  const latDelta = radiusKm / 111;
+  const longitudeScale = Math.max(Math.cos((lat * Math.PI) / 180), 0.2);
+  const longDelta = radiusKm / (111 * longitudeScale);
+  const body = await ozonPost<PointMapResponse>("/v1/delivery/map", {
+    viewport: {
+      left_bottom: { lat: lat - latDelta, long: long - longDelta },
+      right_top: { lat: lat + latDelta, long: long + longDelta },
+    },
+    zoom: radiusKm <= 25 ? 12 : 10,
+  });
+
+  const clusters = [...(body.clusters ?? [])].sort((a, b) => {
+    const aLat = Number(a.coordinate?.lat);
+    const aLong = Number(a.coordinate?.long);
+    const bLat = Number(b.coordinate?.lat);
+    const bLong = Number(b.coordinate?.long);
+    const aDistance =
+      Number.isFinite(aLat) && Number.isFinite(aLong)
+        ? haversine(lat, long, aLat, aLong)
+        : Number.POSITIVE_INFINITY;
+    const bDistance =
+      Number.isFinite(bLat) && Number.isFinite(bLong)
+        ? haversine(lat, long, bLat, bLong)
+        : Number.POSITIVE_INFINITY;
+    return aDistance - bDistance;
+  });
+
+  const ids = new Set<number>();
+  for (const cluster of clusters) {
+    for (const rawId of cluster.map_point_ids ?? []) {
+      const pointId = Number(rawId);
+      if (Number.isInteger(pointId) && pointId > 0) ids.add(pointId);
+      if (ids.size >= MAX_POINT_DETAILS) return [...ids];
+    }
   }
-  const body = await ozonPost<PointListResponse>("/v1/delivery/point/list", {});
-  pointCache = { at: Date.now(), points: body.points ?? [] };
-  return body.points ?? [];
+  return [...ids];
 }
 
 async function officialPoint(pointId: number): Promise<PublicOzonPoint> {
@@ -188,36 +226,21 @@ export async function findOzonPickupPoints(
   if (!Number.isFinite(lat) || !Number.isFinite(long)) {
     throw new Error("Не удалось определить координаты для поиска ПВЗ.");
   }
-  const candidates = (await allPointCoordinates())
-    .filter(
-      (point) =>
-        Number.isFinite(Number(point.coordinate?.lat)) &&
-        Number.isFinite(Number(point.coordinate?.long)),
-    )
-    .map((point) => ({
-      point,
-      distanceKm: haversine(
-        lat,
-        long,
-        Number(point.coordinate?.lat),
-        Number(point.coordinate?.long),
-      ),
-    }))
-    .sort((a, b) => a.distanceKm - b.distanceKm)
-    .slice(0, MAX_POINTS);
+
+  let pointIds = await pointIdsInMapArea(lat, long, 25);
+  if (!pointIds.length) pointIds = await pointIdsInMapArea(lat, long, 60);
+  if (!pointIds.length) return [];
 
   const body = await ozonPost<PointInfoResponse>("/v1/delivery/point/info", {
-    map_point_ids: candidates.map(({ point }) => String(point.map_point_id)),
+    map_point_ids: pointIds.map(String),
   });
-  const distances = new Map(candidates.map((item) => [item.point.map_point_id, item]));
 
   return (body.points ?? [])
     .filter((point) => point.enabled && point.delivery_method?.map_point_id)
     .map((point) => {
       const method = point.delivery_method!;
-      const fallback = distances.get(method.map_point_id!);
-      const pointLat = Number(method.coordinates?.lat ?? fallback?.point.coordinate?.lat);
-      const pointLong = Number(method.coordinates?.long ?? fallback?.point.coordinate?.long);
+      const pointLat = Number(method.coordinates?.lat);
+      const pointLong = Number(method.coordinates?.long);
       return {
         id: method.map_point_id!,
         name: method.name || "Пункт Ozon",
@@ -227,6 +250,7 @@ export async function findOzonPickupPoints(
         distanceKm: Math.round(haversine(lat, long, pointLat, pointLong) * 10) / 10,
       };
     })
+    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.long))
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, Math.max(1, Math.min(limit, 30)));
 }
