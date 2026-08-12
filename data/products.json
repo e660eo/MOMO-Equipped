@@ -6,7 +6,9 @@
     "category": "avtosvet",
     "price": 2786,
     "image": "k_94937dbe6bc04758ac15776799ab47cc.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3808857896,
+    "ozonOfferId": "HID H4 6000K Zeus черный"
   },
   {
     "slug": "rca-2-1-kabel-5m-med-123754",
@@ -24,7 +26,9 @@
     "category": "avtosvet",
     "price": 1354,
     "image": "k_ea93aa71ceea468e9d98c8dd9816982a.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3809024972,
+    "ozonOfferId": "Лампа F2 H7"
   },
   {
     "slug": "y-razvetvitel-rca-1-papa-2-mama-dlya-usilitelya-i-avtozvuka-053083",
@@ -52,7 +56,9 @@
     "price": 5399,
     "image": "k_1a5700384c1442e2919750287f13f16f.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 3390806438,
+    "ozonOfferId": "Android 10\" 2/16GB Wi-Fi, GPS, BT"
   },
   {
     "slug": "avtomagnitola-android-10-2-32gb-005959",
@@ -62,7 +68,9 @@
     "price": 5717,
     "image": "k_2a88bc6d1545433790f7dfba53865837.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 922005959,
+    "ozonOfferId": "Android 10\" 2/32GB"
   },
   {
     "slug": "avtomagnitola-android-10-2-32gb-4g-329610",
@@ -72,7 +80,9 @@
     "price": 8931,
     "image": "k_e179146a88c54dcbbf098daa2c2fad6f.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 1220329610,
+    "ozonOfferId": "Android 10\" 2/32GB 4G"
   },
   {
     "slug": "avtomagnitola-android-9-2-32gb-4g-702453",
@@ -82,7 +92,9 @@
     "price": 7526,
     "image": "k_17b778f321b740a1832c77e84ba060cd.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 700702453,
+    "ozonOfferId": "Android 9\" 2/32GB 4G"
   },
   {
     "slug": "avtomagnitola-deh-4850-097139",
@@ -95,7 +107,9 @@
     "inStock": true,
     "description": [
       "Автомобильный MP3 проигрыватель с блютузом 4х45вт с пультом"
-    ]
+    ],
+    "ozonSku": 623097139,
+    "ozonOfferId": "DEH-4850"
   },
   {
     "slug": "avtomagnitola-zeus-android-10-2-32gb-4g-310212",
@@ -105,7 +119,9 @@
     "price": 10010,
     "image": "k_1d04b32836f64e4aaa4a43a61237a30c.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 922310212,
+    "ozonOfferId": "ZEUS Android 10\" 2/32GB 4G"
   },
   {
     "slug": "avtomagnitola-zeus-android-7-4-64gb-4g-169671",
@@ -115,7 +131,9 @@
     "price": 11091,
     "image": "k_44d760cf9d9c4e5393053c98537cfb0d.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 3107169671,
+    "ozonOfferId": "ZEUS Android 7\" 4/64Gb 4G"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-1-16gb-703833",
@@ -125,7 +143,9 @@
     "price": 5307,
     "image": "k_5abdb09b08b146c69f13e16994e5f2d8.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 700703833,
+    "ozonOfferId": "ZEUS Android 9\" 1/16Gb"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-2-32gb-4g-668166",
@@ -135,7 +155,9 @@
     "price": 9438,
     "image": "k_7e820440a9384f4e82a3d76c4e5823dd.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 818668166,
+    "ozonOfferId": "ZEUS Android 9\" 2/32Gb 4G"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040",
@@ -145,7 +167,9 @@
     "price": 13125,
     "image": "k_372f7b5b9b92483782653ded122da9d7.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 3385468040,
+    "ozonOfferId": "ZEUS Android 9'' 4/64Gb 4G DSP"
   },
   {
     "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302",
@@ -155,7 +179,9 @@
     "price": 10500,
     "image": "k_ba10b6639b4443eca7160cf3ec3687bf.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 1219826302,
+    "ozonOfferId": "ZEUS Android 9'' 4/64Gb 4G"
   },
   {
     "slug": "avtomagnitola-zeus-z-1bt-472657",
@@ -168,7 +194,9 @@
     "inStock": true,
     "description": [
       "Автомобильный MP3 проигрыватель с блютузом 4х10вт"
-    ]
+    ],
+    "ozonSku": 1638472657,
+    "ozonOfferId": "Z-1BT"
   },
   {
     "slug": "vynosnoy-regulyator-basa-v-mashinu-5m-186042",
@@ -257,7 +285,9 @@
     "images": [
       "ph-652-9f697b39.webp",
       "ph-651-244b1244.webp"
-    ]
+    ],
+    "ozonSku": 1817517978,
+    "ozonOfferId": "AC-165"
   },
   {
     "slug": "dinamiki-koaksialnye-ovaly-sbs-690-648108",
@@ -270,7 +300,9 @@
     "images": [
       "ph-154-f37218d1.webp",
       "ph-151-480733b7.webp"
-    ]
+    ],
+    "ozonSku": 2632648108,
+    "ozonOfferId": "SBS-690"
   },
   {
     "slug": "dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938",
@@ -316,7 +348,9 @@
     "images": [
       "ph-377-441d8d1e.webp",
       "ph-728-e662b160.webp"
-    ]
+    ],
+    "ozonSku": 1558186265,
+    "ozonOfferId": "MR-690"
   },
   {
     "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-017173",
@@ -456,7 +490,9 @@
     "inStock": true,
     "description": [
       "Дистибьютор питания"
-    ]
+    ],
+    "ozonSku": 846105833,
+    "ozonOfferId": "Дистрибьютор DB-4"
   },
   {
     "slug": "zamok-centralnyy-dlya-avtomobilya-car-nk-860-001624",
@@ -474,7 +510,9 @@
     "category": "aksessuary",
     "price": 1660,
     "image": "k_431798b992b84284a40899f63f2a783e.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3530638821,
+    "ozonOfferId": "Сетки 16 см Алюминий"
   },
   {
     "slug": "zaschitnye-alyuminievye-setki-gril-dlya-avtoakustiki-20-sm-k-975921",
@@ -492,7 +530,9 @@
     "category": "aksessuary",
     "price": 837,
     "image": "e367913d-ea18-4c86-8620-67ed2d2207c8.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 833142558,
+    "ozonOfferId": "Сетки 20 см"
   },
   {
     "slug": "kabel-cilovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-15m-otre-768223",
@@ -501,7 +541,9 @@
     "category": "aksessuary",
     "price": 4086,
     "image": "k_9d584f23ed694252b9307b18af7550af.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868768223,
+    "ozonOfferId": "PC-8GA-TC 15m"
   },
   {
     "slug": "kabel-cilovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-25m-otre-768300",
@@ -510,7 +552,9 @@
     "category": "aksessuary",
     "price": 6753,
     "image": "k_a961ebccba40459b835511f53deee62c.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868768300,
+    "ozonOfferId": "PC-8GA-TC 25m"
   },
   {
     "slug": "kabel-cilovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-5m-otrez-768786",
@@ -519,7 +563,9 @@
     "category": "aksessuary",
     "price": 1378,
     "image": "k_251f005121e746ccaff732b66cde69ed.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868768786,
+    "ozonOfferId": "PC-8GA-TC 5m"
   },
   {
     "slug": "kabel-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-50m-346494",
@@ -528,7 +574,9 @@
     "category": "aksessuary",
     "price": 36712,
     "image": "k_edf86e33e7b34da79b9fb0f4a2bc5b82.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3556346494,
+    "ozonOfferId": "Кабель Силовой PC-4GA-TC Луженая медь"
   },
   {
     "slug": "kabel-silovoy-pc-8ga-cu-med-3-2h8-4mm2-50m-637756",
@@ -537,7 +585,9 @@
     "category": "aksessuary",
     "price": 13114,
     "image": "k_cc4b9541b8ce4a6789391f914e49689e.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3552637756,
+    "ozonOfferId": "Кабель Силовой PC-8GA-CU Mедь"
   },
   {
     "slug": "kabel-silovoy-otreznoy-pc-4ga-tc-luzhenaya-med-5h21mm2-25m-816971",
@@ -546,7 +596,9 @@
     "category": "aksessuary",
     "price": 18389,
     "image": "k_05c8734a9d834979a3b84357c14efa2c.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3867816971,
+    "ozonOfferId": "Кабель Силовой Отрезной PC-4GA-TC Луженая медь 5х2"
   },
   {
     "slug": "kabel-akusticheskiy-15ga-cu-med-357042",
@@ -555,7 +607,9 @@
     "category": "aksessuary",
     "price": 11508,
     "image": "k_1b594f5c53514205ba4fe86a222ec5f9.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3545357042,
+    "ozonOfferId": "Кабель акустический 15GA CU Медь"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-100m-967715",
@@ -564,7 +618,9 @@
     "category": "aksessuary",
     "price": 13290,
     "image": "k_481ef3a2ceb941d792339805cf1b22c5.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3563967715,
+    "ozonOfferId": "SC-14GA-CU"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-15m-194340",
@@ -582,7 +638,9 @@
     "category": "aksessuary",
     "price": 3307,
     "image": "k_13d0af5cb0824e8295519b9145a884f9.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3876223669,
+    "ozonOfferId": "SC-14GA-CU 25m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-50m-otreznoy-188276",
@@ -591,7 +649,9 @@
     "category": "aksessuary",
     "price": 6655,
     "image": "k_8bd5aff42f4a4654bf3ba138541ca981.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3876188276,
+    "ozonOfferId": "SC-14GA-CU 50m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-5m-otreznoy-236646",
@@ -600,7 +660,9 @@
     "category": "aksessuary",
     "price": 694,
     "image": "k_b3d414ab730e42c68823f7d462bd9083.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3876236646,
+    "ozonOfferId": "SC-14GA-CU 5m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-100m-054144",
@@ -609,7 +671,9 @@
     "category": "aksessuary",
     "price": 13629,
     "image": "k_6902aaf4fff44bb3a77b5a44118e7924.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3564054144,
+    "ozonOfferId": "SC-14GA-TC"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-25m-ot-479537",
@@ -618,7 +682,9 @@
     "category": "aksessuary",
     "price": 3388,
     "image": "k_f1c09b0d45f84bcd8ef8249536047179.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3875479537,
+    "ozonOfferId": "SC-14GA-TC 25m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-50m-ot-523905",
@@ -627,7 +693,9 @@
     "category": "aksessuary",
     "price": 6831,
     "image": "k_43f67cd86f5e4dff941769f575c673cb.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3875523905,
+    "ozonOfferId": "SC-14GA-TC 50m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-5m-otr-473784",
@@ -636,7 +704,9 @@
     "category": "aksessuary",
     "price": 712,
     "image": "k_799eb3b429cd4d7f9e49681cf2c1490b.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3876473784,
+    "ozonOfferId": "SC-14GA-TC 5m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-15m-ot-494098",
@@ -645,7 +715,9 @@
     "category": "aksessuary",
     "price": 2065,
     "image": "k_7c80d05e47ee435882bc5c006ccb2199.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3875494098,
+    "ozonOfferId": "SC-14GA-TC 15m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-15ga-cca-omednennyy-alyuminiy-100m-mo-517393",
@@ -654,7 +726,9 @@
     "category": "aksessuary",
     "price": 2618,
     "image": "k_d52caf10c2f14b38a4516e82811ad7b1.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3545517393,
+    "ozonOfferId": "SC-15GA-CCA"
   },
   {
     "slug": "kabel-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76mm2-100m-659118",
@@ -663,7 +737,9 @@
     "category": "aksessuary",
     "price": 11602,
     "image": "k_560b4a0ed67a4eec8c8749d7b3f03330.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3549659118,
+    "ozonOfferId": "Кабель акустический SC-15GA-ТС Луженая медь"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-100m-085321",
@@ -672,7 +748,9 @@
     "category": "aksessuary",
     "price": 6814,
     "image": "k_24f2567c70ce4132a5f67756ecdd02a8.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3550085321,
+    "ozonOfferId": "SC-17GA-CU 100m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-25m-otreznoy-961236",
@@ -681,7 +759,9 @@
     "category": "aksessuary",
     "price": 1738,
     "image": "k_b2029b331927445084b12b2ea7819794.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878961236,
+    "ozonOfferId": "SC-17GA-CU 25m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-50m-otreznoy-960946",
@@ -690,7 +770,9 @@
     "category": "aksessuary",
     "price": 3397,
     "image": "k_3204cfc687f84cb6a91f66c1dea1e6be.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878960946,
+    "ozonOfferId": "SC-17GA-CU 50m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-100m-781430",
@@ -699,7 +781,9 @@
     "category": "aksessuary",
     "price": 6966,
     "image": "k_0d652abdbdd8427cb6a6547258f8331f.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3563781430,
+    "ozonOfferId": "SC-17GA-TC 100m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-25m-ot-879619",
@@ -708,7 +792,9 @@
     "category": "aksessuary",
     "price": 1777,
     "image": "k_3858be59c8924c33afdb48dcd42ece23.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878879619,
+    "ozonOfferId": "SC-17GA-TC 25m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-50m-ot-879257",
@@ -717,7 +803,9 @@
     "category": "aksessuary",
     "price": 3475,
     "image": "k_380412afcbbb4f00928db52a50481a3b.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878879257,
+    "ozonOfferId": "SC-17GA-TC 50m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-17ga-ssa-omednennyy-alyuminiy-2x1kv-m-859170",
@@ -726,7 +814,9 @@
     "category": "aksessuary",
     "price": 2120,
     "image": "2bc7e5d9-e0d1-4824-b8f2-a6e37cbc5ea8.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3563859170,
+    "ozonOfferId": "SC-17GA-ССА"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-4ga-cu-med-5h21mm2-15m-358656",
@@ -744,7 +834,9 @@
     "category": "aksessuary",
     "price": 3589,
     "image": "k_3b4f0249cc694b0bbdf70aa211007c48.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868485680,
+    "ozonOfferId": "Кабель отрезной Силовой PC-4GA-CU Медь 5х21мм2 5m"
   },
   {
     "slug": "kabel-otreznoy-akusticheskiy-15ga-cu-med-15m-978111",
@@ -753,7 +845,9 @@
     "category": "aksessuary",
     "price": 1763,
     "image": "k_effe8dc1cd734b96aa619437d5b54803.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3877978111,
+    "ozonOfferId": "Кабель акустический 15GA CU Медь 15М"
   },
   {
     "slug": "kabel-otreznoy-akusticheskiy-15ga-cu-med-25m-976400",
@@ -762,7 +856,9 @@
     "category": "aksessuary",
     "price": 2846,
     "image": "k_a000f30b2c8948d8b609ea99f317657c.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3877976400,
+    "ozonOfferId": "Кабель акустический 15GA CU Медь 25М"
   },
   {
     "slug": "kabel-otreznoy-akusticheskiy-15ga-cu-med-50m-979355",
@@ -789,7 +885,9 @@
     "category": "aksessuary",
     "price": 2925,
     "image": "k_5939ba3bff9b47cd813f614bdb50e1ff.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878798524,
+    "ozonOfferId": "Кабель отрезной акустически Луженая медь 25М"
   },
   {
     "slug": "kabel-otreznoy-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76-800368",
@@ -807,7 +905,9 @@
     "category": "aksessuary",
     "price": 17901,
     "image": "k_418c52585b2e4bfb97a10b1067ba24f6.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868635403,
+    "ozonOfferId": "Кабель отрезной силовой PC-4GA-CU Чистая Медь"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-15m-900102",
@@ -834,7 +934,9 @@
     "category": "aksessuary",
     "price": 6554,
     "image": "k_3dfc32a72b99481f974a0cc5a23ddcef.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868605412,
+    "ozonOfferId": "Кабель Силовой PC-8GA-CU Mедь 3,2х8,4мм2 25м"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-8ga-cu-med-3-2h8-4mm2-5m-631833",
@@ -843,7 +945,9 @@
     "category": "aksessuary",
     "price": 1338,
     "image": "k_b1a088113d2646b1b02b41bcd23a4946.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868631833,
+    "ozonOfferId": "Кабель отрезной силовой PC-8GA-CU Mедь 5М"
   },
   {
     "slug": "kabel-silovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-50m-638414",
@@ -852,7 +956,9 @@
     "category": "aksessuary",
     "price": 13502,
     "image": "k_2f35b852a2e3457b84ad579d2d298dac.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3552638414,
+    "ozonOfferId": "PC-8GA-TC 50m"
   },
   {
     "slug": "kamera-zadnego-vida-hd-na-nozhke-279071",
@@ -861,7 +967,9 @@
     "category": "multimedia",
     "price": 1031,
     "image": "k_0404df9847694fabbfdbb778dc133351.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1350279071,
+    "ozonOfferId": "Камера HD на ножке"
   },
   {
     "slug": "klemma-akkumulyatora-897178",
@@ -1028,7 +1136,9 @@
     "category": "aksessuary",
     "price": 305,
     "image": "k_2fddcb01d76e41c89f65e964baa92171.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3345286616,
+    "ozonOfferId": "Конденсатор 3.3МКФ"
   },
   {
     "slug": "kuler-12v-50h50h10mm-dc-0-08a-w5010m12s-219879",
@@ -1037,7 +1147,9 @@
     "category": "multimedia",
     "price": 335,
     "image": "k_f6454cb7f75b404fa508d205c6b59661.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1890219879,
+    "ozonOfferId": "Вентилятор 12V, 50х50х10мм"
   },
   {
     "slug": "led-lampy-h4-svetodiodnye-041925",
@@ -1046,7 +1158,9 @@
     "category": "avtosvet",
     "price": 761,
     "image": "k_cbab685d84844f45b091cb5bf5a52322.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3972041925,
+    "ozonOfferId": "Лед лампы H4 светодиодные"
   },
   {
     "slug": "litiy-ionnyy-akkumulyator-model-icr-18650-2500ma-h-3-7v-189990",
@@ -1055,7 +1169,9 @@
     "category": "aksessuary",
     "price": 392,
     "image": "k_fa88716eadc243baa018a8031487c1e6.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 318189990,
+    "ozonOfferId": "ICR 18650"
   },
   {
     "slug": "monoblok-avtomobilnyy-bd-5000-1-803288",
@@ -1341,7 +1457,9 @@
     "category": "aksessuary",
     "price": 824,
     "image": "k_50780ffb434c435fafd62307a54ade4d.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 831962354,
+    "ozonOfferId": "RT-0 GA"
   },
   {
     "slug": "plata-na-avtomobilnyy-monoblok-zeus-m-1-1100-593342",
@@ -1386,7 +1504,9 @@
     "category": "aksessuary",
     "price": 361,
     "image": "k_cdf22a02f356468380b90c76f9964563.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3505416015,
+    "ozonOfferId": "ANL-1 200A"
   },
   {
     "slug": "predohranitel-kolba-anl2-200a-442213",
@@ -1395,7 +1515,9 @@
     "category": "aksessuary",
     "price": 567,
     "image": "k_849615d5f0b4411985af8b070c9f2ebf.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3505442213,
+    "ozonOfferId": "ANL-2 200A"
   },
   {
     "slug": "predohranitel-kolba-mini-anl-100-a-825930",
@@ -1404,7 +1526,9 @@
     "category": "aksessuary",
     "price": 316,
     "image": "k_05b305ba61e2492db8e71320a5aa3bfa.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 831825930,
+    "ozonOfferId": "MINI ANL 100A"
   },
   {
     "slug": "predohranitel-kolba-mini-anl-150-a-362803",
@@ -1413,7 +1537,9 @@
     "category": "aksessuary",
     "price": 346,
     "image": "k_c74671e9916d4a0c8445b1b0b2c06acd.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3505362803,
+    "ozonOfferId": "MINI ANL 150 A"
   },
   {
     "slug": "sabvufer-avtomobilnyy-achilles-12-dyuymov-902295",
@@ -1555,7 +1681,9 @@
     "category": "avtosvet",
     "price": 1355,
     "image": "k_93be9bcfded740bc8bb9309413f025f5.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3801471819,
+    "ozonOfferId": "LED C6 H1"
   },
   {
     "slug": "setka-zaschitnaya-dlya-avtoakustiki-gril-20-sm-alyuminiy-2-s-650490",
@@ -1784,7 +1912,9 @@
     "category": "aksessuary",
     "price": 2658,
     "image": "b8a850da-d55e-4c16-840b-904483d5ad46.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3289777635,
+    "ozonOfferId": "KIT M-044"
   },
   {
     "slug": "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-r-264408",
@@ -1793,7 +1923,9 @@
     "category": "aksessuary",
     "price": 2207,
     "image": "k_d0d3503cb8514380b4fc3c40e95b4a38.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 833264408,
+    "ozonOfferId": "KIT M-044 LC"
   },
   {
     "slug": "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-8ga-5-m-272891",
@@ -1802,7 +1934,9 @@
     "category": "aksessuary",
     "price": 1845,
     "image": "9b70e979-bd36-4f2b-90fd-d16f11774705.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 833272891,
+    "ozonOfferId": "KIT M-084"
   },
   {
     "slug": "estradnye-kolonki-20sm-v-mashinu-he-810-916179",

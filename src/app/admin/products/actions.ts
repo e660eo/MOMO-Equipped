@@ -102,6 +102,16 @@ export async function saveProduct(
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
+    const ozonSkuRaw = String(formData.get("ozonSku") ?? "").trim();
+    const ozonOfferId = String(formData.get("ozonOfferId") ?? "").trim().slice(0, 120);
+    let ozonSku: number | undefined;
+    if (ozonSkuRaw) {
+      const value = Number(ozonSkuRaw);
+      if (!Number.isSafeInteger(value) || value <= 0) {
+        return { error: "SKU Ozon должен быть целым положительным числом." };
+      }
+      ozonSku = value;
+    }
 
     const slug =
       existing?.slug ??
@@ -121,6 +131,8 @@ export async function saveProduct(
       ...(photos.length > 1 ? { images: photos.slice(1) } : {}),
       ...(description.length ? { description } : {}),
       ...(formData.get("hidden") === "on" ? { hidden: true } : {}),
+      ...(ozonSku ? { ozonSku } : {}),
+      ...(ozonOfferId ? { ozonOfferId } : {}),
     };
 
     const flag = parseStock(String(formData.get("inStock") ?? ""));

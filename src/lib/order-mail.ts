@@ -205,6 +205,14 @@ export async function notifyPaidOrder(order: Order): Promise<void> {
   const sum = formatPrice(paid?.amount ?? order.total);
   const test = paid?.sandbox === true;
   const orderUrl = `${SITE_URL}/admin/orders`;
+  const shipment = order.delivery?.shipment;
+  const deliveryLine = order.delivery
+    ? shipment?.status === "created"
+      ? `Ozon Доставка создана: №${shipment.orderNumber ?? "—"}, ${order.delivery.address}`
+      : shipment?.status === "failed"
+        ? `ВНИМАНИЕ: Ozon Доставка не создалась — ${shipment.error ?? "неизвестная ошибка"}`
+        : `Ozon Доставка: ${order.delivery.address}`
+    : "";
 
   const html = `
 <div style="margin:0;padding:24px 16px;background:#f1f1f3;font-family:${FONT};color:${INK};">
@@ -220,6 +228,7 @@ export async function notifyPaidOrder(order: Order): Promise<void> {
       }</p>
       <p style="margin:0;font-size:17px;font-weight:600;">${esc(order.customer.name)}</p>
       <p style="margin:6px 0 0;font-size:14px;color:#666;line-height:1.5;">${esc(order.customer.phone)}<br>${esc(order.customer.address)}</p>
+      ${deliveryLine ? `<p style="margin:14px 0 0;padding:12px;border-radius:10px;background:#f6f6f6;font-size:13px;line-height:1.5;">${esc(deliveryLine)}</p>` : ""}
       ${button(orderUrl)}
       <p style="margin:20px 0 0;font-size:12px;color:#a8a8a8;text-align:center;">Автоматическое письмо · momo-eq.ru</p>
     </div>
@@ -233,6 +242,7 @@ export async function notifyPaidOrder(order: Order): Promise<void> {
         `Заказ №${order.id} оплачен: ${sum}${test ? " (тестовая оплата)" : ""}`,
         `Покупатель: ${order.customer.name}, ${order.customer.phone}`,
         `Адрес: ${order.customer.address}`,
+        deliveryLine,
         "",
         `Открыть в панели: ${orderUrl}`,
       ].join("\n"),

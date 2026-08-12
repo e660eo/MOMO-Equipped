@@ -167,6 +167,32 @@ export default async function AdminOrderPage({
         </section>
       )}
 
+      {order.delivery && (
+        <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+          <h2 className="font-display text-base font-extrabold uppercase">
+            Ozon Доставка
+          </h2>
+          <p className="mt-2 text-sm font-semibold">{order.delivery.pointName}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{order.delivery.address}</p>
+          <p className="mt-2 text-sm">
+            Для покупателя: <b>бесплатно</b>
+          </p>
+          {order.delivery.shipment?.status === "created" ? (
+            <p className="mt-2 text-sm font-semibold text-[var(--signal-text)]">
+              Создано в Ozon · № {order.delivery.shipment.orderNumber}
+            </p>
+          ) : order.delivery.shipment?.status === "failed" ? (
+            <p className="mt-2 text-sm text-signal">
+              Не создалось автоматически: {order.delivery.shipment.error}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Отправление создаётся после подтверждённой оплаты.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Заметка */}
       <form action={setOrderNote} className="mt-5">
         <input type="hidden" name="id" value={order.id} />

@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Minus, Plus, Trash2, Truck } from "lucide-react";
+import { X, Minus, Plus, Trash2, Truck, MapPin, LocateFixed } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { useCustomer } from "@/components/customer-provider";
 import { useAccount } from "@/lib/account-store";
 import { isPhoneComplete } from "@/lib/phone";
-import { submitOrder, checkPromo } from "@/app/order-actions";
+import {
+  submitOrder,
+  checkPromo,
+  searchOzonPickupPoints,
+  selectOzonPickup,
+} from "@/app/order-actions";
+import type {
+  OzonDeliverySelection,
+  PublicOzonPoint,
+} from "@/lib/ozon-delivery";
 import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
@@ -46,6 +55,11 @@ export function CartDrawer() {
   );
   const [promoMsg, setPromoMsg] = useState("");
   const [promoBusy, setPromoBusy] = useState(false);
+  const [points, setPoints] = useState<PublicOzonPoint[]>([]);
+  const [selectedPoint, setSelectedPoint] = useState<PublicOzonPoint | null>(null);
+  const [delivery, setDelivery] = useState<OzonDeliverySelection | null>(null);
+  const [deliveryBusy, setDeliveryBusy] = useState(false);
+  const [deliveryMsg, setDeliveryMsg] = useState("");
 
   // Подставляем сохранённые данные получателя при первом открытии
   useEffect(() => {
@@ -86,15 +100,71 @@ export function CartDrawer() {
 
   const { contacts, trust, payEnabled, paySandbox } = useSiteConfig();
   const total = cartTotal(items);
-  // Апсейл: сколько не хватает до бесплатной доставки.
   const freeFrom = trust.freeShippingFrom;
-  const remaining = Math.max(0, freeFrom - total);
-  const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
   // Скидка по промокоду. Процент подтверждает сервер (checkPromo), но настоящую
   // проверку и списание делает submitOrder — здесь только показ.
   const discount = promo ? Math.round((total * promo.percent) / 100) : 0;
   const payable = total - discount;
+  // Бесплатная онлайн-доставка считается от суммы, которую реально заплатят.
+  const remaining = Math.max(0, freeFrom - payable);
+  const shippingPct = Math.min(100, (payable / freeFrom) * 100);
+  const onlineDeliveryAvailable = payable >= freeFrom;
+
+  useEffect(() => {
+    setDelivery(null);
+  }, [phone, items]);
+
+  async function locatePickupPoints() {
+    if (!("geolocation" in navigator)) {
+      setDeliveryMsg("Браузер не умеет определять местоположение. Оформите через WhatsApp.");
+      return;
+    }
+    setDeliveryBusy(true);
+    setDeliveryMsg("");
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const result = await searchOzonPickupPoints({
+          lat: coords.latitude,
+          long: coords.longitude,
+        });
+        setDeliveryBusy(false);
+        if (!result.ok) {
+          setDeliveryMsg(result.error);
+          return;
+        }
+        setPoints(result.points);
+        setSelectedPoint(result.points[0] ?? null);
+      },
+      () => {
+        setDeliveryBusy(false);
+        setDeliveryMsg("Разрешите сайту доступ к геопозиции, чтобы показать ближайшие ПВЗ Ozon.");
+      },
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60 * 1000 },
+    );
+  }
+
+  async function confirmPickup() {
+    if (!selectedPoint) return;
+    if (!isPhoneComplete(phone)) {
+      setDeliveryMsg("Сначала укажите полный номер телефона.");
+      return;
+    }
+    setDeliveryBusy(true);
+    setDeliveryMsg("");
+    const result = await selectOzonPickup({
+      phone,
+      pointId: selectedPoint.id,
+      items: items.map((item) => ({ slug: item.slug, qty: item.qty })),
+    });
+    setDeliveryBusy(false);
+    if (!result.ok) {
+      setDelivery(null);
+      setDeliveryMsg(result.error);
+      return;
+    }
+    setDelivery(result.delivery);
+  }
 
   async function applyPromo() {
     const code = promoInput.trim();
@@ -118,6 +188,10 @@ export function CartDrawer() {
   }
 
   async function submit(pay = false) {
+    if (pay && !onlineDeliveryAvailable) {
+      setError(`Онлайн-доставка Ozon доступна от ${formatPrice(freeFrom)}.`);
+      return;
+    }
     if (pay && !customer) {
       setError("Для оплаты на сайте войдите или зарегистрируйтесь.");
       openAuth("checkout");
@@ -129,6 +203,10 @@ export function CartDrawer() {
     }
     if (!isPhoneComplete(phone)) {
       setError("Проверьте телефон — в номере должно быть 10 цифр после +7.");
+      return;
+    }
+    if (pay && !delivery) {
+      setError("Выберите и подтвердите пункт Ozon перед оплатой.");
       return;
     }
     // Согласие на обработку ПД не запоминаем — его дают заново на каждый заказ.
@@ -154,6 +232,7 @@ export function CartDrawer() {
       items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
       pay,
       ...(promo ? { promoCode: promo.code } : {}),
+      ...(pay && delivery ? { deliveryToken: delivery.token } : {}),
     });
     setSending(false);
     const orderNumber = saved.ok ? saved.id : null;
@@ -458,6 +537,81 @@ export function CartDrawer() {
                   className={inputCls}
                 />
               </div>
+              {payEnabled && onlineDeliveryAvailable && (
+                <div className="rounded-xl border border-border bg-bg p-4">
+                  <p className="flex items-center gap-2 text-sm font-semibold">
+                    <MapPin size={16} className="text-signal" />
+                    Пункт Ozon
+                  </p>
+                  {delivery ? (
+                    <div className="mt-2 text-[0.82rem] leading-relaxed">
+                      <b>{delivery.point.name}</b>
+                      <br />
+                      <span className="text-muted-foreground">{delivery.point.address}</span>
+                      <br />
+                      <span className="font-semibold text-[var(--signal-text)]">
+                        Доставка бесплатно
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDelivery(null)}
+                        className="ml-2 text-muted-foreground underline underline-offset-2"
+                      >
+                        Изменить
+                      </button>
+                    </div>
+                  ) : points.length ? (
+                    <div className="mt-3 space-y-2">
+                      <select
+                        value={selectedPoint?.id ?? ""}
+                        onChange={(event) =>
+                          setSelectedPoint(
+                            points.find((point) => point.id === Number(event.target.value)) ?? null,
+                          )
+                        }
+                        className={inputCls}
+                      >
+                        {points.map((point) => (
+                          <option key={point.id} value={point.id}>
+                            {point.address} · {point.distanceKm} км
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={confirmPickup}
+                        disabled={deliveryBusy || !selectedPoint}
+                        className="w-full rounded-sm border border-signal px-4 py-2.5 text-sm font-semibold text-signal disabled:opacity-60"
+                      >
+                        {deliveryBusy ? "Проверяем маршрут…" : "Выбрать этот ПВЗ"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={locatePickupPoints}
+                      disabled={deliveryBusy}
+                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
+                    >
+                      <LocateFixed size={15} />
+                      {deliveryBusy ? "Ищем ближайшие ПВЗ…" : "Найти ПВЗ рядом"}
+                    </button>
+                  )}
+                  {deliveryMsg && (
+                    <p className="mt-2 text-[0.78rem] leading-relaxed text-signal">{deliveryMsg}</p>
+                  )}
+                  <p className="mt-2 text-[0.72rem] leading-relaxed text-muted-foreground">
+                    Товары передаём в Ozon только после успешной оплаты.
+                  </p>
+                </div>
+              )}
+              {payEnabled && !onlineDeliveryAvailable && (
+                <div className="rounded-xl border border-border bg-bg p-4 text-[0.8rem] leading-relaxed text-muted-foreground">
+                  Онлайн-оплата с бесплатной доставкой в пункт Ozon доступна от{" "}
+                  <b className="text-foreground">{formatPrice(freeFrom)}</b>. Для меньшей
+                  суммы оформите заказ через WhatsApp — менеджер рассчитает доставку.
+                </div>
+              )}
             </div>
 
             {/* Промокод */}
@@ -548,11 +702,13 @@ export function CartDrawer() {
               <>
                 <button
                   onClick={() => submit(true)}
-                  disabled={sending}
+                  disabled={sending || !onlineDeliveryAvailable}
                   className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
                 >
                   {sending
                     ? "Оформляем заказ…"
+                    : !onlineDeliveryAvailable
+                      ? `До онлайн-доставки не хватает ${formatPrice(remaining)}`
                     : customer
                       ? "Оплатить на сайте"
                       : "Войти и оплатить"}

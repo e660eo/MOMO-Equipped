@@ -5,8 +5,9 @@ import {
   isPayConfigured,
   isPaid,
 } from "@/lib/yandex-pay";
-import { getOrder, updatePaymentStatus } from "@/lib/orders";
+import { getOrder, updateOzonShipment, updatePaymentStatus } from "@/lib/orders";
 import { notifyPaidOrder } from "@/lib/order-mail";
+import { createOzonShipment } from "@/lib/ozon-delivery";
 
 /*
   Уведомление Яндекс Пэй о смене состояния платежа.
@@ -91,7 +92,38 @@ export async function POST(request: Request) {
   // повторные уведомления о том же статусе ничего не меняют.
   if (changed && isPaid(status)) {
     const fresh = getOrder(orderId);
-    if (fresh) void notifyPaidOrder(fresh);
+    if (fresh) {
+      if (
+        fresh.delivery &&
+        fresh.payment?.sandbox !== true &&
+        fresh.delivery.shipment?.status !== "created"
+      ) {
+        const attemptedAt = new Date().toISOString();
+        updateOzonShipment(orderId, { status: "creating", attemptedAt });
+        try {
+          const result = await createOzonShipment({
+            ...fresh,
+            payment: fresh.payment ? { ...fresh.payment, status: "CAPTURED" } : fresh.payment,
+          });
+          updateOzonShipment(orderId, {
+            status: "created",
+            attemptedAt,
+            orderNumber: result.order_number,
+            ...(result.postings?.length ? { postings: result.postings } : {}),
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Неизвестная ошибка Ozon";
+          console.error(`Ozon Доставка: заказ ${orderId} не создан`, error);
+          updateOzonShipment(orderId, {
+            status: "failed",
+            attemptedAt,
+            error: message.slice(0, 500),
+          });
+        }
+      }
+      const completed = getOrder(orderId) ?? fresh;
+      void notifyPaidOrder(completed);
+    }
   }
 
   return NextResponse.json({ ok: true });

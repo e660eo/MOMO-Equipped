@@ -249,6 +249,37 @@ export function ProductForm({
         </div>
 
         <div>
+          <label className={label} htmlFor="ozonSku">
+            SKU Ozon
+          </label>
+          <input
+            id="ozonSku"
+            name="ozonSku"
+            inputMode="numeric"
+            defaultValue={product?.ozonSku ?? ""}
+            placeholder="Например, 254803288"
+            className={`${field} mt-1.5`}
+          />
+          <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
+            Нужен для автоматической Ozon Доставки. Пустое поле отключает её
+            для этого товара.
+          </p>
+        </div>
+
+        <div>
+          <label className={label} htmlFor="ozonOfferId">
+            Артикул Ozon
+          </label>
+          <input
+            id="ozonOfferId"
+            name="ozonOfferId"
+            defaultValue={product?.ozonOfferId ?? ""}
+            placeholder="Например, BD-5000.1"
+            className={`${field} mt-1.5`}
+          />
+        </div>
+
+        <div>
           <label className={label} htmlFor="stock">
             Остаток, шт
           </label>

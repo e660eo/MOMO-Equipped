@@ -4,11 +4,53 @@ import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment } from "@/lib/orders";
 import { notifyNewOrder } from "@/lib/order-mail";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
-import { getProducts } from "@/lib/data";
+import { getProducts, siteConfig } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
 import { findValidPromo, discountFor, usePromo } from "@/lib/promos";
 import type { Order, OrderItem } from "@/lib/types";
+import {
+  consumeOzonSelection,
+  findOzonPickupPoints,
+  quoteOzonPickup,
+  type OzonDeliverySelection,
+  type PublicOzonPoint,
+} from "@/lib/ozon-delivery";
+
+export async function searchOzonPickupPoints(payload: {
+  lat: number;
+  long: number;
+}): Promise<
+  | { ok: true; points: PublicOzonPoint[] }
+  | { ok: false; error: string }
+> {
+  try {
+    const points = await findOzonPickupPoints(Number(payload.lat), Number(payload.long));
+    return points.length
+      ? { ok: true, points }
+      : { ok: false, error: "Рядом не нашлось доступных пунктов Ozon." };
+  } catch (error) {
+    console.error("Ozon Доставка: поиск ПВЗ не удался", error);
+    return { ok: false, error: "Не удалось загрузить пункты Ozon. Попробуйте ещё раз." };
+  }
+}
+
+export async function selectOzonPickup(payload: {
+  phone: string;
+  pointId: number;
+  items: { slug: string; qty: number }[];
+}): Promise<
+  | { ok: true; delivery: OzonDeliverySelection }
+  | { ok: false; error: string }
+> {
+  try {
+    const delivery = await quoteOzonPickup(payload);
+    return { ok: true, delivery };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Не удалось рассчитать доставку.";
+    return { ok: false, error: message };
+  }
+}
 
 /* Проверка промокода из корзины: показать скидку до оформления. */
 export async function checkPromo(
@@ -85,6 +127,8 @@ export async function submitOrder(payload: {
   pay?: boolean;
   /** Промокод из корзины — проверяем и применяем ЗДЕСЬ, на сервере. */
   promoCode?: string;
+  /** Одноразовый серверный расчёт Ozon Доставки. */
+  deliveryToken?: string;
 }): Promise<OrderResult> {
   const me = await currentCustomer();
 
@@ -124,6 +168,9 @@ export async function submitOrder(payload: {
   }
   if (phone.replace(/\D/g, "").length < 11) {
     return { ok: false, error: "Проверьте телефон." };
+  }
+  if (payload.pay && name.split(/\s+/).filter(Boolean).length < 2) {
+    return { ok: false, error: "Для Ozon Доставки укажите фамилию и имя." };
   }
   if (!Array.isArray(payload.items) || !payload.items.length) {
     return { ok: false, error: "Корзина пуста." };
@@ -207,7 +254,29 @@ export async function submitOrder(payload: {
     }
   }
 
+  if (payload.pay && total < siteConfig.trust.freeShippingFrom) {
+    return {
+      ok: false,
+      error: `Онлайн-доставка Ozon доступна от ${siteConfig.trust.freeShippingFrom.toLocaleString("ru-RU")} ₽. Для меньшей суммы оформите заказ через WhatsApp.`,
+    };
+  }
+
   try {
+    let delivery: Order["delivery"];
+    if (payload.pay) {
+      if (!payload.deliveryToken) {
+        return { ok: false, error: "Выберите пункт Ozon перед оплатой." };
+      }
+      try {
+        delivery = consumeOzonSelection(payload.deliveryToken, phone, items);
+      } catch (error) {
+        return {
+          ok: false,
+          error: error instanceof Error ? error.message : "Пересчитайте доставку.",
+        };
+      }
+    }
+
     const order = addOrder({
       customer: {
         name,
@@ -220,6 +289,7 @@ export async function submitOrder(payload: {
       ...(promo ? { promo } : {}),
       ...(me ? { customerId: me.id } : {}),
       ...(payload.pay ? { paymentRequested: true } : {}),
+      ...(delivery ? { delivery } : {}),
     });
 
     // Активацию списываем после сохранения заказа — код применён.

@@ -6,6 +6,7 @@ import type {
   OrderPayment,
   PaymentStatus,
   Product,
+  OrderDelivery,
 } from "./types";
 
 export { STATUS_LABELS } from "./order-status";
@@ -217,5 +218,20 @@ export function updatePaymentStatus(id: string, status: PaymentStatus): boolean 
     updatedAt: new Date().toISOString(),
   });
   return true;
+}
+
+/** Обновить только состояние отправления Ozon, не затрагивая оплату и заказ. */
+export function updateOzonShipment(
+  id: string,
+  shipment: NonNullable<OrderDelivery["shipment"]>,
+): void {
+  assertWritable();
+  updateJson<Order[]>(FILE, (all) =>
+    all.map((order) =>
+      order.id === id && order.delivery
+        ? { ...order, delivery: { ...order.delivery, shipment } }
+        : order,
+    ),
+  );
 }
 

@@ -25,6 +25,10 @@ export interface Product {
   images?: string[];
   /** Снят с витрины из админки, но не удалён — карточки и ссылок нет. */
   hidden?: boolean;
+  /** SKU карточки товара в Ozon. Нужен только серверу для Ozon Доставки. */
+  ozonSku?: number;
+  /** Артикул продавца в Ozon; помогает сверять сопоставление в админке. */
+  ozonOfferId?: string;
 }
 
 export interface Category {
@@ -159,6 +163,39 @@ export interface OrderPayment {
   sandbox: boolean;
 }
 
+export interface OzonDeliverySplit {
+  deliverySchema: "FBO" | "FBS";
+  warehouseId: number;
+  deliveryMethod: {
+    id: number;
+    type: "PVZ" | "POSTAMAT" | "COURIER";
+    timeslotId: number;
+    logisticFrom: string;
+    logisticTo: string;
+  };
+  items: Array<{ slug: string; sku: number; offerId?: string; quantity: number }>;
+}
+
+export interface OrderDelivery {
+  provider: "ozon";
+  type: "pickup";
+  mapPointId: number;
+  pointName: string;
+  address: string;
+  /** Доставка для покупателя бесплатна; тариф оплачивает магазин. */
+  customerPrice: 0;
+  estimatedFrom?: string;
+  estimatedTo?: string;
+  splits: OzonDeliverySplit[];
+  shipment?: {
+    status: "creating" | "created" | "failed";
+    attemptedAt: string;
+    orderNumber?: string;
+    postings?: string[];
+    error?: string;
+  };
+}
+
 /**
  * Заказ с сайта. Хранится в папке данных, доступен только из панели:
  * внутри персональные данные покупателя.
@@ -196,6 +233,8 @@ export interface Order {
   paymentRequested?: boolean;
   /** Онлайн-оплата. Поля нет — заказ оформлен без неё, через WhatsApp. */
   payment?: OrderPayment;
+  /** Выбранный и проверенный сервером вариант Ozon Доставки. */
+  delivery?: OrderDelivery;
 }
 
 /** Контакты и цифры доверия — редактируются из админки. */
