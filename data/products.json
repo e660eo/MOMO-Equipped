@@ -373,7 +373,9 @@
     "images": [
       "ph-351-144214d1.webp",
       "ph-352-fe2fb7f7.webp"
-    ]
+    ],
+    "ozonSku": 250017173,
+    "ozonOfferId": "HE-290"
   },
   {
     "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-707836",
@@ -418,7 +420,9 @@
     "images": [
       "ph-360-739b127d.webp",
       "ph-361-d65ff7bd.webp"
-    ]
+    ],
+    "ozonSku": 249056376,
+    "ozonOfferId": "MR-130"
   },
   {
     "slug": "dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399",
@@ -1196,7 +1200,9 @@
       "Выходной терминал, Ga8",
       "Рабочее напряжение, В10-15В",
       "Сигнал/Шум, Дб 90"
-    ]
+    ],
+    "ozonSku": 254803288,
+    "ozonOfferId": "BD-5000.1"
   },
   {
     "slug": "monoblok-avtomobilnyy-bm-1-1500-655537",
