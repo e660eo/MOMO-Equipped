@@ -17,8 +17,7 @@ import type { Product } from "./types";
 
 type OzonMapping = { ozonSku: number; ozonOfferId: string };
 
-const mappings = new Map<string, OzonMapping>(
-  (seedProducts as unknown as Product[])
+const seedMappings = (seedProducts as unknown as Product[])
     .filter(
       (product) =>
         product.slug &&
@@ -31,8 +30,16 @@ const mappings = new Map<string, OzonMapping>(
         ozonSku: product.ozonSku!,
         ozonOfferId: product.ozonOfferId!,
       },
-    ]),
-);
+    ] as [string, OzonMapping]);
+
+const mappings = new Map<string, OzonMapping>([
+  ...seedMappings,
+  // Карточка создана через админку и поэтому отсутствует в seed-каталоге.
+  [
+    "rupornye-dinamiki-tz-95",
+    { ozonSku: 1276705911, ozonOfferId: "TZ-95" },
+  ],
+]);
 
 function needsChange(product: Product): boolean {
   const mapping = mappings.get(product.slug);
