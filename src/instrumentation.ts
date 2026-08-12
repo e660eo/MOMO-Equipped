@@ -35,6 +35,18 @@ export async function register() {
     console.error("[photo-updates] пропущено:", err);
   }
 
+  // SKU Ozon нужны для передачи оплаченных товаров в Ozon Логистику.
+  // Меняем только поля интеграции, оставляя живые данные каталога нетронутыми.
+  try {
+    const { syncOzonProductMappings } = await import("./lib/ozon-product-map");
+    const { changed, mappings } = syncOzonProductMappings();
+    if (changed) {
+      console.log(`[ozon-product-map] обновлено товаров: ${changed}/${mappings}`);
+    }
+  } catch (err) {
+    console.error("[ozon-product-map] пропущено:", err);
+  }
+
   const { scheduleDailyBackup } = await import("./lib/backup-scheduler");
   scheduleDailyBackup();
 

@@ -17,7 +17,9 @@
     "category": "aksessuary",
     "price": 434,
     "image": "k_50f575a25e934514a8814615ce5f243f.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 846123754,
+    "ozonOfferId": "RCA 2.1 Медь"
   },
   {
     "slug": "super-led-f2-lh23-h7-svetodiodnye-lampy-v-fary-3200-lm-3500k-024972",
@@ -37,7 +39,9 @@
     "category": "aksessuary",
     "price": 237,
     "image": "k_a96dcbb82ac440c79a0973dbf811c34f.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 846053083,
+    "ozonOfferId": "RCA (1FxПапа-2MxМама)"
   },
   {
     "slug": "y-razvetvitel-rca-2-papa-1-mama-dlya-usilitelya-i-avtozvuka-047707",
@@ -46,7 +50,9 @@
     "category": "aksessuary",
     "price": 236,
     "image": "k_699ff125e76645e9b959d1e6da53059a.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 846047707,
+    "ozonOfferId": "RCA (2FxПапа-1MxМама)"
   },
   {
     "slug": "avtomagnitola-android-10-2-16gb-wi-fi-gps-bt-806438",
@@ -205,7 +211,9 @@
     "category": "aksessuary",
     "price": 1249,
     "image": "k_b83a0c6b2dfc48158a193db7a0f605a1.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 4216186042,
+    "ozonOfferId": "Выносной регулятор баса"
   },
   {
     "slug": "dinamiki-momo-estradnye-avtomobilnye-16sm-he-715-403655",
@@ -222,7 +230,9 @@
     "images": [
       "ph-698-8f5ef25e.webp",
       "ph-699-beac32fd.webp"
-    ]
+    ],
+    "ozonSku": 251403655,
+    "ozonOfferId": "HE-715"
   },
   {
     "slug": "dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461",
@@ -245,7 +255,9 @@
     "images": [
       "ph-131-737feb95.webp",
       "ph-134-fee77fcb.webp"
-    ]
+    ],
+    "ozonSku": 1916494461,
+    "ozonOfferId": "SBS-165"
   },
   {
     "slug": "dinamiki-avtomobilnye-momo-us-310-v3-811784",
@@ -262,7 +274,9 @@
     "images": [
       "ph-756-4ad7b905.webp",
       "ph-757-cec0c252.webp"
-    ]
+    ],
+    "ozonSku": 254811784,
+    "ozonOfferId": "US-31011111"
   },
   {
     "slug": "dinamiki-koaksialnye-zeus-ac-165-517978",
@@ -325,7 +339,9 @@
     "images": [
       "ph-735-f3ca80c2.webp",
       "ph-737-ce034d2d.webp"
-    ]
+    ],
+    "ozonSku": 1769445938,
+    "ozonOfferId": "SBS-130"
   },
   {
     "slug": "dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265",
@@ -397,7 +413,9 @@
     "images": [
       "ph-351-144214d1.webp",
       "ph-352-fe2fb7f7.webp"
-    ]
+    ],
+    "ozonSku": 4369729003,
+    "ozonOfferId": "HE-290 уцененный 2"
   },
   {
     "slug": "dinamiki-estradnye-13sm-v-mashinu-mr-130-056376",
@@ -445,7 +463,9 @@
     "images": [
       "ph-369-9eb4543d.webp",
       "ph-717-487347ba.webp"
-    ]
+    ],
+    "ozonSku": 250143399,
+    "ozonOfferId": "MR-6.1"
   },
   {
     "slug": "dinamiki-estradnye-25sm-momo-he-1000-709600",
@@ -468,7 +488,9 @@
     "images": [
       "ph-637-2dcce85a.webp",
       "ph-641-686389d3.webp"
-    ]
+    ],
+    "ozonSku": 1269709600,
+    "ozonOfferId": "HE-1000"
   },
   {
     "slug": "dinamiki-estradnye-v-mashinu-16sm-he-610-096126",
@@ -481,7 +503,9 @@
     "images": [
       "ph-315-620d34dc.webp",
       "ph-319-e2e3c2e8.webp"
-    ]
+    ],
+    "ozonSku": 250096126,
+    "ozonOfferId": "HE-610"
   },
   {
     "slug": "distribyutor-pitaniya-db-4-105833",
@@ -505,7 +529,9 @@
     "category": "aksessuary",
     "price": 1244,
     "image": "340be8e4-5b03-4311-861a-a2a7726e3418.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1347001624,
+    "ozonOfferId": "Car NK 860"
   },
   {
     "slug": "zaschitnye-alyuminievye-setki-gril-dlya-avtoakustiki-16-sm-k-638821",
@@ -525,7 +551,9 @@
     "category": "aksessuary",
     "price": 1680,
     "image": "k_d9e68921e38d4a9a98a7ad907c62d4b4.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3855975921,
+    "ozonOfferId": "Сетки 20 см Алюминий"
   },
   {
     "slug": "zaschitnye-setki-gril-dlya-avtoakustiki-20-sm-komplekt-2-sht-142558",
@@ -633,7 +661,9 @@
     "category": "aksessuary",
     "price": 2017,
     "image": "k_d158215cb1c44c06b3c29d95e4128b67.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3876194340,
+    "ozonOfferId": "SC-14GA-CU 15m"
   },
   {
     "slug": "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-25m-otreznoy-223669",
@@ -829,7 +859,9 @@
     "category": "aksessuary",
     "price": 10768,
     "image": "k_ca8e5ccfde984bd9a411a0f0839650c3.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868358656,
+    "ozonOfferId": "PC-4GA-CU 15m"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-4ga-cu-med-5h21mm2-5m-485680",
@@ -871,7 +903,9 @@
     "category": "aksessuary",
     "price": 5844,
     "image": "k_62d6145fcab74f3cbef06fbc7a851988.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3877979355,
+    "ozonOfferId": "Кабель акустический 15GA CU Медь 50М"
   },
   {
     "slug": "kabel-otreznoy-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76-799211",
@@ -880,7 +914,9 @@
     "category": "aksessuary",
     "price": 1810,
     "image": "k_a6d8f170c28d49dd9d2803518677c748.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878799211,
+    "ozonOfferId": "SC-15GA-ТС 15m"
   },
   {
     "slug": "kabel-otreznoy-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76-798524",
@@ -900,7 +936,9 @@
     "category": "aksessuary",
     "price": 5877,
     "image": "k_acda115f45934873abd9f18ed6710517.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3878800368,
+    "ozonOfferId": "SC-15GA-ТС 50m"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-4ga-cu-chistaya-med-25m-635403",
@@ -920,7 +958,9 @@
     "category": "aksessuary",
     "price": 11033,
     "image": "k_3365d5ef67224a119feb8f035c274152.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3867900102,
+    "ozonOfferId": "PC-4GA-TC 15m"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-5m-211249",
@@ -929,7 +969,9 @@
     "category": "aksessuary",
     "price": 3688,
     "image": "k_dd01e32093a1474a84929b8a31794e67.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3868211249,
+    "ozonOfferId": "PC-4GA-TC 5m"
   },
   {
     "slug": "kabel-otreznoy-silovoy-pc-8ga-cu-med-3-2h8-4mm2-25m-605412",
@@ -982,7 +1024,9 @@
     "category": "aksessuary",
     "price": 265,
     "image": "k_c96ae5fcdc8d421a961774f3390b2db8.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 831897178,
+    "ozonOfferId": "ВТ-242"
   },
   {
     "slug": "klemma-akkumulyatora-dlya-avtomobilya-656147",
@@ -991,7 +1035,9 @@
     "category": "aksessuary",
     "price": 226,
     "image": "k_6a3e0014d71a426abb3a12410949d9f3.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3944656147,
+    "ozonOfferId": "Клемма аккумулятора для автомобиля"
   },
   {
     "slug": "kolonki-avtomobilnye-koaksialnye-165mm-zeus-us-650-754789",
@@ -1005,7 +1051,9 @@
     "images": [
       "ph-772-f854f083.webp",
       "ph-770-41a8bafa.webp"
-    ]
+    ],
+    "ozonSku": 4103754789,
+    "ozonOfferId": "US-650"
   },
   {
     "slug": "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173",
@@ -1027,7 +1075,9 @@
     "images": [
       "ph-101-2253af41.webp",
       "ph-103-c6dfe005.webp"
-    ]
+    ],
+    "ozonSku": 1631676173,
+    "ozonOfferId": "HE-615"
   },
   {
     "slug": "kolonki-avtomobilnye-estradnye-165mm-momo-he-612-783658",
@@ -1048,7 +1098,9 @@
     "images": [
       "he-612-g1-d4c33a8275.webp",
       "he-612-g2-3b45c3def8.webp"
-    ]
+    ],
+    "ozonSku": 3501783658,
+    "ozonOfferId": "HE-612"
   },
   {
     "slug": "kolonki-koaksialnye-ovalnye-v-mashinu-us-690-650235",
@@ -1061,7 +1113,9 @@
     "images": [
       "us-690-g1-222b942263.webp",
       "us-690-g2-2073bd611a.webp"
-    ]
+    ],
+    "ozonSku": 835650235,
+    "ozonOfferId": "US-690"
   },
   {
     "slug": "kolonki-koaksialnye-shirokopolosnye-16sm-us-310-677887",
@@ -1074,7 +1128,9 @@
     "images": [
       "ph-756-ebecdacf.webp",
       "ph-757-689425fa.webp"
-    ]
+    ],
+    "ozonSku": 1821677887,
+    "ozonOfferId": "US-310"
   },
   {
     "slug": "kolonki-rupora-10sm-v-mashinu-he-400-009725",
@@ -1097,7 +1153,9 @@
     "images": [
       "ph-305-884e76e8.webp",
       "ph-306-7b008c4f.webp"
-    ]
+    ],
+    "ozonSku": 1245009725,
+    "ozonOfferId": "HE-400"
   },
   {
     "slug": "kolonki-estradnye-130mm-dlya-avtomobilya-he-130-053896",
@@ -1109,7 +1167,9 @@
     "isClearance": false,
     "images": [
       "ph-299-5810e166.webp"
-    ]
+    ],
+    "ozonSku": 249053896,
+    "ozonOfferId": "HE-130"
   },
   {
     "slug": "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149",
@@ -1122,7 +1182,9 @@
     "images": [
       "ph-663-2cffd599.webp",
       "ph-662-51305b92.webp"
-    ]
+    ],
+    "ozonSku": 1790534149,
+    "ozonOfferId": "Bonnie & Clyde"
   },
   {
     "slug": "komplekt-akusticheskih-kabeley-kit-m-042-304350",
@@ -1131,7 +1193,9 @@
     "category": "aksessuary",
     "price": 2141,
     "image": "k_0dea21c2a8f947b0923917ca276e92a8.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 833304350,
+    "ozonOfferId": "M-042"
   },
   {
     "slug": "kondensator-plenochnyy-d-pischalok-3-3mkf-250v-2-sht-kompl-286616",
@@ -1226,7 +1290,9 @@
     "images": [
       "ph-825-bed29b28.webp",
       "ph-821-891f7edc.webp"
-    ]
+    ],
+    "ozonSku": 1398655537,
+    "ozonOfferId": "BM-1.1500"
   },
   {
     "slug": "monoblok-avtomobilnyy-d-1000-356531",
@@ -1253,7 +1319,9 @@
     "images": [
       "ph-864-0782e7d7.webp",
       "ph-865-2da88e3d.webp"
-    ]
+    ],
+    "ozonSku": 250356531,
+    "ozonOfferId": "D-1000"
   },
   {
     "slug": "monoblok-avtomobilnyy-d-500-147152",
@@ -1279,7 +1347,9 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Предохранители: 2 × 30 А",
       "Защиты: от перегрузки, короткого замыкания, перегрева"
-    ]
+    ],
+    "ozonSku": 250147152,
+    "ozonOfferId": "D-500"
   },
   {
     "slug": "monoblok-avtomobilnyy-fr-500-138116",
@@ -1309,7 +1379,9 @@
       "fr-500-g1-1aa7d809fd.webp",
       "fr-500-g2-c40bcba51a.webp",
       "fr-500-g3-bc2a94403d.webp"
-    ]
+    ],
+    "ozonSku": 250138116,
+    "ozonOfferId": "FR-500"
   },
   {
     "slug": "monoblok-avtomobilnyy-fr-500-tovar-ucenennyy-421166",
@@ -1323,7 +1395,9 @@
       "ph-599-82dd2f5b.webp",
       "ph-597-5986cadf.webp",
       "ph-600-2e091939.webp"
-    ]
+    ],
+    "ozonSku": 4143421166,
+    "ozonOfferId": "Моноблок автомобильный FR-500 уцененный"
   },
   {
     "slug": "monoblok-avtomobilnyy-m-1-800-361333",
@@ -1350,7 +1424,9 @@
     ],
     "images": [
       "ph-851-7e2ae207.webp"
-    ]
+    ],
+    "ozonSku": 250361333,
+    "ozonOfferId": "M-1.800"
   },
   {
     "slug": "monoblok-avtomobilnyy-m-1000-533001",
@@ -1376,7 +1452,9 @@
     ],
     "images": [
       "ph-857-9176de87.webp"
-    ]
+    ],
+    "ozonSku": 1399533001,
+    "ozonOfferId": "M-1000"
   },
   {
     "slug": "monoblok-avtomobilnyy-momo-bd-3000-1-640730",
@@ -1394,7 +1472,9 @@
       "Фильтр высоких частот (HIGH Pass), Гц15 - 80",
       "Диапазон воспроизводимых частот, Гц10 - 20000",
       "Отношение сигнал/шум, дБ90."
-    ]
+    ],
+    "ozonSku": 1232640730,
+    "ozonOfferId": "BD-3000.1"
   },
   {
     "slug": "monoblok-avtomobilnyy-zeus-m-1-1200-653712",
@@ -1414,7 +1494,9 @@
       "Диапазон воспроизводимых частот: 10 Гц – 250 Гц",
       "Фильтр низких частот (LPF): 50 Гц – 250 Гц",
       "Соотношение сигнал/шум: 85 дБ"
-    ]
+    ],
+    "ozonSku": 1398653712,
+    "ozonOfferId": "M-1.1200"
   },
   {
     "slug": "monoblok-avtomobilnyy-zeus-m-600-611614",
@@ -1433,7 +1515,9 @@
       "Диапазон воспроизводимых частот: 10 Гц – 250 Гц",
       "Фильтр низких частот (LPF): 50 Гц – 250 Гц",
       "Соотношение сигнал/шум: 85 дБ"
-    ]
+    ],
+    "ozonSku": 1398611614,
+    "ozonOfferId": "M-600"
   },
   {
     "slug": "monoblok-avtomobilnyy-dlya-sabvufera-bd-2000-1-046476",
@@ -1454,7 +1538,9 @@
     ],
     "images": [
       "ph-803-e54df0c5.webp"
-    ]
+    ],
+    "ozonSku": 3798046476,
+    "ozonOfferId": "BD-2000.1"
   },
   {
     "slug": "obzhimnaya-klemma-0-ga-962354",
@@ -1474,7 +1560,9 @@
     "category": "usiliteli-monobloki",
     "price": 3823,
     "image": "9e7af2df-a5f7-44fb-b7f9-dec1dd4d3b0e.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1352593342,
+    "ozonOfferId": "Плата ZEUS M-1.1100"
   },
   {
     "slug": "plata-na-avtomobilnyy-usilitel-momo-fr-2-1800-593767",
@@ -1483,7 +1571,9 @@
     "category": "usiliteli-monobloki",
     "price": 17226,
     "image": "k_6f60600c09af4ddb8b9a6a997f593c97.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1352593767,
+    "ozonOfferId": "Плата MOMO FR-2.1800"
   },
   {
     "slug": "plata-na-avtomobilnyy-usilitel-zeus-ab-4-100-610915",
@@ -1492,7 +1582,9 @@
     "category": "usiliteli-monobloki",
     "price": 4000,
     "image": "k_113f34953fa6489ab57dbe4c7a1d2de8.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1352610915,
+    "ozonOfferId": "Плата ZEUS AB-4.100"
   },
   {
     "slug": "plata-na-avtomobilnyy-usilitel-zeus-fr-2-1100-603954",
@@ -1501,7 +1593,9 @@
     "category": "usiliteli-monobloki",
     "price": 11396,
     "image": "k_07e8f61b5d2d4df1b81cf35f97311700.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1352603954,
+    "ozonOfferId": "Плата ZEUS FR-2.1100"
   },
   {
     "slug": "predohranitel-kolba-anl1-200a-416015",
@@ -1554,7 +1648,9 @@
     "category": "sabvufery",
     "price": 21474,
     "image": "k_df56b42ff4614c3592cf59cf997d866c.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 2923902295,
+    "ozonOfferId": "ACHILLES"
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-400-12-dyuymov-064850",
@@ -1563,7 +1659,9 @@
     "category": "sabvufery",
     "price": 5883,
     "image": "k_f257ddbe6fba4eddba0bf78a8943c45c.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1861064850,
+    "ozonOfferId": "B-12.400"
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-450-12-dyuymov-839456",
@@ -1573,7 +1671,9 @@
     "price": 4920,
     "image": "k_f641a17a37894ac58583cc774999861f.webp",
     "isClearance": false,
-    "inStock": true
+    "inStock": true,
+    "ozonSku": 3507839456,
+    "ozonOfferId": "B-12.450"
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
@@ -1586,7 +1686,9 @@
     "images": [
       "ph-464-229d7da3.webp",
       "ph-467-0d54dc6b.webp"
-    ]
+    ],
+    "ozonSku": 1927986648,
+    "ozonOfferId": "B-12.750 (2Ohm+2Ohm)"
   },
   {
     "slug": "sabvufer-avtomobilnyy-ts-10-600-10-dyuymov-182054",
@@ -1607,7 +1709,9 @@
     ],
     "images": [
       "ph-472-f63c72b9.webp"
-    ]
+    ],
+    "ozonSku": 622182054,
+    "ozonOfferId": "TS-10.600"
   },
   {
     "slug": "sabvufer-avtomobilnyy-ts-15-1100-15-dyuymov-064255",
@@ -1616,7 +1720,9 @@
     "category": "sabvufery",
     "price": 10901,
     "image": "k_63e8e058698c416187d0bc63e6fa0275.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 1222064255,
+    "ozonOfferId": "TS-15.1100"
   },
   {
     "slug": "sabvufer-avtomobilnyy-ub-10-250-10-dyuymov-328303",
@@ -1630,7 +1736,9 @@
     "images": [
       "ph-927-c709ca4c.webp",
       "ph-930-4d9e7638.webp"
-    ]
+    ],
+    "ozonSku": 4083328303,
+    "ozonOfferId": "UB-10.250"
   },
   {
     "slug": "sabvufer-avtomobilnyy-ub-12-350-12-dyuymov-041105",
@@ -1643,7 +1751,9 @@
     "images": [
       "ph-942-1c3f9f82.webp",
       "ph-941-01e44efe.webp"
-    ]
+    ],
+    "ozonSku": 1860041105,
+    "ozonOfferId": "UB-12.350"
   },
   {
     "slug": "sabvufer-v-korobe-lyuks-s-truboy-dlya-avtomobilya-12-b-12-75-734390",
@@ -1656,7 +1766,9 @@
     "images": [
       "ph-464-229d7da3.webp",
       "ph-467-0d54dc6b.webp"
-    ]
+    ],
+    "ozonSku": 4355734390,
+    "ozonOfferId": "B-12.750 + короб Стандарт с трубой 12\""
   },
   {
     "slug": "sabvufer-v-korobe-lyuks-s-truboy-dlya-avtomobilya-12-ub-12-3-383796",
@@ -1669,7 +1781,9 @@
     "images": [
       "ph-942-1c3f9f82.webp",
       "ph-941-01e44efe.webp"
-    ]
+    ],
+    "ozonSku": 3610383796,
+    "ozonOfferId": "UB-12.350 + короб люкс 12\""
   },
   {
     "slug": "sabvufer-v-korobe-lyuks-s-truboy-dlya-avtomobilya-15-ts-15-1-589515",
@@ -1678,7 +1792,9 @@
     "category": "sabvufery",
     "price": 18881,
     "image": "k_c653ad14da2143cea2b265cdbaf1dd41.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 4354589515,
+    "ozonOfferId": "TS-15.1100 + короб люкс с трубой 15\""
   },
   {
     "slug": "svetodiodnaya-led-lampa-c6-h1-6000k-471819",
@@ -1698,7 +1814,9 @@
     "category": "aksessuary",
     "price": 1607,
     "image": "k_2315b1cdc1024e9db0845262167eed32.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 3530650490,
+    "ozonOfferId": "Сетки 20 см МОМО"
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-2-60-617369",
@@ -1722,7 +1840,9 @@
     "images": [
       "ph-498-662b785b.webp",
       "ph-499-4403c440.webp"
-    ]
+    ],
+    "ozonSku": 1398617369,
+    "ozonOfferId": "AB-2.60"
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-4-120-159023",
@@ -1749,7 +1869,9 @@
     "images": [
       "ph-965-358c8c07.webp",
       "ph-964-89d5bed7.webp"
-    ]
+    ],
+    "ozonSku": 250159023,
+    "ozonOfferId": "AB-4.120"
   },
   {
     "slug": "usilitel-avtomobilnyy-ab-4-60-882001",
@@ -1776,7 +1898,9 @@
     "images": [
       "ph-526-956ffe70.webp",
       "ph-527-d8cd2e35.webp"
-    ]
+    ],
+    "ozonSku": 1859882001,
+    "ozonOfferId": "AB-4.60"
   },
   {
     "slug": "usilitel-avtomobilnyy-d-4-400-288535",
@@ -1802,7 +1926,9 @@
     "images": [
       "ph-545-44a0bd7c.webp",
       "ph-975-b221df7c.webp"
-    ]
+    ],
+    "ozonSku": 1831288535,
+    "ozonOfferId": "D-4.400"
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-1800-802013",
@@ -1815,7 +1941,9 @@
     "images": [
       "ph-564-b312087a.webp",
       "ph-568-ec8ad805.webp"
-    ]
+    ],
+    "ozonSku": 254802013,
+    "ozonOfferId": "FR-2.1800"
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-1800-tovar-ucenennyy-697979",
@@ -1828,7 +1956,9 @@
     "images": [
       "ph-564-b312087a.webp",
       "ph-568-ec8ad805.webp"
-    ]
+    ],
+    "ozonSku": 5066091086,
+    "ozonOfferId": "FR-2.1800 уцененный 3"
   },
   {
     "slug": "usilitel-avtomobilnyy-fr-2-500-479742",
@@ -1845,7 +1975,9 @@
     "images": [
       "ph-581-3dbe6d13.webp",
       "ph-580-e8aa5dc0.webp"
-    ]
+    ],
+    "ozonSku": 1399479742,
+    "ozonOfferId": "FR-2.500"
   },
   {
     "slug": "usilitel-avtomobilnyy-momo-a-4-80-150092",
@@ -1854,7 +1986,9 @@
     "category": "usiliteli-monobloki",
     "price": 5527,
     "image": "k_6f37fbba61414036b1556cd16cf9b365.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 250150092,
+    "ozonOfferId": "A-4.80"
   },
   {
     "slug": "usilitel-avtomobilnyy-p-4-75-147050",
@@ -1878,7 +2012,9 @@
       "Входная чувствительность: 0,2 – 6 В",
       "Номинал предохранителя: 40 А",
       "Размеры (Д×Ш×В): 365 × 220 × 56 мм"
-    ]
+    ],
+    "ozonSku": 250147050,
+    "ozonOfferId": "P-4.75"
   },
   {
     "slug": "usilitel-avtomobilnyy-zeus-ab-4-100-588525",
@@ -1891,7 +2027,9 @@
     "images": [
       "ph-955-cc1bb7fc.webp",
       "ph-956-5be300d2.webp"
-    ]
+    ],
+    "ozonSku": 1859588525,
+    "ozonOfferId": "AB-4.100"
   },
   {
     "slug": "usilitel-avtomobilnyy-zeus-fr-2-1100-421465",
@@ -1900,7 +2038,9 @@
     "category": "usiliteli-monobloki",
     "price": 15731,
     "image": "k_0155f86054604a42918acae04d400518.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 325421465,
+    "ozonOfferId": "FR-2.1100"
   },
   {
     "slug": "ustanovochnyy-komplekt-dlya-2-h-kanalnogo-avtomobilnogo-usil-259457",
@@ -1909,7 +2049,9 @@
     "category": "aksessuary",
     "price": 1355,
     "image": "k_9443ecb012c348ec91e3ebb225a910e2.webp",
-    "isClearance": false
+    "isClearance": false,
+    "ozonSku": 833259457,
+    "ozonOfferId": "KIT M-082"
   },
   {
     "slug": "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-777635",
@@ -1955,6 +2097,8 @@
     "images": [
       "ph-332-31253834.webp",
       "ph-334-482c3416.webp"
-    ]
+    ],
+    "ozonSku": 2923916179,
+    "ozonOfferId": "HE-810"
   }
 ]

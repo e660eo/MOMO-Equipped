@@ -194,12 +194,22 @@ export default async function ProductPage({
           )}
 
           {/* Полные характеристики: описание прайса + распознанное из названия */}
-          {rows.length > 0 && (
+          {(rows.length > 0 || product.ozonSku) && (
             <div className="mt-8 border-t border-border pt-6">
               <h2 className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
                 Характеристики
               </h2>
               <dl className="mt-3 divide-y divide-border">
+                {product.ozonSku && (
+                  <div className="flex items-baseline justify-between gap-6 py-2.5">
+                    <dt className="text-[0.85rem] text-muted-foreground">
+                      SKU Ozon
+                    </dt>
+                    <dd className="text-right font-mono text-[0.85rem] font-medium">
+                      {product.ozonSku}
+                    </dd>
+                  </div>
+                )}
                 {rows.map((s) =>
                   s.value === "" ? (
                     // Подзаголовок группы («Номинальная выходная мощность (RMS):»)
