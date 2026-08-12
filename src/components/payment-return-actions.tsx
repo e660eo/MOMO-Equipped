@@ -17,15 +17,11 @@ export function ClearCartAfterPayment() {
  */
 export function ReturnToCartForNewPayment() {
   const router = useRouter();
-  const openCart = useCart((s) => s.openCart);
 
   return (
     <button
       type="button"
-      onClick={() => {
-        openCart();
-        router.push("/");
-      }}
+      onClick={() => router.push("/cart")}
       className="mt-6 inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
     >
       Вернуться в корзину

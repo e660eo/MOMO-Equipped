@@ -61,7 +61,6 @@ function MenuRow({
 export function SiteHeader() {
   const router = useRouter();
   const items = useCart((s) => s.items);
-  const openCart = useCart((s) => s.openCart);
   /*
     Вошёл покупатель или нет — знает сервер по подписанной куке, и только он.
     Раньше шапка спрашивала об этом localStorage, оставшийся от старого
@@ -134,8 +133,8 @@ export function SiteHeader() {
               />
             )}
           </button>
-          <button
-            onClick={openCart}
+          <Link
+            href="/cart"
             className={cn(
               "tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition duration-150 hover:border-signal hover:text-signal active:scale-90 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2",
               count > 0 ? "border-signal/50 text-signal" : "border-border",
@@ -165,7 +164,7 @@ export function SiteHeader() {
                 {count}
               </span>
             )}
-          </button>
+          </Link>
           <button
             onClick={() => setMenuOpen((v) => !v)}
             className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition duration-150 hover:border-signal hover:text-signal active:scale-90 md:hidden"

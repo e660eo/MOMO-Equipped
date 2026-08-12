@@ -20,7 +20,6 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
-  isOpen: boolean;
   add: (item: Omit<CartItem, "qty">) => void;
   addMany: (
     items: Omit<CartItem, "qty">[],
@@ -30,7 +29,6 @@ interface CartState {
   setQty: (slug: string, qty: number) => void;
   clear: () => void;
   openCart: () => void;
-  closeCart: () => void;
 }
 
 /** Сколько штук этого товара допустимо в корзине. */
@@ -57,7 +55,6 @@ export const useCart = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      isOpen: false,
       add: (item) => {
         set((s) => ({ items: mergeInto(s.items, item) }));
         // Тихий фидбек тостом вместо навязчивого раскрытия корзины.
@@ -96,8 +93,9 @@ export const useCart = create<CartState>()(
                 ),
         })),
       clear: () => set({ items: [] }),
-      openCart: () => set({ isOpen: true }),
-      closeCart: () => set({ isOpen: false }),
+      openCart: () => {
+        if (typeof window !== "undefined") window.location.assign("/cart");
+      },
     }),
     {
       name: "momo-cart",

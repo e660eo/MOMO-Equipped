@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { X, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-store";
-import { useCart } from "@/lib/cart-store";
 import { useToast } from "@/lib/toast-store";
 import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
@@ -68,9 +67,9 @@ export function AuthModal() {
     const continueCheckout = modalIntent === "checkout";
     closeModal();
     // Сессия хранится в httpOnly-cookie, поэтому серверные данные страницы
-    // должны обновиться. Корзина при этом остаётся открытой и заполненной.
+    // должны обновиться. После входа возвращаем к оформлению заказа.
     router.refresh();
-    if (continueCheckout) useCart.getState().openCart();
+    if (continueCheckout) router.push("/cart");
     else router.push("/profile");
   }
 

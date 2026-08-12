@@ -70,8 +70,9 @@ function contentSecurityPolicy(nonce: string): string {
     // Стили инлайновые по устройству React (style={{…}}) и Tailwind. Отдельной
     // дырой это не является: подмена стилей — не выполнение кода.
     "style-src 'self' 'unsafe-inline'",
-    // data: — заглушки next/image; внешние домены — Метрика и Web SDK Пэй.
-    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru",
+    // data: — заглушки next/image; внешние домены — Метрика, Web SDK Пэй и
+    // тайлы карты выбора ПВЗ Ozon.
+    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://tile.openstreetmap.org",
     "font-src 'self' data:",
     // Куда странице разрешено стучаться. Даже выполнившийся чужой скрипт не
     // отправит отсюда корзину и телефоны покупателей на свой сервер.

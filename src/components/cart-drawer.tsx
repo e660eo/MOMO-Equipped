@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Minus, Plus, Trash2, Truck, MapPin, LocateFixed } from "lucide-react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  X,
+  Minus,
+  Plus,
+  Trash2,
+  Truck,
+  MapPin,
+  LocateFixed,
+  Search,
+} from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
@@ -22,8 +34,20 @@ import { ProductImage } from "./product-image";
 import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { cn } from "@/lib/utils";
-import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import { YandexSplitBadge } from "./yandex-split-badge";
+import type { MapCenter } from "./ozon-pickup-map";
+
+const OzonPickupMap = dynamic(
+  () => import("./ozon-pickup-map").then((module) => module.OzonPickupMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid h-[360px] place-items-center bg-tile font-mono text-xs text-muted-foreground sm:h-[440px]">
+        Загружаем карту…
+      </div>
+    ),
+  },
+);
 
 // Данные получателя запоминаем — при повторном заказе не вводить заново.
 const RECIPIENT_KEY = "momo-recipient";
@@ -36,8 +60,20 @@ const inputCls =
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
-export function CartDrawer() {
-  const { items, isOpen, closeCart, setQty, remove, clear } = useCart();
+const cityCenters: Record<string, MapCenter> = {
+  "Махачкала": { lat: 42.9849, long: 47.5047 },
+  "Москва": { lat: 55.7558, long: 37.6176 },
+  "Санкт-Петербург": { lat: 59.9343, long: 30.3351 },
+  "Краснодар": { lat: 45.0355, long: 38.9753 },
+  "Ростов-на-Дону": { lat: 47.2357, long: 39.7015 },
+  "Казань": { lat: 55.7961, long: 49.1064 },
+  "Екатеринбург": { lat: 56.8389, long: 60.6057 },
+  "Новосибирск": { lat: 55.0084, long: 82.9357 },
+};
+const defaultMapCenter = cityCenters["Махачкала"];
+
+export function CartPageClient() {
+  const { items, setQty, remove, clear } = useCart();
   const customer = useCustomer();
   const openAuth = useAccount((s) => s.openModal);
   const [name, setName] = useState("");
@@ -60,7 +96,9 @@ export function CartDrawer() {
   const [delivery, setDelivery] = useState<OzonDeliverySelection | null>(null);
   const [deliveryBusy, setDeliveryBusy] = useState(false);
   const [deliveryMsg, setDeliveryMsg] = useState("");
-  const [deliveryStepOpen, setDeliveryStepOpen] = useState(false);
+  const [mapCenter, setMapCenter] = useState<MapCenter>(defaultMapCenter);
+  const [mapReady, setMapReady] = useState(false);
+  const initialPointSearch = useRef(false);
   const deliveryPickerRef = useRef<HTMLDivElement>(null);
   const payButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -76,30 +114,16 @@ export function CartDrawer() {
     } catch {}
   }, []);
 
-  /*
-    Корзина грузится отдельным куском, и в редком случае — если по ней успели
-    нажать раньше, чем кусок доехал, — она смонтируется уже открытой и просто
-    возникнет на экране без выезда. Первый кадр всегда рисуем закрытым, а
-    открываем со следующего: переход получает от чего оттолкнуться.
-  */
-  const [entered, setEntered] = useState(false);
+  // Начинаем с города, который покупатель выбрал в шапке. Карту всегда можно
+  // перетащить в любое другое место — геолокация остаётся необязательной.
   useEffect(() => {
-    const id = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(id);
+    try {
+      const city = localStorage.getItem("momo-city") ?? "Махачкала";
+      setMapCenter(cityCenters[city] ?? defaultMapCenter);
+    } finally {
+      setMapReady(true);
+    }
   }, []);
-  const shown = isOpen && entered;
-
-  // Фон под корзиной не должен прокручиваться — раньше он уезжал вместе с ней
-  useEffect(() => {
-    if (!shown) return;
-    lockScroll();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeCart();
-    window.addEventListener("keydown", onKey);
-    return () => {
-      unlockScroll();
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [shown, closeCart]);
 
   const { contacts, trust, payEnabled, paySandbox } = useSiteConfig();
   const total = cartTotal(items);
@@ -118,32 +142,46 @@ export function CartDrawer() {
     setDelivery(null);
   }, [phone, items]);
 
+  useEffect(() => {
+    if (!mapReady || !onlineDeliveryAvailable || initialPointSearch.current) return;
+    initialPointSearch.current = true;
+    void loadPickupPoints(mapCenter, "Загружаем пункты Ozon в выбранном городе…");
+  }, [mapReady, onlineDeliveryAvailable]);
+
+  async function loadPickupPoints(center: MapCenter, message: string) {
+    setDeliveryBusy(true);
+    setDeliveryMsg(message);
+    const result = await searchOzonPickupPoints({
+      lat: center.lat,
+      long: center.long,
+    });
+    setDeliveryBusy(false);
+    if (!result.ok) {
+      setDeliveryMsg(result.error);
+      return;
+    }
+    setPoints(result.points);
+    setSelectedPoint(result.points[0] ?? null);
+    setDelivery(null);
+    setDeliveryMsg("Нажмите на метку или адрес ниже, затем подтвердите ПВЗ.");
+  }
+
   async function locatePickupPoints() {
-    setDeliveryStepOpen(true);
     if (!("geolocation" in navigator)) {
-      setDeliveryMsg("Браузер не умеет определять местоположение. Оформите через WhatsApp.");
+      setDeliveryMsg("Переместите карту в свой город и нажмите «Показать ПВЗ здесь».");
       return;
     }
     setDeliveryBusy(true);
     setDeliveryMsg("Разрешите доступ к геопозиции — покажем ближайшие ПВЗ Ozon.");
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
-        const result = await searchOzonPickupPoints({
-          lat: coords.latitude,
-          long: coords.longitude,
-        });
-        setDeliveryBusy(false);
-        if (!result.ok) {
-          setDeliveryMsg(result.error);
-          return;
-        }
-        setPoints(result.points);
-        setSelectedPoint(result.points[0] ?? null);
-        setDeliveryMsg("Выберите удобный пункт выдачи из списка.");
+        const center = { lat: coords.latitude, long: coords.longitude };
+        setMapCenter(center);
+        await loadPickupPoints(center, "Ищем ближайшие ПВЗ Ozon…");
       },
       () => {
         setDeliveryBusy(false);
-        setDeliveryMsg("Разрешите сайту доступ к геопозиции, чтобы показать ближайшие ПВЗ Ozon.");
+        setDeliveryMsg("Доступ не нужен: переместите карту в свой город и нажмите «Показать ПВЗ здесь».");
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60 * 1000 },
     );
@@ -169,6 +207,7 @@ export function CartDrawer() {
       return;
     }
     setDelivery(result.delivery);
+    setAddress(`ПВЗ Ozon: ${result.delivery.point.address}`);
     setDeliveryMsg("ПВЗ выбран. Теперь можно перейти к оплате.");
     requestAnimationFrame(() =>
       payButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
@@ -207,9 +246,10 @@ export function CartDrawer() {
       return;
     }
     if (pay && !delivery) {
-      setDeliveryStepOpen(true);
       setError("");
-      if (!points.length && !deliveryBusy) void locatePickupPoints();
+      if (!points.length && !deliveryBusy) {
+        void loadPickupPoints(mapCenter, "Загружаем пункты Ozon в этой области…");
+      }
       requestAnimationFrame(() =>
         deliveryPickerRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -326,46 +366,30 @@ export function CartDrawer() {
   }
 
   return (
-    <>
-      {/*
-        Затемнение без backdrop-blur: размытие всего экрана пересчитывалось
-        каждый кадр, пока корзина выезжает, и на телефоне съедало ровно ту
-        плавность, ради которой этот выезд и сделан.
-      */}
-      <div
-        onClick={closeCart}
-        className={cn(
-          "fixed inset-0 z-[90] bg-black/60 transition-opacity",
-          shown ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label="Корзина"
-        /*
-          Закрытая корзина не должна ни перехватывать касания, ни попадать в
-          порядок обхода табом: поля формы заказа оставались доступны с
-          клавиатуры и в дереве доступности при закрытой корзине. visibility
-          переключается ступенькой в конце перехода, поэтому выезд цел.
-        */
-        aria-hidden={!shown}
-        className={cn(
-          "fixed bottom-0 right-0 top-0 z-[100] w-[min(460px,100vw)] overflow-y-auto overscroll-contain border-l border-border bg-surface p-7 transition-[transform,visibility] duration-300 will-change-transform",
-          shown ? "visible translate-x-0" : "invisible pointer-events-none translate-x-full",
-        )}
-      >
-        <button
-          onClick={closeCart}
-          aria-label="Закрыть корзину"
-          className="absolute right-2.5 top-2.5 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
+    <main className="min-h-[70vh] bg-bg py-7 sm:py-12">
+      <div className="mx-auto w-full max-w-[920px] px-4 sm:px-6">
+        <Link
+          href="/catalog"
+          className="mb-5 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-signal"
         >
-          <X size={16} />
-        </button>
-
-        <h3 className="mb-6 font-display text-lg font-semibold uppercase">
-          Корзина
-        </h3>
+          <ArrowLeft size={15} />
+          Продолжить покупки
+        </Link>
+        <div className="mb-7 flex items-end justify-between gap-4 border-b border-border pb-5">
+          <div>
+            <p className="mb-2 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-signal">
+              Оформление заказа
+            </p>
+            <h1 className="font-display text-2xl font-semibold uppercase sm:text-4xl">
+              Корзина
+            </h1>
+          </div>
+          {items.length > 0 && (
+            <span className="font-mono text-xs text-muted-foreground">
+              {items.reduce((sum, item) => sum + item.qty, 0)} шт.
+            </span>
+          )}
+        </div>
 
         {sent ? (
           <div className="space-y-4">
@@ -378,22 +402,19 @@ export function CartDrawer() {
               Копия заказа — в{" "}
               <a
                 href="/profile"
-                onClick={closeCart}
                 className="text-[var(--signal-text)] underline underline-offset-2 hover:no-underline"
               >
                 личном кабинете
               </a>{" "}
               на этом устройстве.
             </p>
-            <button
-              onClick={() => {
-                setSent(false);
-                closeCart();
-              }}
-              className="w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+            <Link
+              href="/catalog"
+              onClick={() => setSent(false)}
+              className="block w-full rounded-sm border border-border py-3 text-center text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
             >
               Вернуться к покупкам
-            </button>
+            </Link>
           </div>
         ) : items.length === 0 ? (
           <div className="space-y-4">
@@ -403,7 +424,6 @@ export function CartDrawer() {
             </p>
             <a
               href="/catalog"
-              onClick={closeCart}
               className="inline-flex rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
             >
               Открыть каталог
@@ -554,78 +574,114 @@ export function CartDrawer() {
                   className={inputCls}
                 />
               </div>
-              {payEnabled && onlineDeliveryAvailable && (deliveryStepOpen || delivery) && (
+              {payEnabled && onlineDeliveryAvailable && (
                 <div
                   ref={deliveryPickerRef}
-                  className="rounded-xl border border-signal/50 bg-signal/5 p-4"
+                  className="overflow-hidden rounded-2xl border border-signal/50 bg-signal/5"
                 >
-                  <p className="flex items-center gap-2 text-sm font-semibold">
-                    <MapPin size={16} className="text-signal" />
-                    Пункт Ozon
-                  </p>
-                  {delivery ? (
-                    <div className="mt-2 text-[0.82rem] leading-relaxed">
-                      <b>{delivery.point.name}</b>
-                      <br />
-                      <span className="text-muted-foreground">{delivery.point.address}</span>
-                      <br />
-                      <span className="font-semibold text-[var(--signal-text)]">
-                        Доставка бесплатно
-                      </span>
+                  <div className="flex flex-col gap-3 border-b border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="flex items-center gap-2 text-sm font-semibold">
+                        <MapPin size={16} className="text-signal" />
+                        Выберите пункт Ozon на карте
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Перемещайте карту — доступ к геолокации необязателен.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          setDelivery(null);
-                          setDeliveryMsg("Выберите другой пункт выдачи из списка.");
-                        }}
-                        className="ml-2 text-muted-foreground underline underline-offset-2"
+                        onClick={locatePickupPoints}
+                        disabled={deliveryBusy}
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60 sm:flex-none"
                       >
-                        Изменить
+                        <LocateFixed size={14} />
+                        Я рядом
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          loadPickupPoints(mapCenter, "Ищем ПВЗ Ozon в этой области…")
+                        }
+                        disabled={deliveryBusy}
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-sm bg-foreground px-3 py-2 text-xs font-semibold text-background transition-opacity hover:opacity-80 disabled:opacity-60 sm:flex-none"
+                      >
+                        <Search size={14} />
+                        Показать ПВЗ здесь
                       </button>
                     </div>
-                  ) : points.length ? (
-                    <div className="mt-3 space-y-2">
-                      <select
-                        value={selectedPoint?.id ?? ""}
-                        onChange={(event) =>
-                          setSelectedPoint(
-                            points.find((point) => point.id === Number(event.target.value)) ?? null,
-                          )
-                        }
-                        className={inputCls}
-                      >
+                  </div>
+                  <OzonPickupMap
+                    center={mapCenter}
+                    points={points}
+                    selectedPointId={selectedPoint?.id}
+                    onCenterChange={setMapCenter}
+                    onSelect={(point) => {
+                      setSelectedPoint(point);
+                      setDelivery(null);
+                      setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
+                    }}
+                  />
+                  <div className="bg-surface p-4">
+                    {points.length > 0 && (
+                      <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                         {points.map((point) => (
-                          <option key={point.id} value={point.id}>
-                            {point.address} · {point.distanceKm} км
-                          </option>
+                          <button
+                            key={point.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedPoint(point);
+                              setDelivery(null);
+                              setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
+                            }}
+                            className={cn(
+                              "rounded-lg border p-3 text-left text-xs leading-relaxed transition-colors",
+                              selectedPoint?.id === point.id
+                                ? "border-signal bg-signal/10"
+                                : "border-border hover:border-signal/60",
+                            )}
+                          >
+                            <b className="block text-foreground">{point.name}</b>
+                            <span className="mt-1 block text-muted-foreground">
+                              {point.address} · {point.distanceKm} км
+                            </span>
+                          </button>
                         ))}
-                      </select>
+                      </div>
+                    )}
+                    {selectedPoint && (
+                      <div className="mt-3 rounded-xl border border-border bg-bg p-3 text-sm leading-relaxed">
+                        <b>{selectedPoint.name}</b>
+                        <span className="mt-1 block text-muted-foreground">
+                          {selectedPoint.address}
+                        </span>
+                        {delivery && (
+                          <span className="mt-1 block font-semibold text-[var(--signal-text)]">
+                            ПВЗ подтверждён · доставка бесплатно
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {!delivery && (
                       <button
                         type="button"
                         onClick={confirmPickup}
                         disabled={deliveryBusy || !selectedPoint}
-                        className="w-full rounded-sm border border-signal px-4 py-2.5 text-sm font-semibold text-signal disabled:opacity-60"
+                        className="mt-3 w-full rounded-sm bg-signal px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f] disabled:opacity-60"
                       >
-                        {deliveryBusy ? "Проверяем маршрут…" : "Выбрать этот ПВЗ"}
+                        {deliveryBusy ? "Проверяем маршрут…" : "Подтвердить выбранный ПВЗ"}
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={locatePickupPoints}
-                      disabled={deliveryBusy}
-                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
-                    >
-                      <LocateFixed size={15} />
-                      {deliveryBusy ? "Ищем ближайшие ПВЗ…" : "Найти ПВЗ рядом"}
-                    </button>
-                  )}
-                  {deliveryMsg && (
-                    <p className="mt-2 text-[0.78rem] leading-relaxed text-signal">{deliveryMsg}</p>
-                  )}
-                  <p className="mt-2 text-[0.72rem] leading-relaxed text-muted-foreground">
-                    Товары передаём в Ozon только после успешной оплаты.
-                  </p>
+                    )}
+                    {deliveryMsg && (
+                      <p className="mt-2 text-[0.78rem] leading-relaxed text-signal">
+                        {deliveryMsg}
+                      </p>
+                    )}
+                    <p className="mt-2 text-[0.72rem] leading-relaxed text-muted-foreground">
+                      Товары передаём в Ozon только после успешной оплаты.
+                    </p>
+                  </div>
                 </div>
               )}
               {payEnabled && !onlineDeliveryAvailable && (
@@ -769,7 +825,7 @@ export function CartDrawer() {
             )}
           </>
         )}
-      </aside>
-    </>
+      </div>
+    </main>
   );
 }

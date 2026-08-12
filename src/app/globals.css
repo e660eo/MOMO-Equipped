@@ -1,5 +1,67 @@
 @import "tailwindcss";
 
+/* Маркеры карты ПВЗ — собственные, чтобы Leaflet не тянул растровые иконки. */
+.momo-map-marker-wrap {
+  background: transparent;
+  border: 0;
+}
+
+.momo-map-marker {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 8px;
+  background: #161616;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 28%);
+  color: white;
+  font: 800 13px/1 var(--font-display-src), sans-serif;
+  transform: rotate(-45deg);
+  transition: width 160ms ease, height 160ms ease, background 160ms ease;
+}
+
+.momo-map-marker > span {
+  display: block;
+  transform: rotate(45deg);
+}
+
+.momo-map-marker.is-selected {
+  width: 42px;
+  height: 42px;
+  background: #ff5500;
+}
+
+.leaflet-container {
+  background: #e7e5e4;
+  font-family: var(--font-manrope), sans-serif;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.momo-map-popup {
+  display: grid;
+  gap: 8px;
+}
+
+.momo-map-popup > span {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.momo-map-popup > button {
+  border-radius: 3px;
+  background: #ff5500;
+  padding: 9px 12px;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 /*
   Дизайн-токены MOMO.
   Светлая тема — по умолчанию; тёмная включается атрибутом data-theme="dark"
