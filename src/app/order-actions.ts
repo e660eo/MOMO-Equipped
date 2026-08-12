@@ -31,11 +31,7 @@ export async function searchOzonPickupPoints(payload: {
       : { ok: false, error: "Рядом не нашлось доступных пунктов Ozon." };
   } catch (error) {
     console.error("Ozon Доставка: поиск ПВЗ не удался", error);
-    const detail = error instanceof Error ? error.message : "Неизвестная ошибка Ozon";
-    return {
-      ok: false,
-      error: `Не удалось загрузить пункты Ozon. Диагностика: ${detail.slice(0, 240)}`,
-    };
+    return { ok: false, error: "Не удалось загрузить пункты Ozon. Попробуйте ещё раз." };
   }
 }
 

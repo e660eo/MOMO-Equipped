@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { getProducts } from "./data";
-import { getOzonAccessToken } from "./ozon-auth";
+import { getOzonAccessToken, refreshOzonAccessToken } from "./ozon-auth";
 import type {
   Order,
   OrderDelivery,
@@ -114,18 +114,26 @@ function errorDetail(body: ApiError, status: number): string {
 }
 
 async function ozonPost<T>(path: string, payload: unknown): Promise<T> {
-  const token = await getOzonAccessToken();
-  const response = await fetch(`${API}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      "User-Agent": "momo-eq.ru Ozon Delivery integration",
-    },
-    body: JSON.stringify(payload),
-    cache: "no-store",
-    signal: AbortSignal.timeout(20_000),
-  });
+  const request = (token: string) =>
+    fetch(`${API}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "User-Agent": "momo-eq.ru Ozon Delivery integration",
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+
+  let response = await request(await getOzonAccessToken());
+  if (response.status === 401) {
+    // Срок в OAuth-ответе иногда расходится с фактическим сроком JWT Ozon.
+    // Обновляем токен по факту 401 и ровно один раз повторяем исходный запрос.
+    response = await request(await refreshOzonAccessToken());
+  }
+
   const body = (await response.json().catch(() => ({}))) as T & ApiError;
   if (!response.ok) {
     throw new Error(`Ozon Доставка: ${errorDetail(body, response.status)}`);

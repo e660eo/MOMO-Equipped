@@ -229,11 +229,10 @@ async function refreshAccessToken(current: OzonTokens): Promise<string> {
   return tokens.accessToken;
 }
 
-/** Действующий Bearer-токен; при необходимости обновляется ровно одним запросом. */
-export async function getOzonAccessToken(): Promise<string> {
+/** Принудительно обновить токен после ответа 401 от Ozon. */
+export async function refreshOzonAccessToken(): Promise<string> {
   const current = loadTokens();
   if (!current) throw new Error("Магазин ещё не авторизован в Ozon.");
-  if (current.expiresAt - REFRESH_AHEAD_MS > Date.now()) return current.accessToken;
 
   if (!refreshInFlight) {
     refreshInFlight = refreshAccessToken(current).finally(() => {
@@ -241,6 +240,15 @@ export async function getOzonAccessToken(): Promise<string> {
     });
   }
   return refreshInFlight;
+}
+
+/** Действующий Bearer-токен; при необходимости обновляется ровно одним запросом. */
+export async function getOzonAccessToken(): Promise<string> {
+  const current = loadTokens();
+  if (!current) throw new Error("Магазин ещё не авторизован в Ozon.");
+  if (current.expiresAt - REFRESH_AHEAD_MS > Date.now()) return current.accessToken;
+
+  return refreshOzonAccessToken();
 }
 
 export function hasOzonTokens(): boolean {
