@@ -39,6 +39,7 @@ export async function saveSettings(
     const email = get("email");
     const whatsapp = get("whatsapp");
     const telegram = get("telegram");
+    const yandexMapsApiKey = get("yandexMapsApiKey").slice(0, 200);
 
     if (digitsOnly(phone).length < 11) {
       return { error: "Телефон должен содержать 11 цифр: +7 XXX XXX XXXX." };
@@ -64,6 +65,7 @@ export async function saveSettings(
     const site = readJson<SiteConfig>(FILE);
     const next: SiteConfig = {
       ...site,
+      ...(yandexMapsApiKey ? { yandexMapsApiKey } : { yandexMapsApiKey: undefined }),
       contacts: {
         ...site.contacts,
         phone,

@@ -241,6 +241,8 @@ export interface Order {
 export interface SiteConfig {
   name: string;
   tagline: string;
+  /** Публичный ключ JavaScript API Яндекс Карт, ограниченный доменом сайта. */
+  yandexMapsApiKey?: string;
   contacts: {
     phone: string;
     phoneSecondary: string;
@@ -286,6 +288,8 @@ export interface SiteConfig {
 
 /** Часть конфига, нужная клиентским компонентам (шапка, корзина, кнопки). */
 export type PublicSiteConfig = Pick<SiteConfig, "contacts" | "trust"> & {
+  /** Публичный ключ подложки Яндекс Карты; доступ к заказам он не даёт. */
+  yandexMapsApiKey: string | null;
   /**
    * Работает ли оплата на сайте. Только признак: ключи Яндекс Пэй в браузер
    * не попадают ни при каких условиях.

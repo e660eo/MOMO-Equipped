@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
+import { useSiteConfig } from "@/components/site-config-provider";
 import type {
   OzonMapViewport,
   PublicOzonCluster,
@@ -28,25 +27,114 @@ interface OzonPickupMapProps {
   onSelect: (point: PublicOzonPoint) => void;
 }
 
-function markerIcon(selected: boolean) {
-  return L.divIcon({
-    className: "momo-map-marker-wrap",
-    html: `<span class="momo-map-marker${selected ? " is-selected" : ""}" aria-hidden="true"><span>OZON</span></span>`,
-    iconSize: selected ? [42, 42] : [34, 34],
-    iconAnchor: selected ? [21, 42] : [17, 34],
-    popupAnchor: [0, -32],
-  });
+interface YandexEventManager {
+  add(type: string, handler: () => void): void;
+  remove(type: string, handler: () => void): void;
 }
 
-function clusterIcon(pointsCount: number) {
-  const label = pointsCount > 999 ? "999+" : String(pointsCount);
-  const size = pointsCount > 99 ? 58 : pointsCount > 9 ? 52 : 46;
-  return L.divIcon({
-    className: "momo-map-cluster-wrap",
-    html: `<span class="momo-map-cluster" aria-hidden="true"><b>${label}</b><small>OZON</small></span>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+interface YandexPlacemark {
+  events: YandexEventManager;
+}
+
+interface YandexMap {
+  events: YandexEventManager;
+  geoObjects: {
+    add(object: YandexPlacemark): void;
+    removeAll(): void;
+  };
+  getBounds(): [[number, number], [number, number]] | null;
+  getCenter(): [number, number];
+  getZoom(): number;
+  setBounds(
+    bounds: [[number, number], [number, number]],
+    options?: Record<string, unknown>,
+  ): void;
+  setCenter(
+    center: [number, number],
+    zoom?: number,
+    options?: Record<string, unknown>,
+  ): void;
+  destroy(): void;
+}
+
+interface YandexMapsApi {
+  ready(handler: () => void): void;
+  Map: new (
+    container: HTMLElement,
+    state: Record<string, unknown>,
+    options?: Record<string, unknown>,
+  ) => YandexMap;
+  Placemark: new (
+    geometry: [number, number],
+    properties?: Record<string, unknown>,
+    options?: Record<string, unknown>,
+  ) => YandexPlacemark;
+  templateLayoutFactory: {
+    createClass(template: string): unknown;
+  };
+}
+
+declare global {
+  interface Window {
+    ymaps?: YandexMapsApi;
+    __momoYandexMapsPromise?: Promise<YandexMapsApi>;
+    __momoYandexMapsKey?: string;
+  }
+}
+
+const SCRIPT_ID = "momo-yandex-maps-api";
+
+function loadYandexMaps(apiKey: string): Promise<YandexMapsApi> {
+  if (!apiKey) return Promise.reject(new Error("Для карты не настроен ключ Яндекс Карт."));
+  if (
+    window.__momoYandexMapsPromise &&
+    window.__momoYandexMapsKey === apiKey
+  ) {
+    return window.__momoYandexMapsPromise;
+  }
+
+  window.__momoYandexMapsKey = apiKey;
+  window.__momoYandexMapsPromise = new Promise<YandexMapsApi>((resolve, reject) => {
+    const ready = () => {
+      if (!window.ymaps) {
+        reject(new Error("Яндекс Карты не загрузились."));
+        return;
+      }
+      window.ymaps.ready(() => resolve(window.ymaps!));
+    };
+
+    if (window.ymaps) {
+      ready();
+      return;
+    }
+
+    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener("load", ready, { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Не удалось загрузить Яндекс Карты.")),
+        { once: true },
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = SCRIPT_ID;
+    script.async = true;
+    script.src = `https://api-maps.yandex.ru/2.1/?apikey=${encodeURIComponent(apiKey)}&lang=ru_RU&load=package.full&csp=true`;
+    const nonceSource = document.querySelector<HTMLScriptElement>("script[nonce]");
+    if (nonceSource?.nonce) script.nonce = nonceSource.nonce;
+    script.addEventListener("load", ready, { once: true });
+    script.addEventListener(
+      "error",
+      () => reject(new Error("Не удалось загрузить Яндекс Карты.")),
+      { once: true },
+    );
+    document.head.append(script);
   });
+
+  return window.__momoYandexMapsPromise;
 }
 
 function pointWord(count: number): string {
@@ -58,39 +146,27 @@ function pointWord(count: number): string {
   return "пунктов";
 }
 
-function popupContent(point: PublicOzonPoint, onSelect: () => void) {
-  const root = document.createElement("div");
-  root.className = "momo-map-popup";
-
-  const title = document.createElement("b");
-  title.textContent = point.name;
-  root.append(title);
-
-  const address = document.createElement("span");
-  address.textContent = point.address;
-  root.append(address);
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.textContent = "Выбрать этот ПВЗ";
-  button.addEventListener("click", onSelect);
-  root.append(button);
-
-  return root;
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"]/g,
+    (character) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]!,
+  );
 }
 
-function currentView(map: L.Map): MapView {
-  const center = map.getCenter();
+function currentView(map: YandexMap): MapView | null {
   const bounds = map.getBounds();
+  if (!bounds) return null;
+  const center = map.getCenter();
   return {
-    lat: center.lat,
-    long: center.lng,
+    lat: center[0],
+    long: center[1],
     zoom: map.getZoom(),
     viewport: {
-      south: bounds.getSouth(),
-      west: bounds.getWest(),
-      north: bounds.getNorth(),
-      east: bounds.getEast(),
+      south: bounds[0][0],
+      west: bounds[0][1],
+      north: bounds[1][0],
+      east: bounds[1][1],
     },
   };
 }
@@ -103,11 +179,12 @@ export function OzonPickupMap({
   onViewChange,
   onSelect,
 }: OzonPickupMapProps) {
+  const { yandexMapsApiKey } = useSiteConfig();
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.LayerGroup | null>(null);
+  const mapRef = useRef<YandexMap | null>(null);
   const viewHandlerRef = useRef(onViewChange);
   const selectHandlerRef = useRef(onSelect);
+  const [mapError, setMapError] = useState("");
 
   useEffect(() => {
     viewHandlerRef.current = onViewChange;
@@ -118,97 +195,167 @@ export function OzonPickupMap({
   }, [onSelect]);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    let cancelled = false;
+    let reportTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const map = L.map(containerRef.current, {
-      center: [target.lat, target.long],
-      zoom: target.zoom,
-      minZoom: 2,
-      maxZoom: 19,
-      scrollWheelZoom: true,
-      worldCopyJump: true,
-    });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(map);
-
-    const markers = L.layerGroup().addTo(map);
-    const reportView = () => viewHandlerRef.current(currentView(map));
-    map.on("moveend", reportView);
-    map.whenReady(reportView);
-    mapRef.current = map;
-    markersRef.current = markers;
+    void loadYandexMaps(yandexMapsApiKey ?? "")
+      .then((ymaps) => {
+        if (cancelled || !containerRef.current || mapRef.current) return;
+        const map = new ymaps.Map(
+          containerRef.current,
+          {
+            center: [target.lat, target.long],
+            zoom: target.zoom,
+            controls: ["searchControl", "zoomControl", "fullscreenControl"],
+          },
+          {
+            minZoom: 2,
+            maxZoom: 19,
+            suppressMapOpenBlock: true,
+            yandexMapDisablePoiInteractivity: true,
+          },
+        );
+        const reportView = () => {
+          clearTimeout(reportTimer);
+          reportTimer = setTimeout(() => {
+            const view = currentView(map);
+            if (view) viewHandlerRef.current(view);
+          }, 180);
+        };
+        map.events.add("boundschange", reportView);
+        mapRef.current = map;
+        reportView();
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setMapError(error instanceof Error ? error.message : "Карта временно недоступна.");
+        }
+      });
 
     return () => {
-      map.off("moveend", reportView);
-      map.remove();
-      mapRef.current = null;
-      markersRef.current = null;
+      cancelled = true;
+      clearTimeout(reportTimer);
+      const map = mapRef.current;
+      if (map) {
+        map.destroy();
+        mapRef.current = null;
+      }
     };
-    // Карта создаётся один раз; новые цели применяет эффект ниже.
+    // Карта создаётся один раз; новые координаты применяет эффект ниже.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [yandexMapsApiKey]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const next = L.latLng(target.lat, target.long);
-    const centerChanged = map.getCenter().distanceTo(next) > 40;
+    const current = map.getCenter();
+    const centerChanged =
+      Math.abs(current[0] - target.lat) > 0.0004 ||
+      Math.abs(current[1] - target.long) > 0.0004;
     const zoomChanged = Math.abs(map.getZoom() - target.zoom) >= 1;
     if (centerChanged || zoomChanged) {
-      map.setView(next, target.zoom, { animate: true });
+      map.setCenter([target.lat, target.long], target.zoom, {
+        duration: 260,
+        checkZoomRange: true,
+      });
     }
   }, [target.lat, target.long, target.zoom]);
 
   useEffect(() => {
     const map = mapRef.current;
-    const markers = markersRef.current;
-    if (!map || !markers) return;
-    markers.clearLayers();
+    const ymaps = window.ymaps;
+    if (!map || !ymaps) return;
+    map.geoObjects.removeAll();
+
+    const clusterLayout = ymaps.templateLayoutFactory.createClass(
+      '<button type="button" class="momo-yandex-cluster" aria-label="{{ properties.hintContent }}"><span class="momo-map-cluster"><b>{{ properties.iconContent }}</b><small>OZON</small></span></button>',
+    );
+    const pointLayout = ymaps.templateLayoutFactory.createClass(
+      '<button type="button" class="momo-yandex-point" aria-label="{{ properties.hintContent }}"><span class="momo-map-marker"><span>OZON</span></span></button>',
+    );
+    const selectedPointLayout = ymaps.templateLayoutFactory.createClass(
+      '<button type="button" class="momo-yandex-point is-selected" aria-label="{{ properties.hintContent }}"><span class="momo-map-marker is-selected"><span>OZON</span></span></button>',
+    );
 
     for (const cluster of clusters) {
-      const marker = L.marker([cluster.lat, cluster.long], {
-        icon: clusterIcon(cluster.pointsCount),
-        keyboard: true,
-        title: `${cluster.pointsCount} ${pointWord(cluster.pointsCount)} Ozon`,
-      });
-      marker.on("click", () => {
+      const label = `${cluster.pointsCount} ${pointWord(cluster.pointsCount)} Ozon`;
+      const placemark = new ymaps.Placemark(
+        [cluster.lat, cluster.long],
+        { hintContent: label, iconContent: cluster.pointsCount > 999 ? "999+" : cluster.pointsCount },
+        {
+          iconLayout: clusterLayout,
+          iconOffset: [-26, -26],
+          iconShape: { type: "Circle", coordinates: [26, 26], radius: 26 },
+          zIndex: 500,
+        },
+      );
+      placemark.events.add("click", () => {
         const { south, west, north, east } = cluster.viewport;
-        const bounds = L.latLngBounds([south, west], [north, east]);
-        if (bounds.isValid() && bounds.getNorthEast().distanceTo(bounds.getSouthWest()) > 80) {
-          map.fitBounds(bounds, { padding: [48, 48], maxZoom: 18, animate: true });
+        if (north - south > 0.0005 || east - west > 0.0005) {
+          map.setBounds(
+            [
+              [south, west],
+              [north, east],
+            ],
+            { checkZoomRange: true, zoomMargin: 52, duration: 260 },
+          );
         } else {
-          map.setView([cluster.lat, cluster.long], Math.min(19, map.getZoom() + 2), {
-            animate: true,
-          });
+          map.setCenter(
+            [cluster.lat, cluster.long],
+            Math.min(19, map.getZoom() + 2),
+            { duration: 260, checkZoomRange: true },
+          );
         }
       });
-      marker.addTo(markers);
+      map.geoObjects.add(placemark);
     }
 
     for (const point of points) {
       const selected = point.id === selectedPointId;
-      const choose = () => selectHandlerRef.current(point);
-      const marker = L.marker([point.lat, point.long], {
-        icon: markerIcon(selected),
-        zIndexOffset: selected ? 1000 : 0,
-        keyboard: true,
-        title: point.address,
-      });
-      marker.on("click", choose);
-      marker.bindPopup(popupContent(point, choose), { minWidth: 220 });
-      marker.addTo(markers);
+      const placemark = new ymaps.Placemark(
+        [point.lat, point.long],
+        {
+          hintContent: point.address,
+          balloonContentHeader: escapeHtml(point.name),
+          balloonContentBody: escapeHtml(point.address),
+          balloonContentFooter: selected
+            ? "ПВЗ выбран — подтвердите его под картой"
+            : "Нажмите на метку, чтобы выбрать ПВЗ",
+        },
+        {
+          iconLayout: selected ? selectedPointLayout : pointLayout,
+          iconOffset: selected ? [-21, -42] : [-17, -34],
+          iconShape: {
+            type: "Rectangle",
+            coordinates: selected ? [[0, 0], [42, 42]] : [[0, 0], [34, 34]],
+          },
+          zIndex: selected ? 1000 : 700,
+          openBalloonOnClick: true,
+        },
+      );
+      placemark.events.add("click", () => selectHandlerRef.current(point));
+      map.geoObjects.add(placemark);
     }
   }, [clusters, points, selectedPointId]);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-[390px] w-full sm:h-[500px]"
-      role="application"
-      aria-label="Карта пунктов выдачи Ozon по России"
-    />
+    <div className="relative h-[390px] w-full bg-[#eceff3] sm:h-[500px]">
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="application"
+        aria-label="Яндекс Карта пунктов выдачи Ozon по России"
+      />
+      {mapError && (
+        <div className="absolute inset-0 z-10 grid place-items-center bg-surface/95 p-6 text-center">
+          <div>
+            <p className="text-sm font-semibold">Яндекс Карты пока не подключены</p>
+            <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
+              {mapError}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

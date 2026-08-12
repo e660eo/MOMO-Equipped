@@ -30,7 +30,7 @@ import Script from "next/script";
   не попадает.
 */
 export async function ShopChrome({ children }: { children: React.ReactNode }) {
-  const { contacts, trust } = getSiteConfig();
+  const { contacts, trust, yandexMapsApiKey } = getSiteConfig();
   // Кто вошёл — знает только сервер: кука подписана, в браузере её не проверить
   const customer = await currentCustomer();
   // В браузер уходит только «оплата работает / не работает». Ключи — никогда.
@@ -47,6 +47,7 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
       value={{
         contacts,
         trust,
+        yandexMapsApiKey: yandexMapsApiKey || null,
         payEnabled: pay !== null,
         paySandbox: pay?.sandbox ?? false,
         payMerchantId: pay?.merchantId ?? null,

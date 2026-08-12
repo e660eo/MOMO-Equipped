@@ -71,12 +71,12 @@ function contentSecurityPolicy(nonce: string): string {
     // дырой это не является: подмена стилей — не выполнение кода.
     "style-src 'self' 'unsafe-inline'",
     // data: — заглушки next/image; внешние домены — Метрика, Web SDK Пэй и
-    // тайлы карты выбора ПВЗ Ozon.
-    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://tile.openstreetmap.org",
+    // подложка Яндекс Карты для выбора ПВЗ Ozon.
+    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.maps.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
     "font-src 'self' data:",
     // Куда странице разрешено стучаться. Даже выполнившийся чужой скрипт не
     // отправит отсюда корзину и телефоны покупателей на свой сервер.
-    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru",
+    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.yandex.ru https://*.maps.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
     // Карта проезда, служебная рамка Метрики и — когда включат — оплата.
     "frame-src https://yandex.ru https://mc.yandex.ru https://pay.yandex.ru",
     // Нас самих в чужую рамку не затянуть: кликджекинг на форме входа.

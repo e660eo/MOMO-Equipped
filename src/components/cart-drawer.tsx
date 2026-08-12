@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -12,7 +12,6 @@ import {
   Truck,
   MapPin,
   LocateFixed,
-  Search,
 } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
@@ -24,10 +23,8 @@ import {
   submitOrder,
   checkPromo,
   loadOzonPickupMap,
-  searchPickupPlace,
   selectOzonPickup,
 } from "@/app/order-actions";
-import type { PublicPlaceResult } from "@/lib/place-search";
 import type {
   OzonDeliverySelection,
   PublicOzonCluster,
@@ -102,9 +99,6 @@ export function CartPageClient() {
   const [mapBusy, setMapBusy] = useState(false);
   const [deliveryMsg, setDeliveryMsg] = useState("");
   const [mapTarget, setMapTarget] = useState<MapTarget>(russiaMapTarget);
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [placeResults, setPlaceResults] = useState<PublicPlaceResult[]>([]);
-  const [placeBusy, setPlaceBusy] = useState(false);
   const mapRequestRef = useRef(0);
   const lastMapViewRef = useRef<MapView | null>(null);
   const deliveryPickerRef = useRef<HTMLDivElement>(null);
@@ -199,31 +193,6 @@ export function CartPageClient() {
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60 * 1000 },
     );
-  }
-
-  async function findPlace(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (placeQuery.trim().length < 2) {
-      setDeliveryMsg("Введите город, улицу или адрес.");
-      return;
-    }
-    setPlaceBusy(true);
-    setPlaceResults([]);
-    const result = await searchPickupPlace(placeQuery);
-    setPlaceBusy(false);
-    if (!result.ok) {
-      setDeliveryMsg(result.error);
-      return;
-    }
-    setPlaceResults(result.places);
-    setDeliveryMsg("Выберите подходящий адрес из списка.");
-  }
-
-  function choosePlace(place: PublicPlaceResult) {
-    setPlaceQuery(place.label);
-    setPlaceResults([]);
-    setMapTarget({ lat: place.lat, long: place.long, zoom: place.zoom });
-    setDeliveryMsg("Загружаем пункты Ozon в выбранной области…");
   }
 
   async function confirmPickup() {
@@ -643,7 +612,6 @@ export function CartPageClient() {
                           type="button"
                           onClick={() => {
                             setMapTarget(russiaMapTarget);
-                            setPlaceResults([]);
                             setDeliveryMsg("Показываем пункты Ozon по всей России.");
                           }}
                           className="inline-flex flex-1 items-center justify-center rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-[#005bff] hover:text-[#005bff] sm:flex-none"
@@ -652,50 +620,9 @@ export function CartPageClient() {
                         </button>
                       </div>
                     </div>
-                    <form onSubmit={findPlace} className="relative mt-3 flex gap-2">
-                      <label htmlFor="ozon-place-search" className="sr-only">
-                        Город или адрес для поиска ПВЗ Ozon
-                      </label>
-                      <div className="relative min-w-0 flex-1">
-                        <Search
-                          size={16}
-                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        />
-                        <input
-                          id="ozon-place-search"
-                          value={placeQuery}
-                          onChange={(event) => {
-                            setPlaceQuery(event.target.value);
-                            setPlaceResults([]);
-                          }}
-                          placeholder="Например: Москва, Тверская улица"
-                          autoComplete="off"
-                          className="w-full rounded-sm border border-input bg-background py-2.5 pl-9 pr-3 text-base outline-none transition-colors focus:border-[#005bff] sm:text-sm"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={placeBusy || placeQuery.trim().length < 2}
-                        className="rounded-sm bg-[#005bff] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#0047c7] disabled:opacity-60"
-                      >
-                        {placeBusy ? "Ищем…" : "Найти"}
-                      </button>
-                    </form>
-                    {placeResults.length > 0 && (
-                      <div className="mt-2 overflow-hidden rounded-lg border border-border bg-background shadow-lg">
-                        {placeResults.map((place) => (
-                          <button
-                            key={place.id}
-                            type="button"
-                            onClick={() => choosePlace(place)}
-                            className="flex w-full items-start gap-2 border-b border-border px-3 py-2.5 text-left text-xs leading-relaxed transition-colors last:border-b-0 hover:bg-[#005bff]/5"
-                          >
-                            <MapPin size={14} className="mt-0.5 shrink-0 text-[#005bff]" />
-                            <span>{place.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <p className="mt-3 rounded-lg border border-[#ffcc00]/70 bg-[#ffcc00]/10 px-3 py-2 text-xs leading-relaxed text-foreground">
+                      Используйте строку поиска внутри Яндекс Карты, затем приблизьте нужный район.
+                    </p>
                   </div>
                   <div className="relative">
                     <OzonPickupMap

@@ -59,6 +59,27 @@ export function SettingsForm({ site }: { site: SiteConfig }) {
       </div>
 
       <h2 className="mt-9 font-display text-[1rem] font-semibold uppercase">
+        Яндекс Карта ПВЗ
+      </h2>
+      <div className="mt-4">
+        <label className={label} htmlFor="yandexMapsApiKey">
+          Ключ JavaScript API
+        </label>
+        <input
+          id="yandexMapsApiKey"
+          name="yandexMapsApiKey"
+          defaultValue={site.yandexMapsApiKey ?? ""}
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="Ключ из developer.tech.yandex.ru"
+          className={`${field} mt-1.5 font-mono`}
+        />
+        <p className="mt-1 text-[0.72rem] leading-relaxed text-muted-foreground">
+          Это публичный ключ карты, ограниченный доменом momo-eq.ru. Ключ Яндекс Pay сюда не подходит.
+        </p>
+      </div>
+
+      <h2 className="mt-9 font-display text-[1rem] font-semibold uppercase">
         Условия
       </h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2">

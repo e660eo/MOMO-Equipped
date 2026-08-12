@@ -1,9 +1,29 @@
 @import "tailwindcss";
 
-/* Маркеры карты ПВЗ — собственные, чтобы Leaflet не тянул растровые иконки. */
-.momo-map-marker-wrap {
+/* Фирменные маркеры Ozon поверх Яндекс Карты. */
+.momo-yandex-point,
+.momo-yandex-cluster {
+  display: block;
+  padding: 0;
   background: transparent;
   border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.momo-yandex-point {
+  width: 34px;
+  height: 34px;
+}
+
+.momo-yandex-point.is-selected {
+  width: 42px;
+  height: 42px;
+}
+
+.momo-yandex-cluster {
+  width: 52px;
+  height: 52px;
 }
 
 .momo-map-marker {
@@ -32,11 +52,6 @@
   height: 42px;
   background: #005bff;
   box-shadow: 0 0 0 4px rgb(0 91 255 / 22%), 0 10px 22px rgb(0 91 255 / 38%);
-}
-
-.momo-map-cluster-wrap {
-  background: transparent;
-  border: 0;
 }
 
 .momo-map-cluster {
@@ -68,34 +83,11 @@
   letter-spacing: 0.04em;
 }
 
-.leaflet-container {
-  background: #e7e5e4;
-  font-family: var(--font-manrope), sans-serif;
-}
-
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  background: var(--surface);
-  color: var(--fg);
-}
-
-.momo-map-popup {
-  display: grid;
-  gap: 8px;
-}
-
-.momo-map-popup > span {
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.momo-map-popup > button {
-  border-radius: 3px;
-  background: #005bff;
-  padding: 9px 12px;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
+.momo-yandex-point:focus-visible,
+.momo-yandex-cluster:focus-visible {
+  border-radius: 50%;
+  outline: 3px solid #ff5500;
+  outline-offset: 3px;
 }
 
 /*
