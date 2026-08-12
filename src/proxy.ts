@@ -69,16 +69,17 @@ function contentSecurityPolicy(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline'`,
     // Стили инлайновые по устройству React (style={{…}}) и Tailwind. Отдельной
     // дырой это не является: подмена стилей — не выполнение кода.
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' blob:",
     // data: — заглушки next/image; внешние домены — Метрика, Web SDK Пэй и
     // подложка Яндекс Карты для выбора ПВЗ Ozon.
     "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.maps.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
     "font-src 'self' data:",
     // Куда странице разрешено стучаться. Даже выполнившийся чужой скрипт не
     // отправит отсюда корзину и телефоны покупателей на свой сервер.
-    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.yandex.ru https://*.maps.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
+    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.yandex.ru https://*.maps.yandex.net https://*.taxi.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
     // Карта проезда, служебная рамка Метрики и — когда включат — оплата.
-    "frame-src https://yandex.ru https://mc.yandex.ru https://pay.yandex.ru",
+    "child-src https://api-maps.yandex.ru",
+    "frame-src https://yandex.ru https://mc.yandex.ru https://pay.yandex.ru https://api-maps.yandex.ru",
     // Нас самих в чужую рамку не затянуть: кликджекинг на форме входа.
     "frame-ancestors 'none'",
     // Подменённый <base> увёл бы все относительные адреса на чужой сервер.
