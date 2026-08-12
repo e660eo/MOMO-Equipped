@@ -206,7 +206,7 @@ export function OzonPickupMap({
           {
             center: [target.lat, target.long],
             zoom: target.zoom,
-            controls: ["searchControl", "zoomControl", "fullscreenControl"],
+            controls: ["zoomControl", "fullscreenControl"],
           },
           {
             minZoom: 2,
