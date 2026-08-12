@@ -8,8 +8,19 @@
 */
 
 /** Экранирование одного поля: кавычки, «;» и переводы строк заворачиваем в кавычки. */
+const FORMULA_PREFIX = /^[\u0000-\u0020]*[=+\-@]/;
+
+/**
+ * Neutralises values that spreadsheet applications could execute as formulas.
+ * The leading apostrophe is the standard Excel/LibreOffice text marker.
+ */
+export function neutralizeSpreadsheetFormula(value: string): string {
+  return FORMULA_PREFIX.test(value) ? `'${value}` : value;
+}
+
 export function csvField(value: string | number | undefined | null): string {
-  const s = value == null ? "" : String(value);
+  const raw = value == null ? "" : String(value);
+  const s = typeof value === "string" ? neutralizeSpreadsheetFormula(raw) : raw;
   if (/[";\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }

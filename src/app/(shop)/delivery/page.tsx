@@ -108,9 +108,13 @@ export default function DeliveryPage() {
         <div className="mt-5 rounded-xl border border-border bg-surface p-6">
           <Undo2 size={20} className="text-signal" />
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            На всё оборудование действует гарантия{" "}
+            На всё оборудование действует стандартная гарантия{" "}
             <b className="font-semibold text-foreground">
               {trust.warrantyMonths} месяцев
+            </b>
+            . При установке в авторизованном центре MOMO/ZEUS гарантия составляет{" "}
+            <b className="font-semibold text-foreground">
+              {trust.extendedWarrantyMonths} месяца
             </b>
             . Вернуть или обменять товар надлежащего качества можно в течение{" "}
             <b className="font-semibold text-foreground">

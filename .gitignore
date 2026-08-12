@@ -7,6 +7,9 @@
 
 # production
 /build
+/coverage/
+/playwright-report/
+/test-results/
 
 # misc
 .DS_Store
@@ -14,6 +17,7 @@
 
 # debug
 npm-debug.log*
+debug.log
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*

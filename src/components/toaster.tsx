@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { useToast } from "@/lib/toast-store";
 import { productImageUrl } from "@/lib/format";
@@ -13,16 +12,10 @@ export function Toaster() {
   // Отступ снизу — чтобы тосты вставали над плавающей кнопкой WhatsApp
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[120] flex flex-col items-center gap-2.5 p-4 sm:inset-x-auto sm:right-5 sm:items-end">
-      <AnimatePresence>
-        {toasts.map((t) => (
-          <motion.div
+      {toasts.map((t) => (
+          <div
             key={t.id}
-            layout
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.18 } }}
-            transition={{ type: "spring", stiffness: 480, damping: 34 }}
-            className="pointer-events-auto flex w-[min(360px,92vw)] items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[0_18px_50px_-16px_rgba(0,0,0,0.35)]"
+            className="pointer-events-auto flex w-[min(360px,92vw)] animate-[hints-in_.2s_ease-out] items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[0_18px_50px_-16px_rgba(0,0,0,0.35)]"
           >
             {t.image ? (
               <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-tile">
@@ -68,9 +61,8 @@ export function Toaster() {
             >
               <X size={15} />
             </button>
-          </motion.div>
+          </div>
         ))}
-      </AnimatePresence>
     </div>
   );
 }

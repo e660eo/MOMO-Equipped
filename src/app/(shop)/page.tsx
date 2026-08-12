@@ -21,7 +21,7 @@ import {
 } from "@/lib/data";
 import { BundleCard } from "@/components/bundle-card";
 import { cn, plural } from "@/lib/utils";
-import { WebGLShader } from "@/components/ui/web-gl-shader";
+import { HeroBackdrop } from "@/components/hero-backdrop";
 import { BannerCarousel } from "@/components/banner-carousel";
 import { SplitProgress } from "@/components/split-progress";
 import { ProductCard } from "@/components/product-card";
@@ -32,12 +32,12 @@ import { Reveal } from "@/components/reveal";
 export const metadata: Metadata = {
   title: { absolute: "Автоакустика MOMO и ZEUS — официальный каталог" },
   description:
-    "Официальный каталог автоакустики MOMO и ZEUS: динамики, сабвуферы, усилители и моноблоки. Гарантия 12 месяцев, доставка по России.",
+    "Официальный каталог автоакустики MOMO и ZEUS: динамики, сабвуферы, усилители и моноблоки. Гарантия 12 месяцев, 24 месяца при авторизованной установке.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "Автоакустика MOMO и ZEUS",
     description:
-      "Динамики, сабвуферы и усилители MOMO и ZEUS. Гарантия 12 месяцев, доставка по всей России.",
+      "Динамики, сабвуферы и усилители MOMO и ZEUS. Гарантия 12 месяцев, 24 месяца при авторизованной установке.",
     type: "website",
     url: "/",
   },
@@ -93,7 +93,7 @@ export default function Home() {
       <section className="border-b border-border">
         <div className="relative overflow-hidden bg-white text-zinc-900">
           {/* фон: WebGL-шейдер — чёрная звуковая линия на белом */}
-          <WebGLShader />
+          <HeroBackdrop />
           {/* мягкое высветление за текстом для читаемости */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_54%_at_50%_44%,rgba(255,255,255,0.92),rgba(255,255,255,0.45)_58%,transparent_82%)]" />
 
@@ -110,6 +110,15 @@ export default function Home() {
             {/* Логотип остаётся самым крупным объектом первого экрана. */}
             <div className="mt-5 flex items-center justify-center">
               <HeroLogo className="w-[clamp(260px,52vw,660px)]" />
+            </div>
+
+            <div className="mx-auto mt-6 max-w-2xl border-y border-neutral-200/80 py-4">
+              <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-zinc-900 sm:text-lg">
+                Автоакустика MOMO и ZEUS
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-neutral-600 sm:text-base">
+                Сабвуферы, усилители, динамики и готовые системы автозвука.
+              </p>
             </div>
 
             <div className="mt-9 flex flex-wrap justify-center gap-4">
@@ -135,7 +144,7 @@ export default function Home() {
             <span>
               гарантия{" "}
               <b className="font-medium text-foreground">
-                {trust.warrantyMonths} месяцев
+                {trust.warrantyMonths} мес. стандартная · {trust.extendedWarrantyMonths} мес. с авторизованной установкой
               </b>
             </span>
             <span>

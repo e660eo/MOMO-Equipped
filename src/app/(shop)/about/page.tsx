@@ -6,7 +6,7 @@ import { siteConfig, getBrands, getProducts } from "@/lib/data";
 export const metadata: Metadata = {
   title: "О компании",
   description:
-    "MOMO Equipped — автозвук из Махачкалы с 2015 года: сабвуферы, усилители, эстрадная акустика. Собственные бренды, гарантия 12 месяцев, доставка по всей России.",
+    "MOMO Equipped — автозвук из Махачкалы с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
   alternates: { canonical: "/about" },
 };
 
@@ -29,7 +29,7 @@ export default function AboutPage() {
     // Цифра — из самого каталога: константа в конфиге рано или поздно разошлась бы
     // с реальностью, а завышенное «300+» при 145 позициях подрывает доверие.
     { value: String(getProducts().length), label: "позиций в каталоге" },
-    { value: `${trust.warrantyMonths} мес`, label: "гарантия на оборудование" },
+    { value: `${trust.warrantyMonths}/${trust.extendedWarrantyMonths} мес`, label: "стандартная / с авторизованной установкой" },
     { value: "РФ", label: "доставка по всей России" },
   ];
 
@@ -129,7 +129,7 @@ export default function AboutPage() {
             },
             {
               title: "Гарантия и возврат",
-              text: `Гарантия ${trust.warrantyMonths} месяцев, возврат ${trust.returnDays} дней — условия открыты на странице «Доставка и оплата».`,
+              text: `${trust.warrantyMonths} месяцев — стандартная гарантия; ${trust.extendedWarrantyMonths} месяца — при установке в авторизованном центре MOMO/ZEUS. Возврат — ${trust.returnDays} дней.`,
             },
             {
               title: "На связи",

@@ -12,6 +12,7 @@ import { PhoneInput } from "./phone-input";
 import { saveProfile, signOut, deleteMyAccount } from "@/app/customer-actions";
 import { STATUS_LABELS } from "@/lib/order-status";
 import type { Order, PublicCustomer } from "@/lib/types";
+import { notifyCustomerSessionChanged } from "./customer-provider";
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
@@ -97,6 +98,7 @@ export function ProfileView({
 
   async function exit() {
     await signOut();
+    notifyCustomerSessionChanged();
     router.refresh();
     router.push("/");
   }
@@ -120,6 +122,7 @@ export function ProfileView({
       title: "Аккаунт удалён",
       description: "Ваши данные больше не хранятся на сайте.",
     });
+    notifyCustomerSessionChanged();
     router.refresh();
     router.push("/");
   }

@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
   */
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [360, 420, 640, 828, 1080, 1200, 1920],
+    deviceSizes: [360, 420, 640, 828, 1080, 1200, 1600],
     imageSizes: [64, 96, 128, 256, 384],
     minimumCacheTTL: 31536000,
   },
@@ -44,7 +44,10 @@ const nextConfig: NextConfig = {
     нужной иконки.
   */
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion"],
+    // Hash-based CSP keeps public pages statically cacheable. Nonce-based CSP
+    // requires request-time rendering for every page in Next.js.
+    sri: { algorithm: "sha256" },
+    optimizePackageImports: ["lucide-react"],
     /*
       Загрузка фото товара идёт серверным действием, а у server actions тело по
       умолчанию ограничено 1 МБ. Несколько снимков с телефона это легко
@@ -69,10 +72,9 @@ const nextConfig: NextConfig = {
   /*
     Заголовки безопасности, одинаковые для всех ответов.
 
-    Content-Security-Policy среди них нет намеренно и живёт в src/proxy.ts:
-    её главная часть — одноразовая метка nonce, разная на каждый запрос, а
-    отсюда заголовки уходят вычисленными один раз на сборке. Политика с
-    постоянным значением защищала бы ровно ни от чего.
+    Content-Security-Policy живёт в src/proxy.ts рядом с проверкой доступа к
+    панели. Политика статическая, а целостность production-бандлов Next
+    подтверждает SRI-хешами.
   */
   async headers() {
     // immutable-кэш на сборочные файлы включаем только в проде: в разработке
@@ -122,17 +124,7 @@ const nextConfig: NextConfig = {
       ...(prod
         ? [
             {
-              source: "/_next/static/:path*",
-              headers: [
-                {
-                  key: "Cache-Control",
-                  value: "public, max-age=31536000, immutable",
-                },
-              ],
-            },
-            // Шрифты next/font — те же неизменяемые файлы с хешем в имени
-            {
-              source: "/_next/static/media/:path*",
+              source: "/fonts/:path*",
               headers: [
                 {
                   key: "Cache-Control",

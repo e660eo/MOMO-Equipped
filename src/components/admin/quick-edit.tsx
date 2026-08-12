@@ -34,8 +34,6 @@ export function QuickEdit({ product }: { product: Product }) {
   const stockChanged =
     (stock === "" ? null : Number(stock)) !==
     (typeof product.stock === "number" ? product.stock : null);
-  const dirty = priceChanged || stockChanged;
-
   function save() {
     if (pending) return;
 

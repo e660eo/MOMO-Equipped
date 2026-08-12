@@ -1,4 +1,3 @@
-import ClickSpark from "@/components/ui/ClickSpark";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -12,11 +11,7 @@ import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import { YandexMetrica } from "@/components/yandex-metrica";
 import { SiteConfigProvider } from "@/components/site-config-provider";
 import { CustomerProvider } from "@/components/customer-provider";
-import { SearchProvider } from "@/components/search-provider";
-import { getSiteConfig, getProducts } from "@/lib/data";
-import { toSearchHits } from "@/lib/search-index";
-import { currentCustomer } from "@/lib/customer-auth";
-import { requestNonce } from "@/lib/nonce";
+import { getSiteConfig } from "@/lib/data";
 import { payConfig } from "@/lib/yandex-pay";
 import Script from "next/script";
 
@@ -29,19 +24,10 @@ import Script from "next/script";
   с диска (его правят из админки), статическим импортом в браузер он больше
   не попадает.
 */
-export async function ShopChrome({ children }: { children: React.ReactNode }) {
+export function ShopChrome({ children }: { children: React.ReactNode }) {
   const { contacts, trust, yandexMapsApiKey } = getSiteConfig();
-  // Кто вошёл — знает только сервер: кука подписана, в браузере её не проверить
-  const customer = await currentCustomer();
   // В браузер уходит только «оплата работает / не работает». Ключи — никогда.
   const pay = payConfig();
-  // Метка запроса для встроенного загрузчика Метрики: без неё политика
-  // безопасности не даст ему выполниться (см. proxy.ts).
-  const nonce = await requestNonce();
-  // Живой индекс для подсказок поиска — из той же рантайм-папки, что каталог
-  // и карточки, чтобы цена в подсказке совпадала с ценой товара.
-  const searchHits = toSearchHits(getProducts());
-
   return (
     <SiteConfigProvider
       value={{
@@ -53,52 +39,42 @@ export async function ShopChrome({ children }: { children: React.ReactNode }) {
         payMerchantId: pay?.merchantId ?? null,
       }}
     >
-      <CustomerProvider value={customer}>
-        <SearchProvider hits={searchHits}>
-          {pay && (
-            <Script
-              id="yandex-pay-web-sdk"
-              src="https://pay.yandex.ru/sdk/v1/pay.js"
-              strategy="afterInteractive"
-              nonce={nonce}
-            />
-          )}
-          <YandexMetrica nonce={nonce} />
-          {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
-          <JsonLd data={organizationSchema()} />
-          <JsonLd data={websiteSchema()} />
-          {/*
+      <CustomerProvider>
+        {pay && (
+          <Script
+            id="yandex-pay-web-sdk"
+            src="https://pay.yandex.ru/sdk/v1/pay.js"
+            strategy="afterInteractive"
+          />
+        )}
+        <YandexMetrica />
+        {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
+        {/*
             Колонка на всю высоту окна: если контента мало (короткая страница,
             пустой результат фильтра, высокий монитор), растягивается обёртка
             вокруг children, а тёмный футер остаётся прижатым к низу. Без этого
             под футером проступала светлая полоса фона body.
-          */}
-          <ClickSpark
-            className="flex min-h-screen flex-col"
-            sparkColor="#ff5500"
-            sparkSize={11}
-            sparkRadius={18}
-            sparkCount={8}
-            duration={450}
-          >
-            <AnnouncementBar />
-            <SiteHeader />
-            <div className="flex-1">{children}</div>
-            <SiteFooter />
-          </ClickSpark>
-          {/*
-            Оверлеи держим вне шапки и ClickSpark: у шапки backdrop-filter, а он
+        */}
+        <div className="flex min-h-screen flex-col">
+          <AnnouncementBar />
+          <SiteHeader />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
+        </div>
+        {/*
+            Оверлеи держим вне шапки: у неё backdrop-filter, а он
             создаёт точку отсчёта для position:fixed — внутри неё модалка
             позиционировалась бы относительно шапки, а не экрана (окно входа
             уезжало вверх на мобильном).
-          */}
-          {/* Окно входа — отдельным куском, по требованию */}
-          <Overlays />
-          <Toaster />
-          <WhatsAppFab />
-          <CompareBar />
-          <CookieNotice />
-        </SearchProvider>
+        */}
+        {/* Окно входа — отдельным куском, по требованию */}
+        <Overlays />
+        <Toaster />
+        <WhatsAppFab />
+        <CompareBar />
+        <CookieNotice />
       </CustomerProvider>
     </SiteConfigProvider>
   );

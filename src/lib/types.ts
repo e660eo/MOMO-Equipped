@@ -254,6 +254,7 @@ export interface SiteConfig {
   };
   trust: {
     warrantyMonths: number;
+    extendedWarrantyMonths: number;
     returnDays: number;
     processingDays: number;
     freeShippingFrom: number;

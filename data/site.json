@@ -12,6 +12,7 @@
   },
   "trust": {
     "warrantyMonths": 12,
+    "extendedWarrantyMonths": 24,
     "returnDays": 14,
     "processingDays": 1,
     "freeShippingFrom": 5000

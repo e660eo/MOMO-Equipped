@@ -1,6 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ExpectedError } from "./errors";
+import { SEED_DIR, dataDir, isRepoData } from "./store-paths";
+
+export { dataDir, uploadsDir, seedUploadsDir, isRepoData } from "./store-paths";
 
 /*
   Хранилище данных сайта.
@@ -14,37 +17,9 @@ import { ExpectedError } from "./errors";
   Пустая папка данных засеивается копией из репозитория при первом чтении —
   на сервере достаточно создать каталог и указать путь.
 
-  Сборщик предупреждает про «unexpected file in NFT list»: чтение с диска в
-  рантайме мешает ему точно вычислить список нужных файлов. Для нашего
-  запуска (обычный `next start` рядом с исходниками) это безразлично —
-  трассировка нужна только сборкам standalone, которых у нас нет.
+  Вычисление путей вынесено в store-paths.ts. Роут /media импортирует только
+  этот лёгкий модуль и не затягивает весь файловый store в NFT trace.
 */
-
-const SEED_DIR = path.join(process.cwd(), "data");
-
-/** Папка с данными: прод — MOMO_DATA_DIR, разработка — data/ репозитория. */
-export function dataDir(): string {
-  return process.env.MOMO_DATA_DIR?.trim() || SEED_DIR;
-}
-
-/** Папка, куда админка кладёт загруженные фото. */
-export function uploadsDir(): string {
-  return path.join(dataDir(), "uploads");
-}
-
-/**
- * Исходные снимки каталога, приехавшие вместе с кодом. Роут /media смотрит
- * сюда, если файла нет среди загруженных, — так работают все нынешние
- * карточки, не заводя копию папки на сервере.
- */
-export function seedUploadsDir(): string {
-  return path.join(process.cwd(), "public", "uploads");
-}
-
-/** Пишем ли мы в саму папку репозитория (локальная разработка). */
-export function isRepoData(): boolean {
-  return path.resolve(dataDir()) === path.resolve(SEED_DIR);
-}
 
 /*
   Кэш прочитанных файлов. Живёт в процессе: писатель у данных ровно один

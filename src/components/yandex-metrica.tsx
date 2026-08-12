@@ -44,35 +44,22 @@ function MetrikaRouteTracker() {
 }
 
 /*
-  Инлайн-загрузчик Метрики — как в панели Яндекса, только id вынесен в
-  константу. Опции init оставлены ровно те, что были выбраны в счётчике:
+  Загрузчик Метрики вынесен в public/yandex-metrica.js, чтобы он кэшировался
+  как обычный файл. Опции init оставлены ровно те, что были выбраны в счётчике:
   webvisor (запись сессий), clickmap (карта кликов), ecommerce (события
   корзины из dataLayer — пригодятся, когда начнём их отправлять).
   strategy="lazyOnload" — грузим последним, чтобы 86 КБ аналитики не
   конкурировали с отрисовкой страницы.
 
-  nonce — метка запроса из proxy.ts: без неё политика безопасности не даст
-  выполниться встроенному скрипту. Сам tag.js метки не получает и не должен:
-  его вставляет уже доверенный загрузчик, а это разрешает 'strict-dynamic'.
+  Внешние адреса явно разрешены в CSP.
 */
-export function YandexMetrica({ nonce }: { nonce?: string }) {
-  const loader = `
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=${YM_ID}', 'ym');
-    ym(${YM_ID}, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-  `;
-
+export function YandexMetrica() {
   return (
     <>
       <Script
         id="yandex-metrica"
+        src="/yandex-metrica.js"
         strategy="lazyOnload"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: loader }}
       />
       <Suspense fallback={null}>
         <MetrikaRouteTracker />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MapPin, Phone, Clock } from "lucide-react";
 import { siteConfig } from "@/lib/data";
 import { YandexMap } from "@/components/yandex-map";
@@ -131,12 +132,12 @@ export default function InstallPage() {
         >
           Спросить про установку
         </a>
-        <a
+        <Link
           href="/catalog"
           className="inline-flex rounded-sm border border-border px-7 py-3.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
         >
           Открыть каталог
-        </a>
+        </Link>
       </div>
     </main>
   );

@@ -35,11 +35,11 @@ export async function generateMetadata({
   if (!product) return { title: "Товар не найден" };
   return {
     title: product.title,
-    description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, доступна оплата через Яндекс Сплит. Гарантия 12 месяцев, доставка по России.`,
+    description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, Яндекс Сплит. Гарантия 12 месяцев, 24 месяца при авторизованной установке.`,
     alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       title: product.title,
-      description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, гарантия 12 месяцев, доставка по России.`,
+      description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, гарантия 12 месяцев, 24 месяца при авторизованной установке.`,
       type: "website",
       url: `/product/${product.slug}`,
       images: [productImageUrl(product.image)],
@@ -262,7 +262,9 @@ export default async function ProductPage({
             <div>
               <p className="font-display text-sm font-semibold">Гарантия</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {siteConfig.trust.warrantyMonths} месяцев
+                {siteConfig.trust.warrantyMonths} мес. стандартная
+                <br />
+                {siteConfig.trust.extendedWarrantyMonths} мес. с авторизованной установкой
               </p>
             </div>
             <div>

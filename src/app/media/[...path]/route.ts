@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { uploadsDir, seedUploadsDir } from "@/lib/store";
+import { uploadsDir, seedUploadsDir } from "@/lib/store-paths";
 
 /*
   Отдача фото товаров.

@@ -123,8 +123,6 @@ function loadYandexMaps(apiKey: string): Promise<YandexMapsApi> {
     script.id = SCRIPT_ID;
     script.async = true;
     script.src = `https://api-maps.yandex.ru/2.1.79/?apikey=${encodeURIComponent(apiKey)}&lang=ru_RU&load=package.full&csp=true`;
-    const nonceSource = document.querySelector<HTMLScriptElement>("script[nonce]");
-    if (nonceSource?.nonce) script.nonce = nonceSource.nonce;
     script.addEventListener("load", ready, { once: true });
     script.addEventListener(
       "error",

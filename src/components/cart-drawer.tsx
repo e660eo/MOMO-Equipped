@@ -463,12 +463,12 @@ export function CartPageClient() {
               В корзине пока пусто. Добавьте товары из каталога — они появятся
               здесь.
             </p>
-            <a
+            <Link
               href="/catalog"
               className="inline-flex rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
             >
               Открыть каталог
-            </a>
+            </Link>
           </div>
         ) : (
           <>

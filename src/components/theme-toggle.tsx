@@ -55,7 +55,12 @@ export function ThemeToggle({
       delete root.dataset.theme;
     }
 
-    // Cookie читает сервер при следующем рендере — тема применяется без вспышки.
+    try {
+      localStorage.setItem("momo-theme", next ? "dark" : "light");
+    } catch {
+      // В приватном режиме localStorage может быть недоступен.
+    }
+    // Cookie остаётся только для совместимости со старыми сессиями и theme-init.js.
     document.cookie = `momo-theme=${next ? "dark" : "light"}; path=/; max-age=31536000; samesite=lax`;
 
     requestAnimationFrame(() => {

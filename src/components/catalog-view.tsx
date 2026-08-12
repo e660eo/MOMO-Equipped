@@ -3,11 +3,11 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
-import type { Product, Category, Brand } from "@/lib/types";
+import type { Category, Brand } from "@/lib/types";
+import type { CatalogProduct } from "@/lib/catalog-product";
 import { formatPrice, isInStock } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
-  parseTech,
   diameterBucket,
   powerBucket,
   DIAMETER_ORDER,
@@ -69,7 +69,7 @@ export function CatalogView({
   categories,
   brands,
 }: {
-  products: Product[];
+  products: CatalogProduct[];
   categories: Category[];
   brands: Brand[];
 }) {
@@ -115,7 +115,7 @@ export function CatalogView({
       { dia: string | null; pow: string | null; imp: number | null; lcTitle: string }
     >();
     for (const p of products) {
-      const t = parseTech(p.title, p.description);
+      const t = p.tech;
       m.set(p.slug, {
         dia: t.diameterMm ? diameterBucket(t.diameterMm) : null,
         pow: t.powerMaxW ? powerBucket(t.powerMaxW) : null,
@@ -250,7 +250,7 @@ export function CatalogView({
       );
     });
     // Известное наличие вперёд, неизвестное — в середину, «под заказ» — в хвост.
-    const stockRank = (p: Product) =>
+    const stockRank = (p: CatalogProduct) =>
       isInStock(p) === true ? 0 : isInStock(p) === false ? 2 : 1;
 
     switch (sort) {

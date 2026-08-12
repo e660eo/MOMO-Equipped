@@ -43,7 +43,7 @@ export function discountFor(subtotal: number, percent: number): number {
 }
 
 /** Списать одну активацию — после того как код применён к заказу. */
-export function usePromo(code: string): void {
+export function redeemPromo(code: string): void {
   const norm = normalizeCode(code);
   updateJson<Promo[]>(FILE, (all) =>
     all.map((p) => (p.code === norm ? { ...p, used: p.used + 1 } : p)),

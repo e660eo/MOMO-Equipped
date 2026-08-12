@@ -12,6 +12,9 @@ import { ProductImage } from "./product-image";
 import { CompareToggle } from "./compare-toggle";
 import { YandexSplitBadge } from "./yandex-split-badge";
 
+const CARD_IMAGE_SIZES =
+  "(max-width: 639px) calc(50vw - 28px), (max-width: 1023px) calc(33vw - 28px), 256px";
+
 /*
   Плитка товара.
 
@@ -115,6 +118,7 @@ function ProductCardImpl({
           src={productImageUrl(product.image)}
           alt={product.title}
           priority={priority}
+          sizes={CARD_IMAGE_SIZES}
           className={cn(
             "h-[86%] w-[86%] object-contain mix-blend-multiply transition-opacity duration-300",
             swapped && "opacity-0",
@@ -136,6 +140,7 @@ function ProductCardImpl({
             <ProductImage
               src={productImageUrl(second)}
               alt=""
+              sizes={CARD_IMAGE_SIZES}
               onLoad={() => setReady(true)}
               className={cn(
                 "h-[86%] w-[86%] object-contain mix-blend-multiply transition-opacity duration-300",

@@ -18,7 +18,17 @@ import type {
   в отдельном `format.ts`.
 */
 
-export const getSiteConfig = (): SiteConfig => readJson<SiteConfig>("site.json");
+export const getSiteConfig = (): SiteConfig => {
+  const site = readJson<SiteConfig>("site.json");
+  return {
+    ...site,
+    trust: {
+      ...site.trust,
+      // Production data may predate the extended-warranty field.
+      extendedWarrantyMonths: site.trust.extendedWarrantyMonths ?? 24,
+    },
+  };
+};
 
 /**
  * Конфиг сайта для серверных компонентов. Клиентские берут его из

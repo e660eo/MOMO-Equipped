@@ -1,17 +1,18 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useRef } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useSearch } from "./search-provider";
+import type { SearchResult } from "@/lib/search-index";
 import { ProductImage } from "./product-image";
 
 /**
  * Выпадающие подсказки под строкой поиска.
  *
- * Поиск идёт по индексу в браузере, поэтому результат появляется мгновенно.
+ * Поиск идёт через короткий серверный запрос с debounce: полный каталог не
+ * сериализуется в HTML каждой страницы и не хранится в браузере.
  * Закрывается по клику снаружи и по Esc; выбор мышью и Enter обрабатывает
  * родительская форма.
  */
@@ -33,20 +34,46 @@ export function SearchSuggestions({
   limit?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  // Индекс живой — приходит из рантайм-данных через SearchProvider (см. там)
-  const search = useSearch();
-
   /*
-    Поиск идёт по отложенному значению: буква в поле появляется сразу, а
-    перебор каталога и перерисовка списка — следующим проходом и с правом
-    прерваться на новое нажатие. Раньше каждая буква считалась синхронно
-    внутри рендера и держала ввод.
+    Буква в поле появляется сразу, запрос начинается после короткой паузы,
+    а предыдущий отменяется при следующем нажатии.
   */
   const deferred = useDeferredValue(query);
-  const { hits, total } = useMemo(
-    () => search(deferred, limit),
-    [search, deferred, limit],
-  );
+  const [{ hits, total }, setResult] = useState<SearchResult>({ hits: [], total: 0 });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const q = deferred.trim();
+    if (!open || q.length < 2) {
+      setResult({ hits: [], total: 0 });
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(q)}&limit=${limit}`,
+          { cache: "no-store", signal: controller.signal },
+        );
+        if (!response.ok) throw new Error("search unavailable");
+        setResult((await response.json()) as SearchResult);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setResult({ hits: [], total: 0 });
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [deferred, limit, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -90,7 +117,11 @@ export function SearchSuggestions({
             "mt-2 animate-[hints-in_.22s_cubic-bezier(0.16,1,0.3,1)]",
       )}
     >
-      {hits.length === 0 ? (
+      {loading && hits.length === 0 ? (
+        <p className="px-4 py-5 text-center text-sm text-muted-foreground">
+          Ищем…
+        </p>
+      ) : hits.length === 0 ? (
         <p className="px-4 py-5 text-center text-sm text-muted-foreground">
           Ничего не нашлось по запросу «{deferred.trim()}»
         </p>

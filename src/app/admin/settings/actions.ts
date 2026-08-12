@@ -55,10 +55,11 @@ export async function saveSettings(
     }
 
     const warranty = Number(get("warrantyMonths"));
+    const extendedWarranty = Number(get("extendedWarrantyMonths"));
     const returnDays = Number(get("returnDays"));
     const processing = Number(get("processingDays"));
     const freeFrom = Number(get("freeShippingFrom"));
-    if ([warranty, returnDays, processing, freeFrom].some((n) => !Number.isFinite(n) || n < 0)) {
+    if ([warranty, extendedWarranty, returnDays, processing, freeFrom].some((n) => !Number.isFinite(n) || n < 0)) {
       return { error: "Гарантия, возврат, обработка и порог доставки — числа." };
     }
 
@@ -78,6 +79,7 @@ export async function saveSettings(
       },
       trust: {
         warrantyMonths: Math.round(warranty),
+        extendedWarrantyMonths: Math.round(extendedWarranty),
         returnDays: Math.round(returnDays),
         processingDays: Math.round(processing),
         freeShippingFrom: Math.round(freeFrom),

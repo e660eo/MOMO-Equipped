@@ -26,6 +26,12 @@ export function SettingsForm({ site }: { site: SiteConfig }) {
   ];
 
   const numbers: [string, string, number, string][] = [
+    [
+      "extendedWarrantyMonths",
+      "Расширенная гарантия, месяцев",
+      trust.extendedWarrantyMonths,
+      "При установке в авторизованном центре MOMO/ZEUS",
+    ],
     ["warrantyMonths", "Гарантия, месяцев", trust.warrantyMonths, ""],
     ["returnDays", "Возврат, дней", trust.returnDays, ""],
     ["processingDays", "Обработка заказа, дней", trust.processingDays, ""],

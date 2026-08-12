@@ -3,7 +3,6 @@
 import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { User, ShoppingCart, Menu } from "lucide-react";
 import { useCart, cartCount } from "@/lib/cart-store";
 import { useAccount } from "@/lib/account-store";
@@ -143,17 +142,7 @@ export function SiteHeader() {
           >
             <ShoppingCart size={15} />
             <span className="relative hidden h-[1.2em] min-w-[0.7em] justify-center overflow-hidden tabular-nums sm:inline-flex">
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={count}
-                  initial={{ y: "100%", opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: "-100%", opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 620, damping: 32 }}
-                >
-                  {count}
-                </motion.span>
-              </AnimatePresence>
+              <span key={count}>{count}</span>
             </span>
             {/* Счётчик на мобильном — бейджем поверх иконки */}
             {count > 0 && (

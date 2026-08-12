@@ -78,7 +78,7 @@ export function SeoCatalogLanding({
             {total} {plural(total, "позиция", "позиции", "позиций")}
           </span>
           <span className="rounded-full border border-white/15 bg-white/5 px-4 py-2">
-            Гарантия {trust.warrantyMonths} месяцев
+            Гарантия {trust.warrantyMonths}/{trust.extendedWarrantyMonths} мес.
           </span>
           <span className="rounded-full border border-white/15 bg-white/5 px-4 py-2">
             Доставка по России

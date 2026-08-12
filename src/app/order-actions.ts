@@ -7,7 +7,7 @@ import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts, siteConfig } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
-import { findValidPromo, discountFor, usePromo } from "@/lib/promos";
+import { findValidPromo, discountFor, redeemPromo } from "@/lib/promos";
 import {
   searchRussianPlaces,
   type PublicPlaceResult,
@@ -311,7 +311,7 @@ export async function submitOrder(payload: {
     });
 
     // Активацию списываем после сохранения заказа — код применён.
-    if (promo) usePromo(promo.code);
+    if (promo) redeemPromo(promo.code);
 
     /*
       Для WhatsApp-заявки письмо отправляем сразу и не задерживаем покупателя

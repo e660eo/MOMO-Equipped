@@ -5,24 +5,27 @@ import { Truck, ShieldCheck, Clock, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteConfig } from "@/components/site-config-provider";
 
-const items = [
-  { icon: Truck, text: "Бесплатная доставка от 5000 ₽" },
-  { icon: ShieldCheck, text: "Гарантия 12 месяцев" },
-  { icon: Clock, text: "Обработка заказа за 1 день" },
-];
-
 export function AnnouncementBar() {
   const [index, setIndex] = useState(0);
+  const { contacts, trust } = useSiteConfig();
+  const items = [
+    { icon: Truck, text: `Бесплатная доставка от ${trust.freeShippingFrom} ₽` },
+    {
+      icon: ShieldCheck,
+      text: `Гарантия ${trust.warrantyMonths} мес. · ${trust.extendedWarrantyMonths} мес. с авторизованной установкой`,
+    },
+    { icon: Clock, text: `Обработка заказа за ${trust.processingDays} день` },
+  ];
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = setInterval(() => {
-      setIndex((v) => (v + 1) % items.length);
+      setIndex((v) => (v + 1) % 3);
     }, 3600);
     return () => clearInterval(t);
   }, []);
 
-  const phone = useSiteConfig().contacts.phone;
+  const phone = contacts.phone;
 
   return (
     <div className="relative overflow-hidden bg-black text-white">

@@ -5,8 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
   Делает две вещи:
 
     1. не пускает посторонних в закрытые разделы;
-    2. выдаёт каждому ответу политику безопасности контента (CSP) с
-       одноразовой меткой nonce — она и есть настоящая защита от XSS.
+    2. выдаёт каждому HTML-ответу строгую политику безопасности контента.
 
   Файл называется proxy.ts: в Next 16 так называется бывший middleware.ts,
   под старым именем сборка его просто не увидит.
@@ -40,33 +39,18 @@ function needsSession(pathname: string): boolean {
 
 /* ---------------------------------- CSP ---------------------------------- */
 
-function makeNonce(): string {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return btoa(String.fromCharCode(...bytes));
-}
-
 /*
   Политика безопасности контента.
 
-  Читается так: «выполняй только те скрипты, у которых есть сегодняшняя
-  метка». Метка одноразовая и заранее не известна, поэтому скрипт, попавший
-  в страницу через дыру в данных, не выполнится, даже если разметку
-  собирает наш собственный код.
-
-  Про подпорки в script-src: 'unsafe-inline' игнорируется всеми браузерами,
-  которые понимают nonce, а https: — всеми, кто понимает 'strict-dynamic'.
-  Они лежат здесь для старых браузеров, где иначе сайт остался бы вообще
-  без скриптов. Порядок именно такой, это стандартный «strict CSP».
-
-  'strict-dynamic' нужен Метрике: её встроенный загрузчик (метку он получает)
-  сам вставляет tag.js с mc.yandex.ru, и перечислять внешние адреса не надо —
-  доверие наследуется от того, кто вставил.
+  Внешние скрипты разрешены только с нашего домена и с явно перечисленных
+  доменов Яндекса. `unsafe-inline` нужен для встроенных RSC/bootstrap-данных
+  Next: nonce сделал бы каждую страницу динамической. Production-бандлы при
+  этом получают SRI-хеши, остальные опасные возможности ограничены ниже.
 */
-function contentSecurityPolicy(nonce: string): string {
+function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline'`,
+    "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yastatic.net https://*.yandex.ru https://*.yandex.net",
     // Стили инлайновые по устройству React (style={{…}}) и Tailwind. Отдельной
     // дырой это не является: подмена стилей — не выполнение кода.
     "style-src 'self' 'unsafe-inline' blob:",
@@ -120,20 +104,17 @@ export default function proxy(req: NextRequest) {
   */
   if (process.env.NODE_ENV !== "production") return NextResponse.next();
 
-  const nonce = makeNonce();
-  const csp = contentSecurityPolicy(nonce);
-
-  const headers = new Headers(req.headers);
-  headers.set("x-nonce", nonce);
-  /*
-    Политика в заголовках запроса — не опечатка: по ней Next достаёт nonce и
-    сам проставляет его своим служебным скриптам (загрузчику бандлов и
-    потоковым данным RSC). Наружу этот заголовок не уходит, наружу идёт тот,
-    что ставится ответу ниже.
-  */
-  headers.set("Content-Security-Policy", csp);
-
-  const res = NextResponse.next({ request: { headers } });
+  const csp = contentSecurityPolicy();
+  const res = NextResponse.next();
+  // Filter, sort and search combinations must not create duplicate pages in
+  // the index. The header preserves noindex while /catalog itself stays SSG.
+  if (pathname === "/catalog" && req.nextUrl.searchParams.size > 0) {
+    res.headers.set("X-Robots-Tag", "noindex, follow");
+    res.headers.set(
+      "Cache-Control",
+      "public, s-maxage=3600, stale-while-revalidate=86400",
+    );
+  }
   /*
     CSP_REPORT_ONLY=1 в окружении переводит политику в режим наблюдения:
     браузер ничего не блокирует, только пишет нарушения в консоль. Нужен,

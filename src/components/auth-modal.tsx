@@ -11,6 +11,7 @@ import { PhoneInput } from "./phone-input";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { attemptAdminLogin } from "@/app/admin-entry";
 import { signIn, signUp, requestPasswordReset } from "@/app/customer-actions";
+import { notifyCustomerSessionChanged } from "./customer-provider";
 
 // text-base на узком экране: при шрифте меньше 16px Safari на iPhone
 // приближает страницу при фокусе в поле и обратно уже не отдаляет.
@@ -66,6 +67,7 @@ export function AuthModal() {
   function finishCustomerAuth() {
     const continueCheckout = modalIntent === "checkout";
     closeModal();
+    notifyCustomerSessionChanged();
     // Сессия хранится в httpOnly-cookie, поэтому серверные данные страницы
     // должны обновиться. После входа возвращаем к оформлению заказа.
     router.refresh();

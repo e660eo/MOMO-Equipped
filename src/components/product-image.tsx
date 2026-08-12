@@ -19,7 +19,7 @@ export function ProductImage({
   src,
   alt,
   className,
-  sizes = "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 280px",
+  sizes = "(max-width: 639px) calc(50vw - 28px), (max-width: 1023px) calc(33vw - 28px), 256px",
   priority = false,
   onLoad,
 }: {

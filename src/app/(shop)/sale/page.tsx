@@ -49,8 +49,9 @@ export default function SalePage() {
         </h1>
         <p className="relative z-[1] mt-4 max-w-[54ch] text-[0.98rem] text-white/75">
           Витринные образцы, остатки склада и товары со сниженной ценой. Полностью
-          рабочие, с той же гарантией {siteConfig.trust.warrantyMonths} месяцев —
-          просто дешевле. Количество ограничено: разбирают быстро.
+          рабочие: стандартная гарантия {siteConfig.trust.warrantyMonths} месяцев,
+          при установке в авторизованном центре — {siteConfig.trust.extendedWarrantyMonths} месяца.
+          Количество ограничено: разбирают быстро.
         </p>
         <p className="relative z-[1] mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 font-mono text-[0.72rem] uppercase tracking-wider text-white/80">
           {products.length}{" "}

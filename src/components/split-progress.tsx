@@ -1,6 +1,3 @@
-"use client";
-
-import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { formatPrice, splitPayment } from "@/lib/format";
 
 /*
@@ -37,24 +34,6 @@ const STEPS: Step[] = [
   { label: "6 недель", share: "100%" },
 ];
 
-/** Пауза между соседними отрезками, секунды. */
-const STAGGER = 0.14;
-
-const row: Variants = {
-  rest: {},
-  shown: { transition: { staggerChildren: STAGGER } },
-};
-
-const bar: Variants = {
-  rest: { scaleX: 0 },
-  shown: { scaleX: 1, transition: { duration: 0.4, ease: "easeOut" } },
-};
-
-const caption: Variants = {
-  rest: { opacity: 0.35, y: 4 },
-  shown: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
-
 export function SplitProgress({
   /** Цена, от которой считать платёж. Без неё показываем только доли. */
   price,
@@ -63,19 +42,8 @@ export function SplitProgress({
   price?: number;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-
   return (
-    <motion.div
-      /*
-        Состояния наследуются вложенными motion-элементами, поэтому
-        достаточно объявить их здесь. При отключённых анимациях карточка
-        сразу рисуется в конечном виде: она остаётся понятной, просто без
-        движения.
-      */
-      initial={reduce ? "shown" : "rest"}
-      whileInView="shown"
-      viewport={{ once: true, margin: "-80px" }}
+    <div
       className={`rounded-xl border border-border bg-surface p-6 transition-colors duration-300 hover:border-signal/50 ${className ?? ""}`}
     >
       <div className="flex items-end justify-between gap-4">
@@ -100,15 +68,14 @@ export function SplitProgress({
       </div>
 
       {/* Шкала: четыре отрезка, заливаются слева направо */}
-      <motion.div variants={row} className="mt-6 flex h-1.5 gap-2">
+      <div className="mt-6 flex h-1.5 gap-2">
         {STEPS.map((step) => (
           <div
             key={step.label}
             className="relative flex-1 overflow-hidden rounded-full bg-border"
           >
-            <motion.span
+            <span
               aria-hidden
-              variants={bar}
               /*
                 Анимируем transform, а не width: ширина заставляет браузер
                 пересчитывать раскладку на каждом кадре, трансформация — нет.
@@ -118,14 +85,13 @@ export function SplitProgress({
             />
           </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Подписи: доля и срок под своим отрезком */}
-      <motion.div variants={row} className="mt-3 flex gap-2">
+      <div className="mt-3 flex gap-2">
         {STEPS.map((step) => (
-          <motion.div
+          <div
             key={step.label}
-            variants={caption}
             className="flex-1 text-center"
           >
             <span className="block font-mono text-[0.7rem] font-semibold tabular-nums text-foreground">
@@ -134,9 +100,9 @@ export function SplitProgress({
             <span className="mt-0.5 block font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
               {step.label}
             </span>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
