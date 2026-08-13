@@ -7,7 +7,7 @@ const { loadEnvConfig } = nextEnv;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 loadEnvConfig(root);
 
-const UPDATE_ID = "new-arrivals-2026-08-12";
+const UPDATE_ID = "new-arrivals-2026-08-13";
 const TARGET_SLUGS = [
   "monoblok-bd-1500-1",
   "monoblok-avtomobilnyy-fr-500-138116",
