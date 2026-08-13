@@ -4,7 +4,7 @@ import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment } from "@/lib/orders";
 import { notifyNewOrder } from "@/lib/order-mail";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
-import { getProducts, siteConfig } from "@/lib/data";
+import { getProducts } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
 import { findValidPromo, discountFor, redeemPromo } from "@/lib/promos";
@@ -272,14 +272,8 @@ export async function submitOrder(payload: {
     }
   }
 
-  if (payload.pay && total < siteConfig.trust.freeShippingFrom) {
-    return {
-      ok: false,
-      error: `Онлайн-доставка Ozon доступна от ${siteConfig.trust.freeShippingFrom.toLocaleString("ru-RU")} ₽. Для меньшей суммы оформите заказ через WhatsApp.`,
-    };
-  }
-
   try {
+    let deliveryCharge = 0;
     let delivery: Order["delivery"];
     if (payload.pay) {
       if (!payload.deliveryToken) {
@@ -287,6 +281,7 @@ export async function submitOrder(payload: {
       }
       try {
         delivery = consumeOzonSelection(payload.deliveryToken, phone, items);
+        deliveryCharge = delivery.customerPrice;
       } catch (error) {
         return {
           ok: false,
@@ -295,6 +290,7 @@ export async function submitOrder(payload: {
       }
     }
 
+    const payable = total + deliveryCharge;
     const order = addOrder({
       customer: {
         name,
@@ -303,7 +299,7 @@ export async function submitOrder(payload: {
         ...(comment ? { comment } : {}),
       },
       items,
-      total,
+      total: payable,
       ...(promo ? { promo } : {}),
       ...(me ? { customerId: me.id } : {}),
       ...(payload.pay ? { paymentRequested: true } : {}),

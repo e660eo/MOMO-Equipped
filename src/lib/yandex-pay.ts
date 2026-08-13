@@ -201,7 +201,26 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
       : {}),
   }));
 
-  const total = lineTotals.reduce((sum, t) => sum + t, 0);
+  const subtotal = lineTotals.reduce((sum, t) => sum + t, 0);
+  const deliveryCharge = order.delivery?.customerPrice ?? 0;
+  if (deliveryCharge > 0) {
+    items.push({
+      productId: "delivery-ozon",
+      title: "Delivery Ozon",
+      quantity: { count: "1" },
+      total: money(deliveryCharge),
+      ...(fiscal
+        ? {
+            receipt: {
+              tax: fiscal.vatCode,
+              paymentSubjectType: RECEIPT_SUBJECT_GOODS,
+              paymentMethodType: fiscal.paymentMethod,
+            },
+          }
+        : {}),
+    });
+  }
+  const total = subtotal + deliveryCharge;
   // Метка для страницы возврата: без неё чужой заказ открывался бы перебором
   // номера, а там имя, телефон и адрес.
   const token = crypto.randomBytes(16).toString("hex");

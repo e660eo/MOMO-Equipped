@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { getProducts } from "./data";
+import { getProducts, siteConfig } from "./data";
 import { getOzonAccessToken, refreshOzonAccessToken } from "./ozon-auth";
 import type {
   Order,
@@ -100,7 +100,7 @@ export interface OzonDeliverySelection {
   point: PublicOzonPoint;
   estimatedFrom?: string;
   estimatedTo?: string;
-  customerPrice: 0;
+  customerPrice: number;
   token: string;
 }
 
@@ -109,6 +109,7 @@ interface CatalogLine {
   sku: number;
   offerId?: string;
   quantity: number;
+  price: number;
 }
 
 interface StoredSelection {
@@ -116,12 +117,15 @@ interface StoredSelection {
   phone: string;
   point: PublicOzonPoint;
   lines: CatalogLine[];
+  customerPrice: number;
   splits: OzonDeliverySplit[];
   estimatedFrom?: string;
   estimatedTo?: string;
 }
 
 const selections = new Map<string, StoredSelection>();
+const OZON_DELIVERY_THRESHOLD = siteConfig.trust.freeShippingFrom;
+export const OZON_DELIVERY_SURCHARGE = 300;
 
 function cleanPhone(value: string): string {
   const digits = value.replace(/\D/g, "").replace(/^8/, "7");
@@ -328,9 +332,15 @@ function catalogLines(items: Array<{ slug: string; qty: number }>): CatalogLine[
       sku: product.ozonSku,
       ...(product.ozonOfferId ? { offerId: product.ozonOfferId } : {}),
       quantity: item.qty,
+      price: product.price,
     });
   }
   return lines;
+}
+
+function ozonDeliveryCharge(lines: CatalogLine[]): number {
+  const subtotal = lines.reduce((sum, line) => sum + line.price * line.quantity, 0);
+  return subtotal < OZON_DELIVERY_THRESHOLD ? OZON_DELIVERY_SURCHARGE : 0;
 }
 
 function validSplits(body: CheckoutResponse, lines: CatalogLine[]): OzonDeliverySplit[] {
@@ -413,12 +423,14 @@ export async function quoteOzonPickup(input: {
 
   const from = splits.map((split) => split.deliveryMethod.logisticFrom).sort()[0];
   const to = splits.map((split) => split.deliveryMethod.logisticTo).sort().at(-1);
+  const customerPrice = ozonDeliveryCharge(lines);
   const token = crypto.randomUUID();
   selections.set(token, {
     expiresAt: Date.now() + SELECTION_TTL_MS,
     phone,
     point,
     lines,
+    customerPrice,
     splits,
     ...(from ? { estimatedFrom: from } : {}),
     ...(to ? { estimatedTo: to } : {}),
@@ -427,7 +439,7 @@ export async function quoteOzonPickup(input: {
     provider: "ozon",
     type: "pickup",
     point,
-    customerPrice: 0,
+    customerPrice,
     ...(from ? { estimatedFrom: from } : {}),
     ...(to ? { estimatedTo: to } : {}),
     token,
@@ -461,7 +473,7 @@ export function consumeOzonSelection(
     mapPointId: selection.point.id,
     pointName: selection.point.name,
     address: selection.point.address,
-    customerPrice: 0,
+    customerPrice: selection.customerPrice,
     splits: selection.splits,
     ...(selection.estimatedFrom ? { estimatedFrom: selection.estimatedFrom } : {}),
     ...(selection.estimatedTo ? { estimatedTo: selection.estimatedTo } : {}),

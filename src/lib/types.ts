@@ -184,8 +184,8 @@ export interface OrderDelivery {
   mapPointId: number;
   pointName: string;
   address: string;
-  /** Доставка для покупателя бесплатна; тариф оплачивает магазин. */
-  customerPrice: 0;
+  /** Цена доставки для покупателя. */
+  customerPrice: number;
   estimatedFrom?: string;
   estimatedTo?: string;
   splits: OzonDeliverySplit[];
