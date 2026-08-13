@@ -3,6 +3,7 @@ import { getCustomers, toPublic } from "@/lib/customers";
 import { getAdminOrders } from "@/lib/orders";
 import { plural } from "@/lib/utils";
 import { CustomerRow } from "@/components/admin/customer-row";
+import { getBonusTransactions } from "@/lib/bonus-ledger";
 
 /*
   Клиенты с аккаунтом. Показываем не просто список, а то, ради чего его
@@ -19,6 +20,7 @@ export default async function AdminCustomersPage({
   const { q = "", tag = "" } = await searchParams;
   const orders = getAdminOrders();
   const customers = getCustomers();
+  const bonusTransactions = getBonusTransactions();
   const tags = [...new Set(customers.flatMap((customer) => customer.admin?.tags ?? []))].sort();
 
   /*
@@ -41,6 +43,7 @@ export default async function AdminCustomersPage({
           status: o.status,
           items: o.items.map((it) => ({ title: it.title, qty: it.qty })),
         })),
+        bonusHistory: bonusTransactions.filter((entry) => entry.customerId === c.id).slice(0, 20),
       };
     })
     .filter(({ customer }) => {
@@ -112,18 +115,20 @@ export default async function AdminCustomersPage({
                 <th className="py-2.5 pr-3 font-medium">Контакты</th>
                 <th className="py-2.5 pr-3 font-medium">Регистрация</th>
                 <th className="py-2.5 pr-3 font-medium">Был</th>
+                <th className="py-2.5 pr-3 text-right font-medium">Бонусы</th>
                 <th className="py-2.5 pr-3 text-right font-medium">Заказы</th>
                 <th className="py-2.5 pr-3 text-right font-medium">Куплено на</th>
                 <th className="py-2.5 pr-3 font-medium" />
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ customer, spent, orders }) => (
+              {rows.map(({ customer, spent, orders, bonusHistory }) => (
                 <CustomerRow
                   key={customer.id}
                   customer={customer}
                   spent={spent}
                   orders={orders}
+                  bonusHistory={bonusHistory}
                 />
               ))}
             </tbody>

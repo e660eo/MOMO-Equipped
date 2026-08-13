@@ -9,6 +9,7 @@ import type {
   OrderDelivery,
 } from "./types";
 import { audit } from "./audit-log";
+import { reconcileOrderBonus } from "./bonus-ledger";
 
 export { STATUS_LABELS } from "./order-status";
 
@@ -96,6 +97,15 @@ function withoutExpired(orders: Order[]): Order[] {
   );
 }
 
+function releaseBonusesFromExpiredPaymentAttempts(before: Order[], after: Order[]): void {
+  const kept = new Set(after.map((order) => order.id));
+  for (const order of before) {
+    if (!kept.has(order.id) && isUnpaidPaymentAttempt(order) && order.bonus?.spent) {
+      reconcileOrderBonus({ ...order, status: "canceled" });
+    }
+  }
+}
+
 /** Убирает просроченные заказы. Возвращает, сколько удалено. */
 export function pruneOldOrders(): number {
   const orders = getOrders();
@@ -103,6 +113,7 @@ export function pruneOldOrders(): number {
   if (kept.length === orders.length) return 0;
 
   assertWritable();
+  releaseBonusesFromExpiredPaymentAttempts(orders, kept);
   updateJson<Order[]>(FILE, withoutExpired);
   return orders.length - kept.length;
 }
@@ -112,20 +123,33 @@ export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Ord
   // Чистим на каждом новом заказе: отдельный планировщик ради пары записей
   // в год — лишняя деталь, которая ломается незаметно.
   const orders = withoutExpired(getOrders());
+  releaseBonusesFromExpiredPaymentAttempts(getOrders(), orders);
   const full: Order = {
     ...order,
     id: nextId(orders),
     createdAt: new Date().toISOString(),
     status: "new",
-    history: [{
-      at: new Date().toISOString(),
-      actor: "Система",
-      type: "created",
-      detail: "Заказ создан",
-    }],
+    history: [
+      {
+        at: new Date().toISOString(),
+        actor: "Система",
+        type: "created",
+        detail: "Заказ создан",
+      },
+      ...(order.bonus?.spent ? [{
+        at: new Date().toISOString(),
+        actor: "Покупатель",
+        type: "bonus" as const,
+        detail: `Списано ${order.bonus.spent} бонусов`,
+      }] : []),
+    ],
   };
   // Свежие сверху, заодно чистим просроченные
-  updateJson<Order[]>(FILE, (all) => [full, ...withoutExpired(all)]);
+  updateJson<Order[]>(FILE, (all) => {
+    const kept = withoutExpired(all);
+    releaseBonusesFromExpiredPaymentAttempts(all, kept);
+    return [full, ...kept];
+  });
   return full;
 }
 
@@ -165,6 +189,10 @@ export function updateOrder(
   */
   let stockPatch: { stockDeducted: boolean } | undefined;
   const before = getOrder(id);
+  const bonusChanged = Boolean(
+    before && patch.status && patch.status !== before.status &&
+    reconcileOrderBonus({ ...before, status: patch.status }),
+  );
   if (patch.status) {
     const order = getOrder(id);
     if (order && order.status !== patch.status) {
@@ -189,6 +217,16 @@ export function updateOrder(
       }
       if (patch.note !== undefined && patch.note !== (o.note ?? "")) {
         history.push({ at: new Date().toISOString(), actor: "Администратор", type: "note", detail: patch.note ? "Заметка изменена" : "Заметка удалена" });
+      }
+      if (bonusChanged) {
+        history.push({
+          at: new Date().toISOString(),
+          actor: "Система",
+          type: "bonus",
+          detail: patch.status === "canceled"
+            ? `Возвращено ${o.bonus?.spent ?? 0} бонусов`
+            : `Повторно списано ${o.bonus?.spent ?? 0} бонусов`,
+        });
       }
       return { ...o, ...patch, ...stockPatch, history };
     }),
@@ -217,11 +255,27 @@ export function countNewOrders(): number {
  */
 export function setOrderPayment(id: string, payment: OrderPayment): void {
   assertWritable();
+  const before = getOrder(id);
+  const bonusChanged = before
+    ? reconcileOrderBonus({ ...before, payment })
+    : false;
+  const bonusReturned = payment.status === "FAILED" || payment.status === "VOIDED" || payment.status === "REFUNDED";
   updateJson<Order[]>(FILE, (all) =>
     all.map((o) => o.id === id ? {
       ...o,
       payment,
-      history: [...(o.history ?? []), { at: new Date().toISOString(), actor: "Платёжная система", type: "payment" as const, from: o.payment?.status, to: payment.status }],
+      history: [
+        ...(o.history ?? []),
+        { at: new Date().toISOString(), actor: "Платёжная система", type: "payment" as const, from: o.payment?.status, to: payment.status },
+        ...(bonusChanged ? [{
+          at: new Date().toISOString(),
+          actor: "Система",
+          type: "bonus" as const,
+          detail: bonusReturned
+            ? `Возвращено ${o.bonus?.spent ?? 0} бонусов после изменения оплаты`
+            : `Повторно списано ${o.bonus?.spent ?? 0} бонусов после подтверждения оплаты`,
+        }] : []),
+      ],
     } : o),
   );
   audit({ entity: "order", entityId: id, action: "payment_changed", summary: `Статус оплаты: ${payment.status}`, after: { status: payment.status, amount: payment.amount, sandbox: payment.sandbox } });

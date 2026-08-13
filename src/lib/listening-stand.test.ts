@@ -19,8 +19,9 @@ const product: Product = {
 };
 
 describe("listening stand", () => {
-  it("includes only MOMO/ZEUS horn speakers", () => {
+  it("includes only full-price MOMO/ZEUS horn speakers", () => {
     expect(isListeningStandProduct(product)).toBe(true);
+    expect(isListeningStandProduct({ ...product, isClearance: true })).toBe(false);
     expect(isListeningStandProduct({ ...product, brand: "Other" })).toBe(false);
     expect(isListeningStandProduct({ ...product, category: "sabvufery" })).toBe(false);
   });

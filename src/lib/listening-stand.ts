@@ -6,6 +6,7 @@ export const REFERENCE_TRACK_URL = "/audio/momo-reference-loop.wav";
 
 export function isListeningStandProduct(product: Product): boolean {
   return (
+    !product.isClearance &&
     product.category === LISTENING_STAND_CATEGORY &&
     LISTENING_STAND_BRANDS.has(product.brand.trim().toUpperCase())
   );

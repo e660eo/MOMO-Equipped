@@ -5,6 +5,7 @@ import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { toCsv } from "@/lib/csv";
 import { salesRange } from "@/lib/sales";
 import type { Order } from "@/lib/types";
+import { getBonusSummary } from "@/lib/bonus-ledger";
 
 /*
   Выгрузка в CSV для бухгалтерии: /admin/export/orders и /admin/export/customers.
@@ -26,6 +27,7 @@ function ordersCsv(orders: Order[]): string {
       "Состав",
       "Промокод",
       "Скидка, ₽",
+      "Бонусы, ₽",
       "Сумма, ₽",
       "Оплата",
       "Комментарий",
@@ -42,6 +44,7 @@ function ordersCsv(orders: Order[]): string {
       o.items.map((i) => `${i.title} ×${i.qty}`).join("; "),
       o.promo?.code ?? "",
       o.promo?.discount ?? "",
+      o.bonus?.spent ?? "",
       o.total,
       o.payment ? PAYMENT_LABELS[o.payment.status] : "",
       o.customer.comment ?? "",
@@ -95,6 +98,7 @@ function customersCsv(): string {
       "Последний вход",
       "Заказов",
       "Куплено на, ₽",
+      "Бонусный баланс",
       "Сегменты",
       "Заметка менеджера",
     ],
@@ -115,6 +119,7 @@ function customersCsv(): string {
       date(c.lastLoginAt),
       mine.length,
       spent,
+      getBonusSummary(c.id).balance,
       c.admin?.tags?.join(", ") ?? "",
       c.admin?.note ?? "",
     ]);

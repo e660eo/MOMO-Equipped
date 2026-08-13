@@ -144,7 +144,33 @@ export interface Customer {
 }
 
 /** Клиент без хеша пароля — то, что можно показать в браузере. */
-export type PublicCustomer = Omit<Customer, "passwordHash" | "admin">;
+export type PublicCustomer = Omit<Customer, "passwordHash" | "admin"> & {
+  /** Доступные к списанию бонусы. Рассчитываются на сервере по журналу. */
+  bonusBalance: number;
+  /** Ближайшая дата сгорания неиспользованных бонусов. */
+  bonusExpiresAt?: string;
+};
+
+export type BonusTransactionType =
+  | "admin_credit"
+  | "admin_debit"
+  | "order_spend"
+  | "order_return";
+
+/** Неизменяемая операция бонусного счёта. Положительная сумма — начисление. */
+export interface BonusTransaction {
+  id: string;
+  customerId: string;
+  type: BonusTransactionType;
+  amount: number;
+  createdAt: string;
+  expiresAt?: string;
+  reason: string;
+  actor: string;
+  orderId?: string;
+  /** Корневая операция списания, чтобы отмена и повторное открытие были идемпотентны. */
+  relatedId?: string;
+}
 
 /** Позиция заказа: цена фиксируется на момент оформления. */
 export interface OrderItem {
@@ -159,7 +185,7 @@ export type OrderStatus = "new" | "in_work" | "done" | "canceled";
 export interface OrderHistoryEntry {
   at: string;
   actor: string;
-  type: "created" | "status" | "note" | "payment" | "delivery";
+  type: "created" | "status" | "note" | "payment" | "delivery" | "bonus";
   from?: string;
   to?: string;
   detail?: string;
@@ -257,10 +283,12 @@ export interface Order {
     comment?: string;
   };
   items: OrderItem[];
-  /** Итоговая сумма к оплате — уже со скидкой по промокоду, если он был. */
+  /** Итог к оплате — после промокода и бонусов, с платной доставкой. */
   total: number;
   /** Применённый промокод: код, процент и сумма скидки в рублях. */
   promo?: { code: string; percent: number; discount: number };
+  /** Бонусы списываются только со стоимости товаров, не с доставки. */
+  bonus?: { spent: number; transactionId: string };
   /** Заметка менеджера — видна только в панели. */
   note?: string;
   /**

@@ -4,13 +4,13 @@ test("online stand uses MOMO/ZEUS catalogue and labels the reference track hones
   const response = await page.goto("/listening-stand");
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1, name: /Услышьте характер/i })).toBeVisible();
-  await expect(page.getByText(/22 модел/)).toBeVisible();
+  await expect(page.getByText(/21 модел/)).toBeVisible();
   await expect(page.getByText(/без имитации звучания динамика/i)).toBeVisible();
   await expect(page.locator("audio")).toHaveAttribute("src", "/audio/momo-reference-loop.wav");
 
   await page.getByPlaceholder("Найти модель MOMO или ZEUS").fill("ZEUS AC-165");
   await expect(page.getByText("Динамики коаксиальные ZEUS AC-165", { exact: true })).toBeVisible();
-  await expect(page.getByText(/из 22/)).toBeVisible();
+  await expect(page.getByText(/из 21/)).toBeVisible();
 });
 
 test("online stand has no horizontal overflow on a phone", async ({ page, isMobile }) => {

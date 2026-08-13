@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, LogOut, Package } from "lucide-react";
+import { Gift, User, LogOut, Package } from "lucide-react";
 import { useAccount } from "@/lib/account-store";
 import { useToast } from "@/lib/toast-store";
 import { formatPrice } from "@/lib/format";
@@ -147,6 +147,26 @@ export function ProfileView({
         </button>
       </div>
 
+      <section className="mt-7 overflow-hidden rounded-2xl border border-signal/25 bg-[linear-gradient(125deg,rgba(255,85,0,.12),rgba(255,85,0,.025))] p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-signal text-white">
+              <Gift size={19} />
+            </span>
+            <div>
+              <p className="font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground">Ваши бонусы</p>
+              <p className="font-display text-2xl font-extrabold text-signal">{customer.bonusBalance}</p>
+            </div>
+          </div>
+          <div className="max-w-[440px] text-[0.8rem] leading-relaxed text-muted-foreground sm:text-right">
+            <p>1 бонус = 1 ₽. Ими можно оплатить до 30% стоимости товаров вместе с промокодом.</p>
+            {customer.bonusExpiresAt && customer.bonusBalance > 0 && (
+              <p className="mt-1">Ближайшее сгорание — {new Date(customer.bonusExpiresAt).toLocaleDateString("ru-RU")}.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,380px)_1fr]">
         {/* Данные доставки */}
         <section>
@@ -262,6 +282,11 @@ export function ProfileView({
                       </li>
                     ))}
                   </ul>
+                  {o.bonus?.spent ? (
+                    <p className="mt-3 text-right text-[0.8rem] text-signal">
+                      Оплачено бонусами: −{o.bonus.spent} ₽
+                    </p>
+                  ) : null}
                   <p className="mt-3 border-t border-border pt-3 text-right font-semibold">
                     {formatPrice(o.total)}
                   </p>

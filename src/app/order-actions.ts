@@ -1,7 +1,7 @@
 "use server";
 
 import { clientIp } from "@/lib/client-ip";
-import { addOrder, setOrderPayment } from "@/lib/orders";
+import { addOrder, setOrderPayment, updateOrder } from "@/lib/orders";
 import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
@@ -13,6 +13,13 @@ import {
   type PublicPlaceResult,
 } from "@/lib/place-search";
 import type { Order, OrderItem } from "@/lib/types";
+import {
+  attachBonusToOrder,
+  getBonusSummary,
+  maxRedeemableBonus,
+  releaseBonusReservation,
+  reserveOrderBonus,
+} from "@/lib/bonus-ledger";
 import {
   consumeOzonSelection,
   getOzonMapArea,
@@ -148,6 +155,8 @@ export async function submitOrder(payload: {
   promoCode?: string;
   /** Одноразовый серверный расчёт Ozon Доставки. */
   deliveryToken?: string;
+  /** Целое число бонусов. Сервер заново проверяет баланс и предел 30%. */
+  bonusAmount?: number;
 }): Promise<OrderResult> {
   const me = await currentCustomer();
 
@@ -258,8 +267,8 @@ export async function submitOrder(payload: {
 
   /*
     Промокод применяем на сервере: процент берём из файла промокодов, а не из
-    браузера. total у заказа — уже итог со скидкой; онлайн-оплата (createPayment)
-    считает по проценту из order.promo, чтобы позиции сходились с суммой.
+    браузера. total у заказа — уже итог после скидки и бонусов; онлайн-оплата
+    распределяет обе скидки по позициям, чтобы чек сходился с суммой.
   */
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
   let total = subtotal;
@@ -279,6 +288,28 @@ export async function submitOrder(payload: {
     }
   }
 
+  const requestedBonus = Number(payload.bonusAmount ?? 0);
+  if (!Number.isSafeInteger(requestedBonus) || requestedBonus < 0) {
+    return { ok: false, error: "Количество бонусов указано неверно." };
+  }
+  if (requestedBonus > 0 && !me) {
+    return {
+      ok: false,
+      error: "Чтобы использовать бонусы, войдите в аккаунт.",
+      requiresAuth: true,
+    };
+  }
+  const bonusBalance = me ? getBonusSummary(me.id).balance : 0;
+  const bonusLimit = maxRedeemableBonus(total, bonusBalance);
+  if (requestedBonus > bonusLimit) {
+    return {
+      ok: false,
+      error: `Можно списать не больше ${bonusLimit} бонусов для этого заказа.`,
+    };
+  }
+
+  let bonusReservation: ReturnType<typeof reserveOrderBonus> | undefined;
+  let bonusAttached = false;
   try {
     let deliveryCharge = 0;
     let delivery: Order["delivery"];
@@ -297,7 +328,10 @@ export async function submitOrder(payload: {
       }
     }
 
-    const payable = total + deliveryCharge;
+    if (requestedBonus > 0 && me) {
+      bonusReservation = reserveOrderBonus(me.id, requestedBonus);
+    }
+    const payable = total - requestedBonus + deliveryCharge;
     const order = addOrder({
       customer: {
         name,
@@ -309,10 +343,23 @@ export async function submitOrder(payload: {
       items,
       total: payable,
       ...(promo ? { promo } : {}),
+      ...(bonusReservation ? {
+        bonus: { spent: requestedBonus, transactionId: bonusReservation.id },
+      } : {}),
       ...(me ? { customerId: me.id } : {}),
       ...(payload.pay ? { paymentRequested: true } : {}),
       ...(delivery ? { delivery } : {}),
     });
+    if (bonusReservation) {
+      bonusAttached = true;
+      try {
+        attachBonusToOrder(bonusReservation.id, order.id);
+      } catch (error) {
+        // Связь видна и из самого заказа; сбой подписи в журнале не должен
+        // отменять уже сохранённый заказ и создавать повторное списание.
+        console.error(`Заказ ${order.id}: не удалось подписать бонусную операцию`, error);
+      }
+    }
 
     // Активацию списываем после сохранения заказа — код применён.
     if (promo) redeemPromo(promo.code, customerKey);
@@ -348,6 +395,10 @@ export async function submitOrder(payload: {
         return { ok: true, id: order.id, paymentUrl: payment.url };
       } catch (e) {
         console.error(`Заказ ${order.id}: не удалось создать платёж`, e);
+        updateOrder(order.id, {
+          status: "canceled",
+          note: "Платёжная ссылка не была создана — бонусы возвращены автоматически.",
+        });
         return {
           ok: false,
           error: "Яндекс Pay сейчас не создал новую ссылку. Попробуйте ещё раз через минуту.",
@@ -356,6 +407,10 @@ export async function submitOrder(payload: {
     }
 
     if (payload.pay) {
+      updateOrder(order.id, {
+        status: "canceled",
+        note: "Онлайн-оплата недоступна — бонусы возвращены автоматически.",
+      });
       return {
         ok: false,
         error: "Оплата на сайте временно недоступна. Попробуйте ещё раз позже.",
@@ -364,6 +419,9 @@ export async function submitOrder(payload: {
 
     return { ok: true, id: order.id };
   } catch (e) {
+    if (bonusReservation && !bonusAttached) {
+      releaseBonusReservation(bonusReservation);
+    }
     // Для WhatsApp клиент всё равно сможет отправить состав менеджеру. Для
     // онлайн-оплаты показываем ошибку и не начинаем платёж без локальной записи.
     console.error("Не удалось сохранить заказ:", e);

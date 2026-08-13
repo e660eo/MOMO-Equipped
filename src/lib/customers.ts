@@ -4,6 +4,7 @@ import { hashPassword, verifyPassword } from "./password";
 import type { Customer, PublicCustomer } from "./types";
 import { audit } from "./audit-log";
 import { phoneKey } from "./phone";
+import { getBonusSummary, removeCustomerBonusLedger } from "./bonus-ledger";
 
 /*
   Покупатели с аккаунтом на сайте.
@@ -31,7 +32,12 @@ export function getCustomers(): Customer[] {
 /** Без хеша пароля — то, что можно отдать в браузер. */
 export function toPublic(c: Customer): PublicCustomer {
   const { passwordHash: _hash, admin: _admin, ...rest } = c;
-  return rest;
+  const bonus = getBonusSummary(c.id);
+  return {
+    ...rest,
+    bonusBalance: bonus.balance,
+    ...(bonus.expiresAt ? { bonusExpiresAt: bonus.expiresAt } : {}),
+  };
 }
 
 export function findCustomer(id: string): Customer | undefined {
@@ -151,6 +157,7 @@ export function updateCustomer(
 export function deleteCustomer(id: string): void {
   assertWritable();
   updateJson<Customer[]>(FILE, (all) => all.filter((c) => c.id !== id));
+  removeCustomerBonusLedger(id);
 }
 
 /**

@@ -40,4 +40,13 @@ describe("customer payment email", () => {
     };
     expect(buildCustomerPaymentLetter(withoutEmail)).toBeNull();
   });
+
+  it("shows spent bonuses in the customer confirmation", () => {
+    const letter = buildCustomerPaymentLetter({
+      ...paidOrder,
+      bonus: { spent: 100, transactionId: "bonus-tx" },
+    });
+    expect(letter?.text).toContain("Использовано бонусов: 100");
+    expect(letter?.html).toContain("Оплачено бонусами");
+  });
 });

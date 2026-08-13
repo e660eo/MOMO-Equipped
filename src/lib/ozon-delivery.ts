@@ -7,6 +7,7 @@ import type {
   OrderItem,
   OzonDeliverySplit,
 } from "./types";
+import { orderGoodsFactor } from "./order-totals";
 
 const API = "https://api-seller.ozon.ru";
 const MAX_POINT_DETAILS = 100;
@@ -516,7 +517,7 @@ export async function createOzonShipment(order: Order): Promise<OrderCreateRespo
   const person = nameParts(order.customer.name);
   const phone = cleanPhone(order.customer.phone);
   const bySlug = new Map(order.items.map((item) => [item.slug, item]));
-  const factor = 1 - (order.promo?.percent ?? 0) / 100;
+  const factor = orderGoodsFactor(order);
 
   const response = await ozonPost<OrderCreateResponse>("/v2/order/create", {
     buyer: {

@@ -122,6 +122,22 @@ export default async function AdminOrderPage({
             </li>
           ))}
         </ul>
+        {(order.promo || order.bonus?.spent) && (
+          <dl className="mt-3 ml-auto grid max-w-[320px] grid-cols-[1fr_auto] gap-x-5 gap-y-1 text-[0.8rem]">
+            {order.promo && (
+              <>
+                <dt className="text-muted-foreground">Промокод {order.promo.code}</dt>
+                <dd className="text-signal">−{formatPrice(order.promo.discount)}</dd>
+              </>
+            )}
+            {order.bonus?.spent ? (
+              <>
+                <dt className="text-muted-foreground">Оплачено бонусами</dt>
+                <dd className="text-signal">−{formatPrice(order.bonus.spent)}</dd>
+              </>
+            ) : null}
+          </dl>
+        )}
         <p className="mt-4 text-right font-display text-lg font-semibold">
           Итого: {formatPrice(order.total)}
         </p>

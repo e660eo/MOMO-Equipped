@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { SITE_URL } from "./site-url";
 import type { Order, PaymentStatus } from "./types";
+import { allocatedGoodsLineTotals } from "./order-totals";
 
 /*
   Приём онлайн-оплаты через Яндекс Пэй (карта и Сплит).
@@ -177,16 +178,9 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
   const config = payConfig();
   if (!config) throw new Error("Онлайн-оплата не подключена.");
 
-  /*
-    Скидка по промокоду. Уменьшаем каждую позицию на процент из заказа, а не
-    вычитаем скидку строкой: Яндекс требует, чтобы сумма позиций точно равнялась
-    cart.total, а отдельной «минус-строки» в их корзине нет. Итог считаем как
-    сумму уже сниженных позиций — тогда они сходятся по построению.
-  */
-  const factor = 1 - (order.promo?.percent ?? 0) / 100;
-  const lineTotals = order.items.map(
-    (i) => Math.round(i.price * i.qty * factor * 100) / 100,
-  );
+  // Промокод и бонусы распределяем по товарам: отдельную отрицательную строку
+  // Яндекс не принимает, а сумма позиций обязана до копейки совпасть с итогом.
+  const lineTotals = allocatedGoodsLineTotals(order);
   // Данные чека добавляем к позициям, только если подключена фискализация.
   const fiscal = fiscalConfig();
   const items = order.items.map((item, idx) => ({

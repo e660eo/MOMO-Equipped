@@ -70,6 +70,7 @@ export function buildOrderLetter(order: Order): Letter {
 
   const subtotal = order.items.reduce((s, i) => s + i.price * i.qty, 0);
   const promo = order.promo;
+  const bonusSpent = order.bonus?.spent ?? 0;
 
   const text = [
     `Новый заказ №${order.id}`,
@@ -81,6 +82,7 @@ export function buildOrderLetter(order: Order): Letter {
     promo
       ? `Скидка по промокоду ${promo.code} (${promo.percent}%): −${formatPrice(promo.discount)}`
       : "",
+    bonusSpent ? `Оплачено бонусами: −${formatPrice(bonusSpent)}` : "",
     `Итого: ${formatPrice(order.total)}`,
     "",
     `Покупатель: ${order.customer.name}`,
@@ -106,17 +108,19 @@ export function buildOrderLetter(order: Order): Letter {
     )
     .join("");
 
-  // Строки «Сумма» и «Скидка» показываем только когда есть промокод: без него
-  // сумма и итог совпадают, и вторая строка лишь путала бы.
-  const promoRows = promo
+  const savingsRows = promo || bonusSpent
     ? `<tr>
         <td style="padding:16px 0 0;font-size:14px;color:#555;">Сумма</td>
         <td style="padding:16px 0 0;text-align:right;white-space:nowrap;font-size:14px;color:#555;">${formatPrice(subtotal)}</td>
       </tr>
-      <tr>
+      ${promo ? `<tr>
         <td style="padding:6px 0 0;font-size:14px;color:${GREEN};">Промокод ${esc(promo.code)} (−${promo.percent}%)</td>
         <td style="padding:6px 0 0;text-align:right;white-space:nowrap;font-size:14px;font-weight:600;color:${GREEN};">−${formatPrice(promo.discount)}</td>
-      </tr>`
+      </tr>` : ""}
+      ${bonusSpent ? `<tr>
+        <td style="padding:6px 0 0;font-size:14px;color:${BRAND};">Оплачено бонусами</td>
+        <td style="padding:6px 0 0;text-align:right;white-space:nowrap;font-size:14px;font-weight:600;color:${BRAND};">−${formatPrice(bonusSpent)}</td>
+      </tr>` : ""}`
     : "";
 
   const phoneBlock = e164
@@ -134,7 +138,7 @@ export function buildOrderLetter(order: Order): Letter {
 
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
         ${itemRows}
-        ${promoRows}
+        ${savingsRows}
         <tr>
           <td style="padding:16px 0 0;border-top:2px solid ${INK};font-size:16px;font-weight:700;">Итого</td>
           <td style="padding:16px 0 0;border-top:2px solid ${INK};text-align:right;white-space:nowrap;font-size:26px;font-weight:800;color:${BRAND};">${formatPrice(order.total)}</td>
@@ -288,6 +292,7 @@ export function buildCustomerPaymentLetter(order: Order): Letter | null {
     ...order.items.map(
       (item) => `• ${item.title} — ${item.qty} шт. × ${formatPrice(item.price)}`,
     ),
+    ...(order.bonus?.spent ? [`Использовано бонусов: ${order.bonus.spent}.`] : []),
     "",
     deliveryText,
     "Фискальный чек должен прийти отдельным письмом от оператора онлайн-кассы на этот же адрес.",
@@ -306,6 +311,7 @@ export function buildCustomerPaymentLetter(order: Order): Letter | null {
       <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.5;">Здравствуйте, ${esc(order.customer.name)}!</p>
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
         ${itemRows}
+        ${order.bonus?.spent ? `<tr><td style="padding:8px 0 0;font-size:14px;color:${BRAND};">Оплачено бонусами</td><td style="padding:8px 0 0;text-align:right;font-size:14px;font-weight:700;color:${BRAND};">−${formatPrice(order.bonus.spent)}</td></tr>` : ""}
         <tr>
           <td style="padding:16px 0 0;border-top:2px solid ${INK};font-size:16px;font-weight:700;">Оплачено</td>
           <td style="padding:16px 0 0;border-top:2px solid ${INK};text-align:right;white-space:nowrap;font-size:24px;font-weight:800;color:${BRAND};">${sum}</td>

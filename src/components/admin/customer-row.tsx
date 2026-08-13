@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { formatPrice } from "@/lib/format";
 import { setOrderStatus } from "@/app/admin/orders/actions";
 import { ResetPasswordButton } from "@/components/admin/reset-password-button";
-import { saveCustomerAdmin } from "@/app/admin/customers/actions";
+import {
+  adjustCustomerBonusAction,
+  saveCustomerAdmin,
+  type BonusActionState,
+} from "@/app/admin/customers/actions";
 import { cn } from "@/lib/utils";
-import type { OrderStatus } from "@/lib/types";
+import type { BonusTransaction, OrderStatus } from "@/lib/types";
 
 /*
   Строка клиента в панели.
@@ -37,6 +41,8 @@ export type CustomerRowData = {
   address?: string;
   createdAt: string;
   lastLoginAt?: string;
+  bonusBalance: number;
+  bonusExpiresAt?: string;
   admin?: { note?: string; tags?: string[]; history?: Array<{ at: string; text: string }> };
 };
 
@@ -54,10 +60,12 @@ export function CustomerRow({
   customer,
   spent,
   orders,
+  bonusHistory,
 }: {
   customer: CustomerRowData;
   spent: number;
   orders: MiniOrder[];
+  bonusHistory: BonusTransaction[];
 }) {
   const [open, setOpen] = useState(false);
   const count = orders.length;
@@ -88,6 +96,9 @@ export function CustomerRow({
         <td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
           {fmtDate(customer.lastLoginAt)}
         </td>
+        <td className="py-3 pr-3 text-right font-semibold tabular-nums text-signal">
+          {customer.bonusBalance}
+        </td>
         <td className="py-3 pr-3 text-right">
           {count > 0 ? (
             <button
@@ -112,7 +123,8 @@ export function CustomerRow({
 
       {open && (
         <tr className="border-b border-border">
-          <td colSpan={7} className="bg-bg/40 px-3 py-4">
+          <td colSpan={8} className="bg-bg/40 px-3 py-4">
+            <BonusEditor customer={customer} history={bonusHistory} />
             <form action={saveCustomerAdmin} className="mb-4 grid gap-3 rounded-xl border border-border bg-surface p-4 md:grid-cols-2">
               <input type="hidden" name="id" value={customer.id} />
               <label className="grid gap-1 text-[0.75rem] text-muted-foreground">Теги и сегменты<input name="tags" defaultValue={customer.admin?.tags?.join(", ")} placeholder="VIP, установочный центр, опт" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm text-foreground" /></label>
@@ -171,5 +183,58 @@ export function CustomerRow({
         </tr>
       )}
     </>
+  );
+}
+
+function BonusEditor({
+  customer,
+  history,
+}: {
+  customer: CustomerRowData;
+  history: BonusTransaction[];
+}) {
+  const [state, action, pending] = useActionState<BonusActionState, FormData>(
+    adjustCustomerBonusAction,
+    {},
+  );
+  return (
+    <section className="mb-4 rounded-xl border border-signal/30 bg-signal/[0.035] p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-wider text-muted-foreground">Бонусный счёт</p>
+          <p className="mt-1 font-display text-xl font-extrabold text-signal">{customer.bonusBalance} бонусов</p>
+        </div>
+        {customer.bonusExpiresAt && customer.bonusBalance > 0 && (
+          <p className="text-[0.72rem] text-muted-foreground">Ближайшее сгорание: {fmtDate(customer.bonusExpiresAt)}</p>
+        )}
+      </div>
+      <form action={action} className="mt-4 grid gap-2 md:grid-cols-[130px_150px_1fr_auto]">
+        <input type="hidden" name="customerId" value={customer.id} />
+        <select name="operation" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm">
+          <option value="credit">Начислить</option>
+          <option value="debit">Списать</option>
+        </select>
+        <input name="amount" type="number" min={1} max={1_000_000} step={1} required placeholder="Количество" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm" />
+        <input name="reason" required minLength={3} maxLength={240} placeholder="Причина: подарок, компенсация…" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm" />
+        <button type="submit" disabled={pending} className="rounded-sm bg-signal px-4 py-2 text-[0.8rem] font-semibold text-white disabled:opacity-60">
+          {pending ? "Сохраняю…" : "Применить"}
+        </button>
+      </form>
+      {state.error && <p role="alert" className="mt-2 text-[0.78rem] text-signal">{state.error}</p>}
+      {state.ok && <p className="mt-2 text-[0.78rem] text-green-700">{state.ok}</p>}
+      {history.length > 0 && (
+        <details className="mt-4">
+          <summary className="cursor-pointer text-[0.75rem] font-semibold text-muted-foreground">История бонусов ({history.length})</summary>
+          <ul className="mt-2 divide-y divide-border text-[0.76rem]">
+            {history.map((entry) => (
+              <li key={entry.id} className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2">
+                <span>{fmtDate(entry.createdAt)} · {entry.reason}{entry.orderId ? ` · №${entry.orderId}` : ""}</span>
+                <b className={entry.amount > 0 ? "text-green-700" : "text-signal"}>{entry.amount > 0 ? "+" : ""}{entry.amount}</b>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
   );
 }

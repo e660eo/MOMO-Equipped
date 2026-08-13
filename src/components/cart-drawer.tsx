@@ -13,11 +13,12 @@ import {
   MapPin,
   LocateFixed,
   Search,
+  Gift,
 } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { useSiteConfig } from "@/components/site-config-provider";
-import { useCustomer } from "@/components/customer-provider";
+import { notifyCustomerSessionChanged, useCustomer } from "@/components/customer-provider";
 import { useAccount } from "@/lib/account-store";
 import { isPhoneComplete } from "@/lib/phone";
 import {
@@ -94,6 +95,7 @@ export function CartPageClient() {
   );
   const [promoMsg, setPromoMsg] = useState("");
   const [promoBusy, setPromoBusy] = useState(false);
+  const [bonusAmount, setBonusAmount] = useState(0);
   const [points, setPoints] = useState<PublicOzonPoint[]>([]);
   const [clusters, setClusters] = useState<PublicOzonCluster[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<PublicOzonPoint | null>(null);
@@ -138,11 +140,20 @@ export function CartPageClient() {
   // проверку и списание делает submitOrder — здесь только показ.
   const discount = promo ? Math.round((total * promo.percent) / 100) : 0;
   const payable = total - discount;
+  const bonusLimit = customer
+    ? Math.min(customer.bonusBalance, Math.floor(payable * 0.3))
+    : 0;
+  const bonusSpent = Math.min(Math.max(0, bonusAmount), bonusLimit);
+  const goodsPayable = payable - bonusSpent;
   const deliveryCharge = delivery?.customerPrice ?? 0;
-  const payableWithDelivery = payable + deliveryCharge;
+  const payableWithDelivery = goodsPayable + deliveryCharge;
   // Бесплатная онлайн-доставка считается от суммы, которую реально заплатят.
-  const remaining = Math.max(0, freeFrom - payable);
-  const shippingPct = Math.min(100, (payable / freeFrom) * 100);
+  const remaining = Math.max(0, freeFrom - goodsPayable);
+  const shippingPct = Math.min(100, (goodsPayable / freeFrom) * 100);
+
+  useEffect(() => {
+    setBonusAmount((value) => Math.min(value, bonusLimit));
+  }, [bonusLimit]);
 
   useEffect(() => {
     setDelivery(null);
@@ -327,14 +338,20 @@ export function CartPageClient() {
       items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
       pay,
       ...(promo ? { promoCode: promo.code } : {}),
+      ...(bonusSpent > 0 ? { bonusAmount: bonusSpent } : {}),
       ...(pay && delivery ? { deliveryToken: delivery.token } : {}),
     });
     setSending(false);
     const orderNumber = saved.ok ? saved.id : null;
+    if (saved.ok && bonusSpent > 0) notifyCustomerSessionChanged();
 
     if (pay && !saved.ok) {
       setError(saved.error);
       if (saved.requiresAuth) openAuth("checkout");
+      return;
+    }
+    if (!pay && !saved.ok && bonusSpent > 0) {
+      setError("Не удалось закрепить бонусы за заказом. Попробуйте ещё раз — баланс не изменился.");
       return;
     }
 
@@ -382,7 +399,8 @@ export function CartPageClient() {
       ...(promo
         ? [`Промокод ${promo.code}: −${promo.percent}% (−${formatPrice(discount)})`]
         : []),
-      `Итого: ${formatPrice(payable)}`,
+      ...(bonusSpent > 0 ? [`Бонусы: −${formatPrice(bonusSpent)}`] : []),
+      `Итого: ${formatPrice(goodsPayable)}`,
       "",
       `Получатель: ${name.trim()}`,
       `Телефон: ${phone.trim()}`,
@@ -837,6 +855,48 @@ export function CartPageClient() {
               )}
             </div>
 
+            {customer && customer.bonusBalance > 0 && (
+              <div className="mt-4 rounded-xl border border-signal/25 bg-signal/[0.045] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Gift size={17} className="text-signal" />
+                    <div>
+                      <p className="text-[0.82rem] font-semibold">Использовать бонусы</p>
+                      <p className="text-[0.72rem] text-muted-foreground">Баланс: {customer.bonusBalance} · доступно сейчас: {bonusLimit}</p>
+                    </div>
+                  </div>
+                  {bonusSpent > 0 && (
+                    <button type="button" onClick={() => setBonusAmount(0)} className="text-[0.72rem] text-muted-foreground hover:text-signal">Убрать</button>
+                  )}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={bonusLimit}
+                    step={1}
+                    value={bonusAmount || ""}
+                    onChange={(event) => {
+                      const value = Math.floor(Number(event.target.value) || 0);
+                      setBonusAmount(Math.min(Math.max(0, value), bonusLimit));
+                    }}
+                    placeholder="Сколько списать"
+                    aria-label="Количество бонусов"
+                    className={inputCls}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setBonusAmount(bonusLimit)}
+                    disabled={bonusLimit === 0}
+                    className="shrink-0 rounded-sm border border-border px-3 text-[0.78rem] font-semibold hover:border-signal hover:text-signal disabled:opacity-50"
+                  >
+                    Максимум
+                  </button>
+                </div>
+                <p className="mt-2 text-[0.7rem] leading-relaxed text-muted-foreground">1 бонус = 1 ₽. Можно оплатить до 30% товаров; доставка бонусами не оплачивается.</p>
+              </div>
+            )}
+
             {error && (
               <p className="mt-3 text-sm text-signal" role="alert">
                 {error}
@@ -855,7 +915,13 @@ export function CartPageClient() {
                 </div>
               </div>
             )}
-            <div className={cn("flex items-baseline justify-between", discount > 0 ? "mt-2" : "mt-5")}>
+            {bonusSpent > 0 && (
+              <div className="mt-2 flex items-baseline justify-between text-sm text-[var(--signal-text)]">
+                <span>Оплата бонусами</span>
+                <span>−{formatPrice(bonusSpent)}</span>
+              </div>
+            )}
+            <div className={cn("flex items-baseline justify-between", discount > 0 || bonusSpent > 0 ? "mt-2" : "mt-5")}>
               <span className="text-sm">Итого</span>
               <span className="font-display text-xl font-extrabold">
                 {formatPrice(payableWithDelivery)}
