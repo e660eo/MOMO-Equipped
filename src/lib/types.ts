@@ -193,7 +193,8 @@ export interface OrderPayment {
 }
 
 export interface OzonDeliverySplit {
-  deliverySchema: "FBO" | "FBS";
+  /** Магазин всегда передаёт заказ со своего склада — FBO здесь запрещён. */
+  deliverySchema: "FBS";
   warehouseId: number;
   deliveryMethod: {
     id: number;

@@ -11,6 +11,12 @@ import type {
 const API = "https://api-seller.ozon.ru";
 const MAX_POINT_DETAILS = 100;
 const SELECTION_TTL_MS = 30 * 60 * 1000;
+/** Товар забирают со склада MOMO. FBO со склада Ozon для заказов сайта запрещён. */
+export const OZON_DELIVERY_SCHEMA = "FBS" as const;
+
+export function isOzonFbsSchema(value: unknown): value is "FBS" {
+  return value === OZON_DELIVERY_SCHEMA;
+}
 
 interface ApiError {
   message?: string;
@@ -358,7 +364,7 @@ function validSplits(body: CheckoutResponse, lines: CatalogLine[]): OzonDelivery
       split.unavailable_reason !== "UNSPECIFIED" ||
       method?.unavailable_reason !== "UNSPECIFIED" ||
       !split.warehouse_id ||
-      (split.delivery_schema !== "FBO" && split.delivery_schema !== "FBS") ||
+      !isOzonFbsSchema(split.delivery_schema) ||
       !method?.id ||
       (method.delivery_type !== "PVZ" && method.delivery_type !== "POSTAMAT") ||
       !timeslot?.timeslot_id ||
@@ -414,7 +420,9 @@ export async function quoteOzonPickup(input: {
   const lines = catalogLines(input.items);
   const body = await ozonPost<CheckoutResponse>("/v2/delivery/checkout", {
     buyer_phone: phone,
-    delivery_schema: "MIX",
+    // Не даём Ozon автоматически выбрать FBO: заказы сайта физически
+    // отправляются только с настроенного склада MOMO.
+    delivery_schema: OZON_DELIVERY_SCHEMA,
     delivery_type: { pick_up: { map_point_id: point.id } },
     items: lines.map((line) => ({ sku: line.sku, quantity: line.quantity })),
   });
@@ -502,6 +510,9 @@ export async function createOzonShipment(order: Order): Promise<OrderCreateRespo
     throw new Error("Неоплаченный заказ нельзя передать в Ozon Доставку.");
   }
   if (!order.delivery) throw new Error("У заказа не выбрана Ozon Доставка.");
+  if (order.delivery.splits.some((split) => !isOzonFbsSchema(split.deliverySchema))) {
+    throw new Error("Маршрут Ozon рассчитан не со склада MOMO — пересчитайте доставку по FBS.");
+  }
   const person = nameParts(order.customer.name);
   const phone = cleanPhone(order.customer.phone);
   const bySlug = new Map(order.items.map((item) => [item.slug, item]));
@@ -515,7 +526,7 @@ export async function createOzonShipment(order: Order): Promise<OrderCreateRespo
       phone,
     },
     delivery: { pick_up: { map_point_id: order.delivery.mapPointId } },
-    delivery_schema: "MIX",
+    delivery_schema: OZON_DELIVERY_SCHEMA,
     recipient: {
       recipient_first_name: person.first,
       recipient_last_name: person.last,

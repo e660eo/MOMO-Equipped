@@ -153,7 +153,9 @@ export default async function AdminOrderPage({
             </p>
           )}
           <p className="mt-2 text-[0.78rem] text-muted-foreground">
-            Оплачен только товар. Доставку согласуйте отдельно.
+            {order.delivery
+              ? `В сумму включена доставка Ozon: ${order.delivery.customerPrice > 0 ? formatPrice(order.delivery.customerPrice) : "бесплатно"}.`
+              : "Доставку согласуйте отдельно."}
           </p>
           <p className="mt-1 text-[0.75rem] text-muted-foreground">
             Обновлено{" "}
@@ -174,12 +176,22 @@ export default async function AdminOrderPage({
           </h2>
           <p className="mt-2 text-sm font-semibold">{order.delivery.pointName}</p>
           <p className="mt-1 text-sm text-muted-foreground">{order.delivery.address}</p>
+          <p className="mt-3 text-sm">
+            <b>Откуда:</b> склад MOMO по FBS
+            {order.delivery.splits.length
+              ? ` · Ozon ID ${[...new Set(order.delivery.splits.map((split) => split.warehouseId))].join(", ")}`
+              : ""}
+          </p>
+          <p className="mt-1 text-sm">
+            <b>Куда:</b> {order.delivery.address}
+          </p>
           <p className="mt-2 text-sm">
-            Для покупателя: <b>бесплатно</b>
+            Для покупателя:{" "}
+            <b>{order.delivery.customerPrice > 0 ? formatPrice(order.delivery.customerPrice) : "бесплатно"}</b>
           </p>
           {order.delivery.shipment?.status === "created" ? (
             <p className="mt-2 text-sm font-semibold text-[var(--signal-text)]">
-              Создано в Ozon · № {order.delivery.shipment.orderNumber}
+              Создано в Ozon по FBS · № {order.delivery.shipment.orderNumber}
             </p>
           ) : order.delivery.shipment?.status === "failed" ? (
             <div className="mt-3 rounded-sm border border-signal/60 bg-signal/5 p-3">
