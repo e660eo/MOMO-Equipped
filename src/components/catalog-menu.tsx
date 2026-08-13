@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Menu,
   Disc3,
@@ -95,7 +94,6 @@ function subHref(slug: string, q?: string) {
 }
 
 export function CatalogMenu() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -169,10 +167,8 @@ export function CatalogMenu() {
                       followMouse
                       proximity={220}
                       className="w-full"
-                      onClick={() => {
-                        setOpen(false);
-                        router.push(`/catalog/${g.slug}`);
-                      }}
+                      href={`/catalog/${g.slug}`}
+                      onClick={() => setOpen(false)}
                     >
                       <span className="flex w-full items-center gap-2">
                         <g.icon size={16} className="shrink-0" />

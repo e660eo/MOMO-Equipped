@@ -188,7 +188,9 @@ export interface SpecularButtonProps {
   proximity?: number;
   autoAnimate?: boolean;
   disabled?: boolean;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
+  /** Render a native link when the control is used for navigation. */
+  href?: string;
+  onClick?: MouseEventHandler<HTMLElement>;
   className?: string;
   type?: "button" | "submit" | "reset";
 }
@@ -210,11 +212,12 @@ export default function SpecularButton({
   proximity = 250,
   autoAnimate = false,
   disabled = false,
+  href,
   onClick,
   className = "",
   type = "button",
 }: SpecularButtonProps) {
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const elementRef = useRef<HTMLElement | null>(null);
   // Свежие настройки для цикла — без пересоздания подписки на каждый рендер
   const entryRef = useRef<Entry | null>(null);
 
@@ -229,7 +232,7 @@ export default function SpecularButton({
   }
 
   useEffect(() => {
-    const el = btnRef.current;
+    const el = elementRef.current;
     if (!el || !finePointer()) return;
 
     const entry: Entry = {
@@ -260,30 +263,55 @@ export default function SpecularButton({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <button
-      ref={btnRef}
-      type={type}
-      disabled={disabled}
-      onClick={onClick}
-      className={`specular-button specular-button--${size}${className ? ` ${className}` : ""}`}
-      style={
-        {
-          "--sb-radius": `${radius}px`,
-          "--sb-tint": tint,
-          "--sb-tint-opacity": tintOpacity,
-          "--sb-blur": `${blur}px`,
-          "--sb-text-color": textColor,
-          "--sb-line": lineColor,
-          "--sb-base": baseColor,
-          "--sb-thickness": `${thickness}px`,
-        } as CSSProperties
-      }
-    >
+  const controlClassName = `specular-button specular-button--${size}${className ? ` ${className}` : ""}`;
+  const controlStyle = {
+    "--sb-radius": `${radius}px`,
+    "--sb-tint": tint,
+    "--sb-tint-opacity": tintOpacity,
+    "--sb-blur": `${blur}px`,
+    "--sb-text-color": textColor,
+    "--sb-line": lineColor,
+    "--sb-base": baseColor,
+    "--sb-thickness": `${thickness}px`,
+  } as CSSProperties;
+  const content = (
+    <>
       <span className="specular-button__fx" aria-hidden="true">
         <span className="specular-button__spin" />
       </span>
       <span className="specular-button__label">{children}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        ref={(node) => {
+          elementRef.current = node;
+        }}
+        href={href}
+        aria-disabled={disabled || undefined}
+        onClick={disabled ? (event) => event.preventDefault() : onClick}
+        className={controlClassName}
+        style={controlStyle}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      ref={(node) => {
+        elementRef.current = node;
+      }}
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+      className={controlClassName}
+      style={controlStyle}
+    >
+      {content}
     </button>
   );
 }
