@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Download, FileText, LogOut, MapPin, PackageCheck, ShoppingBag } from "lucide-react";
 import { DealerOrderCatalog, type DealerCatalogItem } from "@/components/dealer-order-catalog";
+import { DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
 import { currentDealer } from "@/lib/dealer-auth";
 import { dealerPriceFor, getDealerOrders } from "@/lib/dealers";
 import { getProducts } from "@/lib/data";
@@ -38,7 +39,7 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
     <section className="bg-[#111214] text-white">
       <div className="mx-auto max-w-[1280px] px-5 py-10 sm:py-14">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ff5500]">MOMO / ZEUS · партнёрская сеть</p><h1 className="mt-3 font-display text-4xl font-black uppercase tracking-[-.04em] sm:text-6xl">{session.dealer.name}</h1><p className="mt-3 flex items-center gap-2 text-sm text-white/50"><MapPin size={15} /> {session.dealer.city} · {session.account.contactName}</p></div>
+          <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ff5500]">MOMO / ZEUS · партнёрская сеть</p><h1 className="mt-3 font-display text-4xl font-black uppercase tracking-[-.04em] sm:text-6xl">{session.dealer.name}</h1><p className="mt-3 flex items-center gap-2 text-sm text-white/50"><MapPin size={15} /> {session.dealer.city} · {session.account.contactName}</p><p className="mt-2 text-xs font-semibold uppercase tracking-[.12em] text-white/35">{DEALER_PRICE_TIER_LABELS[session.account.priceTier ?? "dealer"]}</p></div>
           <div className="flex flex-wrap gap-3"><Link href="/dealer/price.csv" className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#ff5500] px-5 text-sm font-bold"><Download size={17} /> Скачать прайс</Link><form action={logoutDealer}><button className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-semibold text-white/65 hover:text-white"><LogOut size={17} /> Выйти</button></form></div>
         </div>
       </div>

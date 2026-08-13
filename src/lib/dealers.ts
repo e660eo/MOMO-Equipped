@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { b2bPriceForSlug, getB2BPriceBook, type B2BPriceBook } from "./b2b-prices";
 import { hashPassword } from "./password";
 import { assertWritable, readJson, updateJson } from "./store";
 import type {
@@ -8,6 +9,7 @@ import type {
   DealerLocation,
   DealerOrder,
   DealerOrderStatus,
+  DealerPriceTier,
   OrderItem,
   Product,
 } from "./types";
@@ -40,9 +42,15 @@ export function findDealerAccountByEmail(email: string): DealerAccount | undefin
   return getDealerAccounts().find((account) => account.email.toLowerCase() === key);
 }
 
-export function dealerPriceFor(product: Product, account: DealerAccount): number {
+export function dealerPriceFor(
+  product: Product,
+  account: DealerAccount,
+  priceBook: B2BPriceBook = getB2BPriceBook(),
+): number {
   const override = account.priceOverrides?.[product.slug];
   if (Number.isSafeInteger(override) && Number(override) > 0) return Number(override);
+  const priceFromBook = b2bPriceForSlug(product.slug, account.priceTier ?? "dealer", priceBook);
+  if (priceFromBook !== undefined) return priceFromBook;
   return Math.max(1, Math.round(product.price * (100 - account.discountPercent) / 100));
 }
 
@@ -142,6 +150,7 @@ export function createDealer(input: {
   authorizedInstallation?: boolean;
   contactName: string;
   loginEmail: string;
+  priceTier: DealerPriceTier;
   discountPercent: number;
   applicationId?: string;
 }): { dealer: DealerLocation; account: DealerAccount; inviteToken: string } {
@@ -171,6 +180,7 @@ export function createDealer(input: {
     email: input.loginEmail.toLowerCase(),
     // До активации вход невозможен: это случайный неизвестный пароль.
     passwordHash: hashPassword(crypto.randomBytes(48).toString("base64url")),
+    priceTier: input.priceTier,
     discountPercent: input.discountPercent,
     createdAt: now,
   };
@@ -183,7 +193,7 @@ export function createDealer(input: {
 
 export function updateDealerTerms(
   accountId: string,
-  patch: { discountPercent?: number; disabled?: boolean },
+  patch: { priceTier?: DealerPriceTier; discountPercent?: number; disabled?: boolean },
 ): void {
   assertWritable();
   updateJson<DealerAccount[]>(ACCOUNTS, (all) =>

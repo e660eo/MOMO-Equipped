@@ -353,6 +353,9 @@ export interface DealerLocation {
   createdAt: string;
 }
 
+/** Уровень закрытых цен, назначаемый партнёру администратором. */
+export type DealerPriceTier = "dealer" | "dagestan" | "wholesale";
+
 /** Закрытая учётная запись дилера. Читается только на сервере. */
 export interface DealerAccount {
   id: string;
@@ -360,6 +363,8 @@ export interface DealerAccount {
   contactName: string;
   email: string;
   passwordHash: string;
+  /** Для старых аккаунтов без поля используется дилерский прайс. */
+  priceTier?: DealerPriceTier;
   discountPercent: number;
   /** Исключения из общей скидки: точная цена по slug товара. */
   priceOverrides?: Record<string, number>;

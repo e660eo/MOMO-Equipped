@@ -15,7 +15,8 @@ import {
 } from "@/lib/dealers";
 import { ExpectedError, messageFor } from "@/lib/errors";
 import { SITE_URL } from "@/lib/site-url";
-import type { DealerApplicationStatus, DealerOrderStatus } from "@/lib/types";
+import { DEALER_PRICE_TIERS, DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
+import type { DealerApplicationStatus, DealerOrderStatus, DealerPriceTier } from "@/lib/types";
 
 export type CreateDealerState = { error?: string; ok?: boolean; inviteUrl?: string; mailSent?: boolean };
 
@@ -40,9 +41,11 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
     const phone = text(formData, "phone", 40);
     const contactName = text(formData, "contactName", 120);
     const loginEmail = text(formData, "loginEmail", 160).toLowerCase();
+    const priceTier = text(formData, "priceTier", 20) as DealerPriceTier;
     const discountPercent = Number(text(formData, "discountPercent", 10));
     if (!name || !city || !address || !phone || !contactName || !loginEmail) throw new ExpectedError("Заполните название, город, адрес, телефон, контакт и email входа.");
     if (!/^\S+@\S+\.\S+$/.test(loginEmail)) throw new ExpectedError("Проверьте email для входа.");
+    if (!DEALER_PRICE_TIERS.includes(priceTier)) throw new ExpectedError("Выберите ценовой уровень партнёра.");
     if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) throw new ExpectedError("Скидка должна быть от 0 до 80%.");
     const result = createDealer({
       name,
@@ -57,12 +60,13 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
       authorizedInstallation: formData.get("authorizedInstallation") === "on",
       contactName,
       loginEmail,
+      priceTier,
       discountPercent,
       applicationId: text(formData, "applicationId", 80) || undefined,
     });
     const mail = await sendDealerInvite(result.account, result.dealer, result.inviteToken);
     const inviteUrl = `${SITE_URL}/dealer/activate?token=${encodeURIComponent(result.inviteToken)}`;
-    audit({ entity: "dealer", entityId: result.account.id, action: "dealer_created", summary: `Создан дилер ${result.dealer.name}; скидка ${discountPercent}%`, after: { dealer: result.dealer, account: { ...result.account, passwordHash: "[hidden]", inviteHash: "[hidden]" } } });
+    audit({ entity: "dealer", entityId: result.account.id, action: "dealer_created", summary: `Создан дилер ${result.dealer.name}; ${DEALER_PRICE_TIER_LABELS[priceTier]}; резервная скидка ${discountPercent}%`, after: { dealer: result.dealer, account: { ...result.account, passwordHash: "[hidden]", inviteHash: "[hidden]" } } });
     revalidatePath("/admin/dealers");
     revalidatePath("/dealers");
     return { ok: true, inviteUrl, mailSent: mail.ok };
@@ -100,10 +104,11 @@ export async function setDealerApplicationStatus(formData: FormData): Promise<vo
 export async function setDealerTerms(formData: FormData): Promise<void> {
   await requireSession();
   const accountId = text(formData, "accountId", 80);
+  const priceTier = text(formData, "priceTier", 20) as DealerPriceTier;
   const discountPercent = Number(text(formData, "discountPercent", 10));
-  if (!accountId || !Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) return;
-  updateDealerTerms(accountId, { discountPercent, disabled: formData.get("disabled") === "on" });
-  audit({ entity: "dealer", entityId: accountId, action: "terms_updated", summary: `Условия дилера обновлены: скидка ${discountPercent}%` });
+  if (!accountId || !DEALER_PRICE_TIERS.includes(priceTier) || !Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) return;
+  updateDealerTerms(accountId, { priceTier, discountPercent, disabled: formData.get("disabled") === "on" });
+  audit({ entity: "dealer", entityId: accountId, action: "terms_updated", summary: `Условия дилера обновлены: ${DEALER_PRICE_TIER_LABELS[priceTier]}, резервная скидка ${discountPercent}%` });
   revalidatePath("/admin/dealers");
   revalidatePath("/dealer");
 }
