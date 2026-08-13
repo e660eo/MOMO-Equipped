@@ -301,6 +301,7 @@ export async function submitOrder(payload: {
     const order = addOrder({
       customer: {
         name,
+        ...(me?.email ? { email: me.email } : {}),
         phone,
         address,
         ...(comment ? { comment } : {}),

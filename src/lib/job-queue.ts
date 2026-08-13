@@ -2,10 +2,16 @@ import crypto from "node:crypto";
 import { audit } from "./audit-log";
 import { messageFor } from "./errors";
 import { notifyNewOrder, notifyPaidOrder } from "./order-mail";
-import { getOrder, updateOzonShipment } from "./orders";
+import {
+  getOrder,
+  getOrders,
+  updateOzonShipment,
+  updatePaymentStatus,
+} from "./orders";
 import { createOzonShipment } from "./ozon-delivery";
 import { notifyCustomerWelcome } from "./customer-mail";
 import { readJson, updateJson } from "./store";
+import { fetchPaymentStatus } from "./yandex-pay";
 import type { IntegrationJob, IntegrationJobType } from "./types";
 
 const FILE = "integration-jobs.json";
@@ -56,6 +62,44 @@ function updateJob(id: string, patch: Partial<IntegrationJob>): void {
   ));
 }
 
+const RECONCILE_PAYMENT_STATUSES = new Set(["created", "PENDING", "AUTHORIZED"]);
+
+/**
+ * Резервная сверка оплат. Вебхук остаётся основным быстрым каналом, но заказ
+ * не потеряется, если уведомление Яндекса не дошло: раз в минуту спрашиваем
+ * источник правды напрямую и публикуем подтверждённую оплату.
+ */
+async function reconcilePayments(): Promise<void> {
+  const candidates = getOrders()
+    .filter((order) =>
+      order.paymentRequested === true &&
+      order.payment &&
+      RECONCILE_PAYMENT_STATUSES.has(order.payment.status),
+    )
+    .slice(0, 20);
+
+  for (const order of candidates) {
+    try {
+      const status = await fetchPaymentStatus(order.id);
+      if (!status || !updatePaymentStatus(order.id, status)) continue;
+
+      if (status === "CAPTURED") {
+        const fresh = getOrder(order.id);
+        if (
+          fresh?.delivery &&
+          fresh.payment?.sandbox !== true &&
+          fresh.delivery.shipment?.status !== "created"
+        ) {
+          enqueueIntegrationJob("ozon_shipment", order.id);
+        }
+        enqueueIntegrationJob("order_mail", order.id, { kind: "paid" });
+      }
+    } catch (error) {
+      console.error(`Не удалось сверить оплату заказа ${order.id}:`, error);
+    }
+  }
+}
+
 async function execute(job: IntegrationJob): Promise<void> {
   if (job.type === "customer_welcome") {
     await notifyCustomerWelcome(job.entityId);
@@ -82,6 +126,7 @@ export async function runIntegrationQueue(): Promise<void> {
   if (running) return;
   running = true;
   try {
+    await reconcilePayments();
     const due = getIntegrationJobs(500)
       .filter((job) => job.status === "pending" && job.runAt <= new Date().toISOString())
       .sort((a, b) => a.runAt.localeCompare(b.runAt))

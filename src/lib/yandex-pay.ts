@@ -110,11 +110,15 @@ export function isFiscalEnabled(): boolean {
 }
 
 /*
-  Контакт для электронного чека — телефон покупателя (email в заказе не
-  собираем). Яндекс принимает строку: нецифры игнорирует, «8» в начале трактует
-  как «+7». Нормализуем к +7XXXXXXXXXX, чтобы чек ушёл на верный номер.
+  Контакт для электронного чека — прежде всего email аккаунта: письмо с чеком
+  проще найти и сохранить. Для старых заказов без email оставляем телефон.
+  Яндекс принимает оба варианта в одном поле fiscalContact.
 */
-function fiscalContact(phone: string): string {
+export function fiscalContact(email: string | undefined, phone: string): string {
+  const normalizedEmail = email?.trim().toLowerCase();
+  if (normalizedEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return normalizedEmail;
+  }
   const digits = phone.replace(/\D/g, "").replace(/^8/, "7");
   return digits.startsWith("7") ? `+${digits}` : `+7${digits}`;
 }
@@ -236,7 +240,9 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
       orderId: order.id,
       currencyCode: "RUB",
       // Контакт для чека — только при включённой фискализации.
-      ...(fiscal ? { fiscalContact: fiscalContact(order.customer.phone) } : {}),
+      ...(fiscal
+        ? { fiscalContact: fiscalContact(order.customer.email, order.customer.phone) }
+        : {}),
       cart: { items, total: { amount: money(total) } },
       // Сплит рядом с картой: покупатель выбирает сам на форме Яндекса.
       // Пока договор на Сплит не заключён, Яндекс его просто не покажет.

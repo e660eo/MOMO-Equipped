@@ -7,6 +7,9 @@ import type { NextConfig } from "next";
   трассировку весь проект (предупреждение «unexpected file in NFT list»).
 */
 const nextConfig: NextConfig = {
+  // На сервере новая версия собирается в отдельную папку. Запущенный Next
+  // продолжает читать предыдущую сборку и не падает с 502, пока идёт build.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   env: {
     BUILD_REVISION: process.env.BUILD_REVISION ?? "dev",
     BUILD_TIME: new Date().toISOString(),

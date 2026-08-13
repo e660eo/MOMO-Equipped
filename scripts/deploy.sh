@@ -20,19 +20,70 @@ npm ci --no-audit --no-fund
 echo "→ Применяем обновления каталога…"
 node scripts/apply-catalog-update.mjs
 
-echo "→ Собираем прод-версию…"
+echo "→ Собираем прод-версию отдельно от работающего сайта…"
 # Версия уезжает в мета-теги страниц: по ней снаружи видно, какая сборка
 # развёрнута — правки данных и пустые коммиты бандлы не меняют.
-BUILD_REVISION="$(git rev-parse --short HEAD)" npm run build
+REVISION="$(git rev-parse --short HEAD)"
+RELEASE_ROOT="$(pwd)/.next-releases"
+RELEASE_DIR=".next-releases/$REVISION"
+mkdir -p "$RELEASE_ROOT"
+
+# Удаляем только незавершённую сборку этого же коммита внутри проверенной
+# папки релизов. Работающая версия хранится в другом каталоге и не затрагивается.
+case "$(pwd)/$RELEASE_DIR" in
+  "$RELEASE_ROOT"/*) rm -rf -- "$RELEASE_DIR" ;;
+  *) echo "Небезопасный путь сборки: $RELEASE_DIR" >&2; exit 1 ;;
+esac
+
+BUILD_REVISION="$REVISION" NEXT_DIST_DIR="$RELEASE_DIR" npm run build
+test -f "$RELEASE_DIR/BUILD_ID"
 
 echo "→ Перезапускаем приложение…"
+PREVIOUS_DIST="$(pm2 jlist 2>/dev/null | node -e '
+  let raw=""; process.stdin.on("data", c => raw += c); process.stdin.on("end", () => {
+    try {
+      const app = JSON.parse(raw).find(item => item.name === "momo");
+      process.stdout.write(
+        app?.pm2_env?.NEXT_DIST_DIR || app?.pm2_env?.env?.NEXT_DIST_DIR || ".next"
+      );
+    } catch { process.stdout.write(".next"); }
+  });
+')"
+export NEXT_DIST_DIR="$RELEASE_DIR"
 if pm2 describe momo >/dev/null 2>&1; then
-  # reload — без простоя: старый процесс живёт, пока не поднимется новый
+  # Старый процесс продолжает читать PREVIOUS_DIST; новая папка уже полностью
+  # собрана. Поэтому во время build больше нет сотен рестартов и 502.
   pm2 reload momo --update-env
 else
   pm2 start ecosystem.config.cjs
   pm2 save
 fi
+
+echo "→ Проверяем новую версию…"
+healthy=0
+for _ in $(seq 1 20); do
+  if curl -fsS --max-time 3 http://127.0.0.1:3000/api/health >/dev/null; then
+    healthy=1
+    break
+  fi
+  sleep 1
+done
+
+if [ "$healthy" -ne 1 ]; then
+  echo "Новая версия не прошла проверку, возвращаем предыдущую сборку…" >&2
+  export NEXT_DIST_DIR="$PREVIOUS_DIST"
+  pm2 reload momo --update-env
+  exit 1
+fi
+
+# Храним текущую и две предыдущие версии для быстрого отката.
+mapfile -t old_releases < <(
+  find "$RELEASE_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' |
+    sort -nr | tail -n +4 | cut -d' ' -f2-
+)
+for old in "${old_releases[@]}"; do
+  case "$old" in "$RELEASE_ROOT"/*) rm -rf -- "$old" ;; esac
+done
 
 echo
 echo "Готово. Статус:"

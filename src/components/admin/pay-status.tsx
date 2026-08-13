@@ -64,7 +64,8 @@ export function PayStatusPanel({ status }: { status: PayStatus }) {
       )}
 
       <p className="mt-3 text-[0.78rem] leading-relaxed text-muted-foreground">
-        Адрес для уведомлений (Callback URL) в кабинете Яндекс Пэй:
+        Префикс Callback URL в кабинете Яндекс Пэй (путь /v1/webhook Яндекс
+        добавит автоматически):
         <br />
         <code className="select-all font-mono text-[0.8rem] text-foreground">
           {status.callbackUrl}

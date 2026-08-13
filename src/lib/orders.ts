@@ -32,29 +32,26 @@ export function getOrders(): Order[] {
 }
 
 /*
-  Онлайн-заказ сначала сохраняется как техническая заготовка: Яндексу нужен
-  наш orderId до перехода покупателя на платёжную форму. В рабочую панель
-  такую заготовку пускать нельзя — менеджеру нужен только оплаченный заказ.
-
-  Возвращённые заказы оставляем в панели: они уже были оплачены и нужны для
-  истории и бухгалтерии. Старые записи до появления paymentRequested узнаём
-  по самому полю payment.
+  Любая созданная попытка заказа видна менеджеру сразу. Раньше онлайн-заказы
+  скрывались до CAPTURED; если вебхук не приходил, оплаченный заказ исчезал и
+  из панели, и из уведомлений. Статус оплаты рядом с заказом честно показывает,
+  списаны деньги или покупатель только открыл платёжную форму.
 */
-const ADMIN_PAYMENT_STATUSES = new Set<PaymentStatus>([
+const SETTLED_PAYMENT_STATUSES = new Set<PaymentStatus>([
   "CAPTURED",
   "REFUNDED",
   "PARTIALLY_REFUNDED",
 ]);
 
-export function isOrderVisibleInAdmin(order: Order): boolean {
+function isUnpaidPaymentAttempt(order: Order): boolean {
   const online = order.paymentRequested === true || order.payment !== undefined;
-  if (!online) return true;
-  return Boolean(order.payment && ADMIN_PAYMENT_STATUSES.has(order.payment.status));
+  if (!online) return false;
+  return !order.payment || !SETTLED_PAYMENT_STATUSES.has(order.payment.status);
 }
 
-/** Только рабочие заказы: WhatsApp-заявки и оплаченные онлайн-заказы. */
+/** Все заказы и попытки оплаты — менеджер видит их сразу. */
 export function getAdminOrders(): Order[] {
-  return getOrders().filter(isOrderVisibleInAdmin);
+  return getOrders();
 }
 
 export function getOrder(id: string): Order | undefined {
@@ -93,7 +90,7 @@ function withoutExpired(orders: Order[]): Order[] {
   return orders.filter(
     (o) => {
       // Неоплаченная техническая попытка не должна лежать вечно как «новая».
-      if (!isOrderVisibleInAdmin(o) && o.createdAt <= unpaidEdge) return false;
+      if (isUnpaidPaymentAttempt(o) && o.createdAt <= unpaidEdge) return false;
       return o.createdAt > stamp || (o.status !== "done" && o.status !== "canceled");
     },
   );

@@ -537,8 +537,10 @@ export async function createOzonShipment(order: Order): Promise<OrderCreateRespo
         const ordered = bySlug.get(item.slug);
         if (!ordered) throw new Error(`Товар ${item.slug} не найден в заказе.`);
         return {
+          // В актуальном /v2/order/create SKU обязателен. Одновременная
+          // передача sku и offer_id отклоняется некоторыми маршрутами Ozon
+          // сообщением «either sku or offer_id should be specified».
           sku: item.sku,
-          ...(item.offerId ? { offer_id: item.offerId } : {}),
           quantity: item.quantity,
           price: money(ordered.price * factor),
         };
