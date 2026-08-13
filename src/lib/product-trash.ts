@@ -1,10 +1,12 @@
 import { deleteProductImage } from "./image-pipeline";
+import { deleteProductAudio } from "./audio-pipeline";
 import { readJson, updateJson } from "./store";
 import type { DeletedProduct, Product } from "./types";
 
 const FILE = "product-trash.json";
 const PRODUCTS_FILE = "products.json";
 const RETENTION_DAYS = 30;
+const isFileName = (value: string | undefined): value is string => Boolean(value);
 
 export function getDeletedProducts(): DeletedProduct[] {
   try {
@@ -57,13 +59,19 @@ export async function purgeExpiredDeletedProducts(now = new Date()): Promise<num
       ...(item.product.images ?? []),
     ]),
   ]);
+  const stillUsedAudio = new Set([
+    ...active.map((product) => product.listening?.audio).filter(isFileName),
+    ...retained.map((item) => item.product.listening?.audio).filter(isFileName),
+  ]);
   for (const photo of expired.flatMap((item) => [
     item.product.image,
     ...(item.product.images ?? []),
   ])) {
     if (!stillUsed.has(photo)) await deleteProductImage(photo);
   }
+  for (const audio of expired.map((item) => item.product.listening?.audio).filter(isFileName)) {
+    if (!stillUsedAudio.has(audio)) await deleteProductAudio(audio);
+  }
   updateJson<DeletedProduct[]>(FILE, () => retained);
   return expired.length;
 }
-

@@ -6,6 +6,11 @@ import { requireSession } from "@/lib/admin-auth";
 import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
 import { saveProductImage, deleteProductImage } from "@/lib/image-pipeline";
+import {
+  deleteProductAudio,
+  saveProductAudio,
+  validateProductAudio,
+} from "@/lib/audio-pipeline";
 import { messageFor, isRedirect } from "@/lib/errors";
 import { audit } from "@/lib/audit-log";
 import {
@@ -17,6 +22,10 @@ import {
 import type { Product } from "@/lib/types";
 import profileSpecs from "./profile-specs.json";
 import { parseCsv } from "@/lib/csv";
+import {
+  hasInvalidListeningScore,
+  parseListeningScore,
+} from "@/lib/listening-stand";
 
 /*
   Действия панели над каталогом.
@@ -89,6 +98,25 @@ export async function saveProduct(
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
+    const listeningFields = ["listeningHighs", "listeningMids", "listeningLows", "listeningVolume"];
+    if (listeningFields.some((name) => hasInvalidListeningScore(formData.get(name)))) {
+      return { error: "Оценки онлайн-стенда должны быть числами от 0 до 10." };
+    }
+    const listeningNote = String(formData.get("listeningNote") ?? "").trim().slice(0, 240);
+    const listeningUpload = formData.get("listeningAudio");
+    const audioFile = listeningUpload instanceof File && listeningUpload.size > 0
+      ? listeningUpload
+      : undefined;
+    if (audioFile) validateProductAudio(audioFile);
+    const removeListeningAudio = formData.get("removeListeningAudio") === "on";
+    const listeningPublished = formData.get("listeningPublished") === "on";
+    if (
+      listeningPublished &&
+      !audioFile &&
+      (removeListeningAudio || !existing?.listening?.audio)
+    ) {
+      return { error: "Чтобы опубликовать запись в стенде, сначала загрузите аудиофайл." };
+    }
     const ozonSkuRaw = String(formData.get("ozonSku") ?? "").trim();
     const ozonOfferId = String(formData.get("ozonOfferId") ?? "").trim().slice(0, 120);
     let ozonSku: number | undefined;
@@ -131,6 +159,12 @@ export async function saveProduct(
     for (const file of uploads) added.push(await saveProductImage(file));
     const photos = [...kept, ...added];
 
+    const oldAudio = existing?.listening?.audio;
+    let listeningAudio = removeListeningAudio
+      ? undefined
+      : oldAudio;
+    if (audioFile) listeningAudio = await saveProductAudio(audioFile);
+
     const slug =
       existing?.slug ??
       uniqueSlug(
@@ -154,6 +188,25 @@ export async function saveProduct(
       ...(ozonOfferId ? { ozonOfferId } : {}),
     };
 
+    const listening = {
+      ...(listeningAudio ? { audio: listeningAudio } : {}),
+      ...(listeningPublished ? { published: true } : {}),
+      ...(parseListeningScore(formData.get("listeningHighs")) !== undefined
+        ? { highs: parseListeningScore(formData.get("listeningHighs")) }
+        : {}),
+      ...(parseListeningScore(formData.get("listeningMids")) !== undefined
+        ? { mids: parseListeningScore(formData.get("listeningMids")) }
+        : {}),
+      ...(parseListeningScore(formData.get("listeningLows")) !== undefined
+        ? { lows: parseListeningScore(formData.get("listeningLows")) }
+        : {}),
+      ...(parseListeningScore(formData.get("listeningVolume")) !== undefined
+        ? { volume: parseListeningScore(formData.get("listeningVolume")) }
+        : {}),
+      ...(listeningNote ? { note: listeningNote } : {}),
+    };
+    if (Object.keys(listening).length) product.listening = listening;
+
     if (flag !== undefined) product.inStock = flag;
     if (stock !== undefined) product.stock = stock;
 
@@ -162,6 +215,7 @@ export async function saveProduct(
         ? all.map((p) => (p.slug === slug ? product : p))
         : [product, ...all],
     );
+    if (oldAudio && oldAudio !== listeningAudio) await deleteProductAudio(oldAudio);
     audit({
       entity: "product",
       entityId: slug,

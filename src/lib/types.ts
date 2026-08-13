@@ -31,6 +31,19 @@ export interface Product {
   ozonSku?: number;
   /** Артикул продавца в Ozon; помогает сверять сопоставление в админке. */
   ozonOfferId?: string;
+  /**
+   * Профиль товара в онлайн-стенде. Запись публикуется только после явного
+   * включения: загруженный черновик не должен случайно попасть покупателям.
+   */
+  listening?: {
+    audio?: string;
+    published?: boolean;
+    highs?: number;
+    mids?: number;
+    lows?: number;
+    volume?: number;
+    note?: string;
+  };
 }
 
 export interface Category {

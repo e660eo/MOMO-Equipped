@@ -10,7 +10,7 @@ import {
   productImageUrl,
   siteConfig,
 } from "@/lib/data";
-import { MessageSquare } from "lucide-react";
+import { Headphones, MessageSquare } from "lucide-react";
 import { isInStock } from "@/lib/format";
 import { fullSpecs } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
@@ -20,6 +20,7 @@ import { JsonLd } from "@/components/json-ld";
 import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 import { brandLandingPath } from "@/lib/seo-landings";
 import { YandexSplitBadge } from "@/components/yandex-split-badge";
+import { isListeningStandProduct } from "@/lib/listening-stand";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -162,6 +163,14 @@ export default async function ProductPage({
 
           <div className="mt-7 flex flex-wrap gap-3">
             <AddToCartButton product={product} size="lg" />
+            {isListeningStandProduct(product) && (
+              <Link
+                href="/listening-stand"
+                className="inline-flex items-center gap-2 rounded-sm border border-border px-6 py-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+              >
+                <Headphones size={17} /> Слушать в стенде
+              </Link>
+            )}
             <a
               href={siteConfig.contacts.whatsapp}
               className="inline-flex items-center rounded-sm border border-border px-8 py-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"

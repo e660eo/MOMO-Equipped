@@ -8,7 +8,7 @@ import {
   type ChangeEvent,
 } from "react";
 import Link from "next/link";
-import { productImageUrl } from "@/lib/format";
+import { productAudioUrl, productImageUrl } from "@/lib/format";
 import type { Product, Category, Brand } from "@/lib/types";
 import {
   saveProduct,
@@ -383,6 +383,101 @@ export function ProductForm({
           <div><p className="text-[0.72rem] uppercase tracking-wider text-muted-foreground">Карточка товара</p><p className="mt-1 font-display text-lg font-extrabold">{title || "Название товара"}</p><p className="mt-2 text-signal">{price ? `${Number(price).toLocaleString("ru-RU")} ₽` : "Цена не указана"}</p><p className="mt-4 text-[0.72rem] uppercase tracking-wider text-muted-foreground">Сниппет поиска</p><p className="mt-1 text-[#1a0dab]">{title ? `${title} — купить в MOMO Equipped` : "Название товара — купить в MOMO Equipped"}</p><p className="mt-1 text-[0.78rem] leading-relaxed text-muted-foreground">{description.split("\n").filter(Boolean).slice(0, 2).join(". ") || "Добавьте ключевые характеристики — они появятся в описании страницы."}</p></div>
         </div>
       </details>
+
+      <fieldset className="mt-8 rounded-xl border border-border bg-surface p-4 sm:p-5">
+        <legend className="px-2 text-[0.78rem] font-semibold">Онлайн-стенд</legend>
+        <p className="text-[0.75rem] leading-relaxed text-muted-foreground">
+          Запись должна быть сделана тем же микрофоном, с того же расстояния и на
+          одинаковых настройках. Пока запись не опубликована, покупатели увидят
+          только отметку «Запись готовится».
+        </p>
+
+        {product?.listening?.audio && (
+          <div className="mt-4 rounded-sm border border-border bg-bg p-3">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-wider text-muted-foreground">
+              Текущая запись
+            </p>
+            <audio
+              controls
+              preload="metadata"
+              src={productAudioUrl(product.listening.audio)}
+              className="mt-2 w-full"
+            />
+            <label className="mt-3 flex items-center gap-2 text-[0.78rem] text-muted-foreground">
+              <input
+                type="checkbox"
+                name="removeListeningAudio"
+                className="h-4 w-4 accent-[var(--color-signal)]"
+              />
+              Удалить текущую запись при сохранении
+            </label>
+          </div>
+        )}
+
+        <div className="mt-4">
+          <label className={label} htmlFor="listeningAudio">
+            {product?.listening?.audio ? "Заменить запись" : "Загрузить запись"}
+          </label>
+          <input
+            id="listeningAudio"
+            name="listeningAudio"
+            type="file"
+            accept="audio/mpeg,audio/wav,audio/x-wav,audio/ogg,audio/mp4,audio/x-m4a,.mp3,.wav,.ogg,.m4a"
+            className="mt-2 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-fg file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-bg"
+          />
+          <p className="mt-1.5 text-[0.72rem] text-muted-foreground">
+            MP3, WAV, OGG или M4A, не больше 30 МБ. Для сайта предпочтительнее MP3.
+          </p>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ["listeningHighs", "Верха", product?.listening?.highs],
+            ["listeningMids", "Середина", product?.listening?.mids],
+            ["listeningLows", "Низы", product?.listening?.lows],
+            ["listeningVolume", "Громкость", product?.listening?.volume],
+          ].map(([name, text, value]) => (
+            <label key={String(name)} className="text-[0.75rem] font-medium">
+              {text}
+              <input
+                name={String(name)}
+                inputMode="decimal"
+                defaultValue={value ?? ""}
+                placeholder="0–10"
+                className={`${field} mt-1.5`}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <label className={label} htmlFor="listeningNote">Комментарий эксперта</label>
+          <textarea
+            id="listeningNote"
+            name="listeningNote"
+            rows={3}
+            maxLength={240}
+            defaultValue={product?.listening?.note ?? ""}
+            placeholder="Например: яркая подача вокала, лучше раскрывается от 100 Вт RMS."
+            className={`${field} mt-1.5`}
+          />
+        </div>
+
+        <label className="mt-4 flex items-start gap-2.5 text-[0.82rem]">
+          <input
+            type="checkbox"
+            name="listeningPublished"
+            defaultChecked={product?.listening?.published}
+            className="mt-0.5 h-4 w-4 accent-[var(--color-signal)]"
+          />
+          <span>
+            <b className="font-semibold">Показывать запись покупателям</b>
+            <span className="mt-0.5 block text-[0.72rem] text-muted-foreground">
+              Включайте только после проверки записи в наушниках.
+            </span>
+          </span>
+        </label>
+      </fieldset>
 
       {/* Фото */}
       <fieldset className="mt-8">

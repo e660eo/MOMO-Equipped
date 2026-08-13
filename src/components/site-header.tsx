@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 const nav = [
   { href: "/about", label: "О компании" },
   { href: "/news/novinki-momo-2026", label: "Новинки" },
+  { href: "/listening-stand", label: "Онлайн-стенд" },
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
 ];
@@ -171,7 +172,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-5">
             <CityPicker />
             <span className="h-4 w-px bg-border" />
-            <nav className="flex gap-7" aria-label="Основная навигация">
+            <nav className="flex gap-5 xl:gap-7" aria-label="Основная навигация">
               {nav.map((n) => (
                 <Link
                   key={n.href}
