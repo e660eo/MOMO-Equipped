@@ -16,6 +16,10 @@ export function phoneDigits(value: string): string {
 
 /** Показываемое значение поля: +7 999 123-45-67 */
 export function formatPhone(value: string): string {
+  const raw = value.replace(/\D/g, "");
+  // При первом вводе 8 или 7 считаем её кодом страны, а не первой цифрой
+  // мобильного номера. Это позволяет привычно начать с 8 и сразу получить +7.
+  if (raw === "8" || raw === "7") return "+7 ";
   const d = phoneDigits(value);
   if (!d) return "";
   let out = "+7";
@@ -35,4 +39,13 @@ export function isPhoneComplete(value: string): boolean {
 export function phoneE164(value: string): string {
   const d = phoneDigits(value);
   return d.length === 10 ? `+7${d}` : "";
+}
+
+/**
+ * Ключ для сравнения и входа: один и тот же номер даст одинаковые 11 цифр,
+ * независимо от того, ввёл человек 8, 7, +7, пробелы или скобки.
+ */
+export function phoneKey(value: string): string {
+  const d = phoneDigits(value);
+  return d.length === 10 ? `7${d}` : "";
 }

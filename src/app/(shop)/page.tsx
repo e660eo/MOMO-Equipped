@@ -24,7 +24,6 @@ import { BundleCard } from "@/components/bundle-card";
 import { cn, plural } from "@/lib/utils";
 import { HeroBackdrop } from "@/components/hero-backdrop";
 import { BannerCarousel } from "@/components/banner-carousel";
-import { SplitProgress } from "@/components/split-progress";
 import { ProductCard } from "@/components/product-card";
 import { WaveDivider } from "@/components/wave-divider";
 import { SectionHead } from "@/components/section-head";
@@ -253,7 +252,6 @@ export default function Home() {
             сжимаются до нечитаемых столбиков. Условия сплита там всё равно
             сказаны текстом в корзине и на странице доставки.
           */}
-          <SplitProgress className="mt-4 hidden lg:block" />
         </div>
       </section>
 

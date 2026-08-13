@@ -27,6 +27,7 @@ import {
 import { SITE_URL } from "@/lib/site-url";
 import { escapeHtml } from "@/lib/sanitize";
 import type { PublicCustomer } from "@/lib/types";
+import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 
 /*
   Регистрация и вход покупателей.
@@ -111,8 +112,8 @@ export async function signUp(input: {
   if (phone.replace(/\D/g, "").length < 11) {
     return { ok: false, error: "Проверьте телефон." };
   }
-  if (password.length < 6) {
-    return { ok: false, error: "Пароль — от шести символов." };
+  if (password.length < 8) {
+    return { ok: false, error: "Пароль — от восьми символов." };
   }
   // Потолок на пароль: scrypt считает тем дольше, чем он длиннее, и
   // мегабайтная строка на входе — это способ занять сервер надолго.
@@ -129,6 +130,8 @@ export async function signUp(input: {
       return result;
     }
     await startCustomerSession(result.customer.id);
+    enqueueIntegrationJob("customer_welcome", result.customer.id);
+    void runIntegrationQueue();
     revalidatePath("/", "layout");
     return { ok: true, customer: result.customer };
   } catch (e) {

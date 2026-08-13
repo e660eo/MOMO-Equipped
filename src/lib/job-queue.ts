@@ -4,6 +4,7 @@ import { messageFor } from "./errors";
 import { notifyNewOrder, notifyPaidOrder } from "./order-mail";
 import { getOrder, updateOzonShipment } from "./orders";
 import { createOzonShipment } from "./ozon-delivery";
+import { notifyCustomerWelcome } from "./customer-mail";
 import { readJson, updateJson } from "./store";
 import type { IntegrationJob, IntegrationJobType } from "./types";
 
@@ -56,6 +57,10 @@ function updateJob(id: string, patch: Partial<IntegrationJob>): void {
 }
 
 async function execute(job: IntegrationJob): Promise<void> {
+  if (job.type === "customer_welcome") {
+    await notifyCustomerWelcome(job.entityId);
+    return;
+  }
   const order = getOrder(job.entityId);
   if (!order) throw new Error(`Заказ ${job.entityId} не найден.`);
   if (job.type === "order_mail") {
@@ -112,4 +117,3 @@ export function scheduleIntegrationQueue(): void {
   timer = setInterval(() => void runIntegrationQueue(), 60_000);
   timer.unref?.();
 }
-

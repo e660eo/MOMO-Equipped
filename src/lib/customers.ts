@@ -3,6 +3,7 @@ import { readJson, updateJson, assertWritable } from "./store";
 import { hashPassword, verifyPassword } from "./password";
 import type { Customer, PublicCustomer } from "./types";
 import { audit } from "./audit-log";
+import { phoneKey } from "./phone";
 
 /*
   Покупатели с аккаунтом на сайте.
@@ -40,11 +41,11 @@ export function findCustomer(id: string): Customer | undefined {
 /** Поиск по почте или телефону — по ним и входят. */
 export function findByLogin(login: string): Customer | undefined {
   const value = login.trim().toLowerCase();
-  const digits = value.replace(/\D/g, "");
+  const normalizedPhone = phoneKey(value);
   return getCustomers().find(
     (c) =>
       c.email.toLowerCase() === value ||
-      (digits.length >= 10 && c.phone.replace(/\D/g, "") === digits),
+      (normalizedPhone !== "" && phoneKey(c.phone) === normalizedPhone),
   );
 }
 

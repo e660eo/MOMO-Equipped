@@ -36,10 +36,6 @@ export function PhoneInput({
       className={className}
       value={value}
       onChange={(e) => onChange(formatPhone(e.target.value))}
-      onFocus={(e) => {
-        // Подставляем префикс, чтобы человек начинал сразу с кода оператора
-        if (!e.target.value) onChange("+7 ");
-      }}
     />
   );
 }

@@ -46,32 +46,32 @@ const OzonPickupMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="grid h-[360px] place-items-center bg-tile font-mono text-xs text-muted-foreground sm:h-[440px]">
-        Р—Р°РіСЂСѓР¶Р°РµРј РєР°СЂС‚СѓвЂ¦
+        Загружаем карту…
       </div>
     ),
   },
 );
 
-// Р”Р°РЅРЅС‹Рµ РїРѕР»СѓС‡Р°С‚РµР»СЏ Р·Р°РїРѕРјРёРЅР°РµРј вЂ” РїСЂРё РїРѕРІС‚РѕСЂРЅРѕРј Р·Р°РєР°Р·Рµ РЅРµ РІРІРѕРґРёС‚СЊ Р·Р°РЅРѕРІРѕ.
+// Данные получателя запоминаем — при повторном заказе не вводить заново.
 const RECIPIENT_KEY = "momo-recipient";
 
-// text-base РЅР° СѓР·РєРѕРј СЌРєСЂР°РЅРµ: РїСЂРё С€СЂРёС„С‚Рµ РјРµРЅСЊС€Рµ 16px Safari РЅР° iPhone
-// РїСЂРёР±Р»РёР¶Р°РµС‚ СЃС‚СЂР°РЅРёС†Сѓ, РєР°Рє С‚РѕР»СЊРєРѕ С‡РµР»РѕРІРµРє СЃС‚Р°РІРёС‚ РєСѓСЂСЃРѕСЂ РІ РїРѕР»Рµ, Рё РѕР±СЂР°С‚РЅРѕ
-// СѓР¶Рµ РЅРµ РѕС‚РґР°Р»СЏРµС‚. РЎРј. С‚РѕС‚ Р¶Рµ РєРѕРјРјРµРЅС‚Р°СЂРёР№ РІ catalog-view.tsx.
+// text-base на узком экране: при шрифте меньше 16px Safari на iPhone
+// приближает страницу, как только человек ставит курсор в поле, и обратно
+// уже не отдаляет. См. тот же комментарий в catalog-view.tsx.
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-3 text-base text-foreground transition-colors focus:border-signal focus:outline-none sm:text-sm";
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
 const cityCenters: Record<string, Omit<MapTarget, "zoom">> = {
-  "РњР°С…Р°С‡РєР°Р»Р°": { lat: 42.9849, long: 47.5047 },
-  "РњРѕСЃРєРІР°": { lat: 55.7558, long: 37.6176 },
-  "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі": { lat: 59.9343, long: 30.3351 },
-  "РљСЂР°СЃРЅРѕРґР°СЂ": { lat: 45.0355, long: 38.9753 },
-  "Р РѕСЃС‚РѕРІ-РЅР°-Р”РѕРЅСѓ": { lat: 47.2357, long: 39.7015 },
-  "РљР°Р·Р°РЅСЊ": { lat: 55.7961, long: 49.1064 },
-  "Р•РєР°С‚РµСЂРёРЅР±СѓСЂРі": { lat: 56.8389, long: 60.6057 },
-  "РќРѕРІРѕСЃРёР±РёСЂСЃРє": { lat: 55.0084, long: 82.9357 },
+  "Махачкала": { lat: 42.9849, long: 47.5047 },
+  "Москва": { lat: 55.7558, long: 37.6176 },
+  "Санкт-Петербург": { lat: 59.9343, long: 30.3351 },
+  "Краснодар": { lat: 45.0355, long: 38.9753 },
+  "Ростов-на-Дону": { lat: 47.2357, long: 39.7015 },
+  "Казань": { lat: 55.7961, long: 49.1064 },
+  "Екатеринбург": { lat: 56.8389, long: 60.6057 },
+  "Новосибирск": { lat: 55.0084, long: 82.9357 },
 };
 const russiaMapTarget: MapTarget = { lat: 61.2, long: 89.2, zoom: 2 };
 
@@ -110,7 +110,7 @@ export function CartPageClient() {
   const deliveryPickerRef = useRef<HTMLDivElement>(null);
   const payButtonRef = useRef<HTMLButtonElement>(null);
 
-  // РџРѕРґСЃС‚Р°РІР»СЏРµРј СЃРѕС…СЂР°РЅС‘РЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РїРѕР»СѓС‡Р°С‚РµР»СЏ РїСЂРё РїРµСЂРІРѕРј РѕС‚РєСЂС‹С‚РёРё
+  // Подставляем сохранённые данные получателя при первом открытии
   useEffect(() => {
     try {
       const saved = localStorage.getItem(RECIPIENT_KEY);
@@ -122,8 +122,8 @@ export function CartPageClient() {
     } catch {}
   }, []);
 
-  // Р•СЃР»Рё РіРѕСЂРѕРґ РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ РІС‹Р±РёСЂР°Р»Рё РІ С€Р°РїРєРµ, РЅР°С‡РёРЅР°РµРј СЃ РЅРµРіРѕ. Р‘РµР· СЃРѕС…СЂР°РЅС‘РЅРЅРѕРіРѕ
-  // РІС‹Р±РѕСЂР° РїРѕРєР°Р·С‹РІР°РµРј РІСЃСЋ Р РѕСЃСЃРёСЋ вЂ” РєР°СЂС‚Р° Р±РѕР»СЊС€Рµ РЅРµ РїСЂРёРІСЏР·Р°РЅР° Рє РњР°С…Р°С‡РєР°Р»Рµ.
+  // Если город действительно выбирали в шапке, начинаем с него. Без сохранённого
+  // выбора показываем всю Россию — карта больше не привязана к Махачкале.
   useEffect(() => {
     const city = localStorage.getItem("momo-city");
     const center = city ? cityCenters[city] : undefined;
@@ -134,13 +134,13 @@ export function CartPageClient() {
   const total = cartTotal(items);
   const freeFrom = trust.freeShippingFrom;
 
-  // РЎРєРёРґРєР° РїРѕ РїСЂРѕРјРѕРєРѕРґСѓ. РџСЂРѕС†РµРЅС‚ РїРѕРґС‚РІРµСЂР¶РґР°РµС‚ СЃРµСЂРІРµСЂ (checkPromo), РЅРѕ РЅР°СЃС‚РѕСЏС‰СѓСЋ
-  // РїСЂРѕРІРµСЂРєСѓ Рё СЃРїРёСЃР°РЅРёРµ РґРµР»Р°РµС‚ submitOrder вЂ” Р·РґРµСЃСЊ С‚РѕР»СЊРєРѕ РїРѕРєР°Р·.
+  // Скидка по промокоду. Процент подтверждает сервер (checkPromo), но настоящую
+  // проверку и списание делает submitOrder — здесь только показ.
   const discount = promo ? Math.round((total * promo.percent) / 100) : 0;
   const payable = total - discount;
   const deliveryCharge = delivery?.customerPrice ?? 0;
   const payableWithDelivery = payable + deliveryCharge;
-  // Р‘РµСЃРїР»Р°С‚РЅР°СЏ РѕРЅР»Р°Р№РЅ-РґРѕСЃС‚Р°РІРєР° СЃС‡РёС‚Р°РµС‚СЃСЏ РѕС‚ СЃСѓРјРјС‹, РєРѕС‚РѕСЂСѓСЋ СЂРµР°Р»СЊРЅРѕ Р·Р°РїР»Р°С‚СЏС‚.
+  // Бесплатная онлайн-доставка считается от суммы, которую реально заплатят.
   const remaining = Math.max(0, freeFrom - payable);
   const shippingPct = Math.min(100, (payable / freeFrom) * 100);
 
@@ -155,7 +155,7 @@ export function CartPageClient() {
       setMapBusy(false);
       setPoints([]);
       setClusters([]);
-      setDeliveryMsg("РќР°Р№РґРёС‚Рµ СЃРІРѕР№ РіРѕСЂРѕРґ РёР»Рё РїСЂРёР±Р»РёР·СЊС‚Рµ РЅСѓР¶РЅСѓСЋ РѕР±Р»Р°СЃС‚СЊ РєР°СЂС‚С‹.");
+      setDeliveryMsg("Найдите свой город или приблизьте нужную область карты.");
       return;
     }
     const requestId = ++mapRequestRef.current;
@@ -173,30 +173,30 @@ export function CartPageClient() {
     setPoints(result.area.points);
     setClusters(result.area.clusters);
     if (!result.area.points.length && !result.area.clusters.length) {
-      setDeliveryMsg("Р’ СЌС‚РѕР№ РѕР±Р»Р°СЃС‚Рё РїСѓРЅРєС‚С‹ Ozon РЅРµ РЅР°Р№РґРµРЅС‹. РџРµСЂРµРјРµСЃС‚РёС‚Рµ РєР°СЂС‚Сѓ.");
+      setDeliveryMsg("В этой области пункты Ozon не найдены. Переместите карту.");
     } else if (result.area.clusters.length) {
-      setDeliveryMsg("РќР°Р¶РјРёС‚Рµ РЅР° СЃРёРЅСЋСЋ РіСЂСѓРїРїСѓ РџР’Р—, С‡С‚РѕР±С‹ РїСЂРёР±Р»РёР·РёС‚СЊ РєР°СЂС‚Сѓ.");
+      setDeliveryMsg("Нажмите на синюю группу ПВЗ, чтобы приблизить карту.");
     } else {
-      setDeliveryMsg("Р’С‹Р±РµСЂРёС‚Рµ СЃРёРЅСЋСЋ РјРµС‚РєСѓ РёР»Рё Р°РґСЂРµСЃ РїРѕРґ РєР°СЂС‚РѕР№.");
+      setDeliveryMsg("Выберите синюю метку или адрес под картой.");
     }
   }
 
   async function locatePickupPoints() {
     if (!("geolocation" in navigator)) {
-      setDeliveryMsg("РџРµСЂРµРјРµСЃС‚РёС‚Рµ РєР°СЂС‚Сѓ РІ СЃРІРѕР№ РіРѕСЂРѕРґ Рё РЅР°Р¶РјРёС‚Рµ В«РџРѕРєР°Р·Р°С‚СЊ РџР’Р— Р·РґРµСЃСЊВ».");
+      setDeliveryMsg("Переместите карту в свой город и нажмите «Показать ПВЗ здесь».");
       return;
     }
     setDeliveryBusy(true);
-    setDeliveryMsg("Р Р°Р·СЂРµС€РёС‚Рµ РґРѕСЃС‚СѓРї Рє РіРµРѕРїРѕР·РёС†РёРё вЂ” РїРѕРєР°Р¶РµРј Р±Р»РёР¶Р°Р№С€РёРµ РџР’Р— Ozon.");
+    setDeliveryMsg("Разрешите доступ к геопозиции — покажем ближайшие ПВЗ Ozon.");
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         setDeliveryBusy(false);
         setMapTarget({ lat: coords.latitude, long: coords.longitude, zoom: 13 });
-        setDeliveryMsg("РџРѕРєР°Р·С‹РІР°РµРј РїСѓРЅРєС‚С‹ Ozon СЂСЏРґРѕРј СЃ РІР°РјРёвЂ¦");
+        setDeliveryMsg("Показываем пункты Ozon рядом с вами…");
       },
       () => {
         setDeliveryBusy(false);
-        setDeliveryMsg("Р”РѕСЃС‚СѓРї РЅРµ РЅСѓР¶РµРЅ: РїРµСЂРµРјРµСЃС‚РёС‚Рµ РєР°СЂС‚Сѓ РІ СЃРІРѕР№ РіРѕСЂРѕРґ Рё РЅР°Р¶РјРёС‚Рµ В«РџРѕРєР°Р·Р°С‚СЊ РџР’Р— Р·РґРµСЃСЊВ».");
+        setDeliveryMsg("Доступ не нужен: переместите карту в свой город и нажмите «Показать ПВЗ здесь».");
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60 * 1000 },
     );
@@ -205,7 +205,7 @@ export function CartPageClient() {
   async function findPlace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (placeQuery.trim().length < 2) {
-      setDeliveryMsg("Р’РІРµРґРёС‚Рµ РіРѕСЂРѕРґ, СѓР»РёС†Сѓ РёР»Рё Р°РґСЂРµСЃ.");
+      setDeliveryMsg("Введите город, улицу или адрес.");
       return;
     }
     setPlaceBusy(true);
@@ -217,7 +217,7 @@ export function CartPageClient() {
       return;
     }
     setPlaceResults(result.places);
-    setDeliveryMsg("Р’С‹Р±РµСЂРёС‚Рµ РїРѕРґС…РѕРґСЏС‰РёР№ Р°РґСЂРµСЃ РёР· СЃРїРёСЃРєР°.");
+    setDeliveryMsg("Выберите подходящий адрес из списка.");
   }
 
   function choosePlace(place: PublicPlaceResult) {
@@ -226,13 +226,13 @@ export function CartPageClient() {
     setMapTarget({ lat: place.lat, long: place.long, zoom: place.zoom });
     setSelectedPoint(null);
     setDelivery(null);
-    setDeliveryMsg("Р—Р°РіСЂСѓР¶Р°РµРј РїСѓРЅРєС‚С‹ Ozon РІ РІС‹Р±СЂР°РЅРЅРѕР№ РѕР±Р»Р°СЃС‚РёвЂ¦");
+    setDeliveryMsg("Загружаем пункты Ozon в выбранной области…");
   }
 
   async function confirmPickup() {
     if (!selectedPoint) return;
     if (!isPhoneComplete(phone)) {
-      setDeliveryMsg("РЎРЅР°С‡Р°Р»Р° СѓРєР°Р¶РёС‚Рµ РїРѕР»РЅС‹Р№ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°.");
+      setDeliveryMsg("Сначала укажите полный номер телефона.");
       return;
     }
     setDeliveryBusy(true);
@@ -249,8 +249,8 @@ export function CartPageClient() {
       return;
     }
     setDelivery(result.delivery);
-    setAddress(`РџР’Р— Ozon: ${result.delivery.point.address}`);
-    setDeliveryMsg("РџР’Р— РІС‹Р±СЂР°РЅ. РўРµРїРµСЂСЊ РјРѕР¶РЅРѕ РїРµСЂРµР№С‚Рё Рє РѕРїР»Р°С‚Рµ.");
+    setAddress(`ПВЗ Ozon: ${result.delivery.point.address}`);
+    setDeliveryMsg("ПВЗ выбран. Теперь можно перейти к оплате.");
     requestAnimationFrame(() =>
       payButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
     );
@@ -279,7 +279,7 @@ export function CartPageClient() {
 
   async function submit(pay = false) {
     if (pay && !customer) {
-      setError("Р”Р»СЏ РѕРїР»Р°С‚С‹ РЅР° СЃР°Р№С‚Рµ РІРѕР№РґРёС‚Рµ РёР»Рё Р·Р°СЂРµРіРёСЃС‚СЂРёСЂСѓР№С‚РµСЃСЊ.");
+      setError("Для оплаты на сайте войдите или зарегистрируйтесь.");
       openAuth("checkout");
       return;
     }
@@ -297,27 +297,27 @@ export function CartPageClient() {
       return;
     }
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      setError("Р—Р°РїРѕР»РЅРёС‚Рµ Р¤РРћ, С‚РµР»РµС„РѕРЅ Рё Р°РґСЂРµСЃ РґРѕСЃС‚Р°РІРєРё.");
+      setError("Заполните ФИО, телефон и адрес доставки.");
       return;
     }
     if (!isPhoneComplete(phone)) {
-      setError("РџСЂРѕРІРµСЂСЊС‚Рµ С‚РµР»РµС„РѕРЅ вЂ” РІ РЅРѕРјРµСЂРµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ 10 С†РёС„СЂ РїРѕСЃР»Рµ +7.");
+      setError("Проверьте телефон — в номере должно быть 10 цифр после +7.");
       return;
     }
-    // РЎРѕРіР»Р°СЃРёРµ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РџР” РЅРµ Р·Р°РїРѕРјРёРЅР°РµРј вЂ” РµРіРѕ РґР°СЋС‚ Р·Р°РЅРѕРІРѕ РЅР° РєР°Р¶РґС‹Р№ Р·Р°РєР°Р·.
+    // Согласие на обработку ПД не запоминаем — его дают заново на каждый заказ.
     if (!consent) {
-      setError("РћС‚РјРµС‚СЊС‚Рµ СЃРѕРіР»Р°СЃРёРµ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РїРµСЂСЃРѕРЅР°Р»СЊРЅС‹С… РґР°РЅРЅС‹С….");
+      setError("Отметьте согласие на обработку персональных данных.");
       return;
     }
     setError("");
     setSending(true);
 
     /*
-      РЎРЅР°С‡Р°Р»Р° СЃРѕС…СЂР°РЅСЏРµРј Р·Р°РєР°Р· РЅР° СЃРµСЂРІРµСЂРµ. WhatsApp-Р·Р°СЏРІРєР° СЃСЂР°Р·Сѓ РїРѕСЏРІР»СЏРµС‚СЃСЏ РІ
-      РїР°РЅРµР»Рё; РѕРЅР»Р°Р№РЅ-Р·Р°РїРёСЃСЊ РѕСЃС‚Р°С‘С‚СЃСЏ СЃРєСЂС‹С‚РѕР№ РґРѕ РїРѕРґС‚РІРµСЂР¶РґС‘РЅРЅРѕР№ РѕРїР»Р°С‚С‹.
+      Сначала сохраняем заказ на сервере. WhatsApp-заявка сразу появляется в
+      панели; онлайн-запись остаётся скрытой до подтверждённой оплаты.
 
-      Р•СЃР»Рё РѕР±С‹С‡РЅСѓСЋ WhatsApp-Р·Р°СЏРІРєСѓ СЃРѕС…СЂР°РЅРёС‚СЊ РЅРµ СѓРґР°Р»РѕСЃСЊ, СЃРѕСЃС‚Р°РІ РІСЃС‘ СЂР°РІРЅРѕ
-      РѕС‚РєСЂРѕРµС‚СЃСЏ РІ РїРµСЂРµРїРёСЃРєРµ. РћРЅР»Р°Р№РЅ-РїР»Р°С‚С‘Р¶ Р±РµР· СЃРµСЂРІРµСЂРЅРѕР№ Р·Р°РїРёСЃРё РЅРµ РЅР°С‡РёРЅР°РµРј.
+      Если обычную WhatsApp-заявку сохранить не удалось, состав всё равно
+      откроется в переписке. Онлайн-платёж без серверной записи не начинаем.
     */
     const saved = await submitOrder({
       name: name.trim(),
@@ -339,15 +339,15 @@ export function CartPageClient() {
     }
 
     /*
-      РћРїР»Р°С‚Р° РЅР° СЃР°Р№С‚Рµ: СѓРІРѕРґРёРј РЅР° С„РѕСЂРјСѓ РЇРЅРґРµРєСЃР° С‚РµРј Р¶Рµ РїРµСЂРµС…РѕРґРѕРј, Р±РµР· РЅРѕРІРѕРіРѕ
-      РѕРєРЅР° вЂ” РїР»Р°С‚С‘Р¶РЅСѓСЋ СЃС‚СЂР°РЅРёС†Сѓ Р±СЂР°СѓР·РµСЂС‹ Рё Р±Р»РѕРєРёСЂРѕРІС‰РёРєРё Р»СЋР±СЏС‚ РїСЂРёРґРµСЂР¶Р°С‚СЊ,
-      Р° РїСЂРѕРїР°РІС€Р°СЏ РѕРїР»Р°С‚Р° РІС‹РіР»СЏРґРёС‚ РєР°Рє РїРѕР»РѕРјРєР° РјР°РіР°Р·РёРЅР°.
+      Оплата на сайте: уводим на форму Яндекса тем же переходом, без нового
+      окна — платёжную страницу браузеры и блокировщики любят придержать,
+      а пропавшая оплата выглядит как поломка магазина.
 
-      Р›РѕРєР°Р»СЊРЅСѓСЋ РєРІРёС‚Р°РЅС†РёСЋ С‚СѓС‚ РЅРµ РїРёС€РµРј: Р·Р°РєР°Р· СѓР¶Рµ РЅР° СЃРµСЂРІРµСЂРµ, Р° РІ РєР°Р±РёРЅРµС‚Рµ РѕРЅ
-      РїРѕСЏРІРёС‚СЃСЏ СЃ РЅР°СЃС‚РѕСЏС‰РёРј СЃС‚Р°С‚СѓСЃРѕРј РѕРїР»Р°С‚С‹.
+      Локальную квитанцию тут не пишем: заказ уже на сервере, а в кабинете он
+      появится с настоящим статусом оплаты.
     */
     if (pay && saved.ok && saved.paymentUrl) {
-      // Р—Р°РїРѕРјРёРЅР°РµРј РїРѕР»СѓС‡Р°С‚РµР»СЏ РґРѕ СѓС…РѕРґР° СЃРѕ СЃС‚СЂР°РЅРёС†С‹
+      // Запоминаем получателя до ухода со страницы
       try {
         localStorage.setItem(
           RECIPIENT_KEY,
@@ -358,16 +358,16 @@ export function CartPageClient() {
       return;
     }
 
-    // РџСЂРѕСЃРёР»Рё РѕРїР»Р°С‚Сѓ, Р° СЃСЃС‹Р»РєРё РЅРµС‚. РўРµС…РЅРёС‡РµСЃРєР°СЏ Р·Р°РіРѕС‚РѕРІРєР° СЃРєСЂС‹С‚Р° РѕС‚ РїР°РЅРµР»Рё;
-    // РЅРѕРІСѓСЋ РїРѕРїС‹С‚РєСѓ РЅР°С‡РёРЅР°РµРј Р·Р°РЅРѕРІРѕ, С‡С‚РѕР±С‹ РЅРµ РїРµСЂРµРёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЃС‚Р°СЂСѓСЋ СЃРµСЃСЃРёСЋ.
+    // Просили оплату, а ссылки нет. Техническая заготовка скрыта от панели;
+    // новую попытку начинаем заново, чтобы не переиспользовать старую сессию.
     if (pay) {
       setError(
-        "РЇРЅРґРµРєСЃ Pay РЅРµ СЃРѕР·РґР°Р» РЅРѕРІСѓСЋ СЃСЃС‹Р»РєСѓ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р· С‡РµСЂРµР· РјРёРЅСѓС‚Сѓ.",
+        "Яндекс Pay не создал новую ссылку. Попробуйте ещё раз через минуту.",
       );
       return;
     }
 
-    // Р—Р°РїРѕРјРёРЅР°РµРј РїРѕР»СѓС‡Р°С‚РµР»СЏ РґР»СЏ СЃР»РµРґСѓСЋС‰РµРіРѕ Р·Р°РєР°Р·Р°
+    // Запоминаем получателя для следующего заказа
     try {
       localStorage.setItem(
         RECIPIENT_KEY,
@@ -375,27 +375,27 @@ export function CartPageClient() {
       );
     } catch {}
     const lines = [
-      orderNumber ? `Р—Р°РєР°Р· в„–${orderNumber} СЃ СЃР°Р№С‚Р° MOMO:` : "Р—Р°РєР°Р· СЃ СЃР°Р№С‚Р° MOMO:",
+      orderNumber ? `Заказ №${orderNumber} с сайта MOMO:` : "Заказ с сайта MOMO:",
       ...items.map(
-        (i) => `вЂў ${i.title} вЂ” ${i.qty} С€С‚. Г— ${formatPrice(i.price)}`,
+        (i) => `• ${i.title} — ${i.qty} шт. × ${formatPrice(i.price)}`,
       ),
       ...(promo
-        ? [`РџСЂРѕРјРѕРєРѕРґ ${promo.code}: в€’${promo.percent}% (в€’${formatPrice(discount)})`]
+        ? [`Промокод ${promo.code}: −${promo.percent}% (−${formatPrice(discount)})`]
         : []),
-      `РС‚РѕРіРѕ: ${formatPrice(payable)}`,
+      `Итого: ${formatPrice(payable)}`,
       "",
-      `РџРѕР»СѓС‡Р°С‚РµР»СЊ: ${name.trim()}`,
-      `РўРµР»РµС„РѕРЅ: ${phone.trim()}`,
-      `РђРґСЂРµСЃ: ${address.trim()}`,
-      comment.trim() ? `РљРѕРјРјРµРЅС‚Р°СЂРёР№: ${comment.trim()}` : "",
+      `Получатель: ${name.trim()}`,
+      `Телефон: ${phone.trim()}`,
+      `Адрес: ${address.trim()}`,
+      comment.trim() ? `Комментарий: ${comment.trim()}` : "",
     ].filter(Boolean);
     const url = `${contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
     window.open(url, "_blank", "noopener");
     /*
-      РќРѕРјРµСЂ РїРѕРєР°Р·С‹РІР°РµРј С‚РѕР»СЊРєРѕ РЅР°СЃС‚РѕСЏС‰РёР№, СЃ СЃРµСЂРІРµСЂР°. Р Р°РЅСЊС€Рµ РїСЂРё РЅРµСѓРґР°С‡РЅРѕРј
-      СЃРѕС…СЂР°РЅРµРЅРёРё РїРѕРґСЃС‚Р°РІР»СЏР»СЃСЏ РІС‹РґСѓРјР°РЅРЅС‹Р№ Р»РѕРєР°Р»СЊРЅС‹Р№ В«MO-вЂ¦В», РєРѕС‚РѕСЂРѕРіРѕ РјР°РіР°Р·РёРЅ
-      РЅРёРєРѕРіРґР° РЅРµ РІРёРґРµР», вЂ” РїРѕРєСѓРїР°С‚РµР»СЊ РЅР°Р·С‹РІР°Р» РјРµРЅРµРґР¶РµСЂСѓ РЅРѕРјРµСЂ, Р° С‚РѕС‚ РµРіРѕ РЅРµ
-      РЅР°С…РѕРґРёР». Р‘РµР· РЅРѕРјРµСЂР° Р·Р°РєР°Р· РІСЃС‘ СЂР°РІРЅРѕ СѓС…РѕРґРёС‚ РІ WhatsApp РїРѕР»РЅС‹Рј СЃРѕСЃС‚Р°РІРѕРј.
+      Номер показываем только настоящий, с сервера. Раньше при неудачном
+      сохранении подставлялся выдуманный локальный «MO-…», которого магазин
+      никогда не видел, — покупатель называл менеджеру номер, а тот его не
+      находил. Без номера заказ всё равно уходит в WhatsApp полным составом.
     */
     setLastOrderId(orderNumber ?? "");
     setSent(true);
@@ -411,20 +411,20 @@ export function CartPageClient() {
           className="mb-5 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-signal"
         >
           <ArrowLeft size={15} />
-          РџСЂРѕРґРѕР»Р¶РёС‚СЊ РїРѕРєСѓРїРєРё
+          Продолжить покупки
         </Link>
         <div className="mb-7 flex items-end justify-between gap-4 border-b border-border pb-5">
           <div>
             <p className="mb-2 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-signal">
-              РћС„РѕСЂРјР»РµРЅРёРµ Р·Р°РєР°Р·Р°
+              Оформление заказа
             </p>
             <h1 className="font-display text-2xl font-semibold uppercase sm:text-4xl">
-              РљРѕСЂР·РёРЅР°
+              Корзина
             </h1>
           </div>
           {items.length > 0 && (
             <span className="font-mono text-xs text-muted-foreground">
-              {items.reduce((sum, item) => sum + item.qty, 0)} С€С‚.
+              {items.reduce((sum, item) => sum + item.qty, 0)} шт.
             </span>
           )}
         </div>
@@ -432,39 +432,39 @@ export function CartPageClient() {
         {sent ? (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed">
-              Р—Р°РєР°Р· {lastOrderId && <b className="font-mono">{lastOrderId}</b>}{" "}
-              СЃС„РѕСЂРјРёСЂРѕРІР°РЅ Рё РѕС‚РєСЂС‹С‚ РІ WhatsApp вЂ” РѕС‚РїСЂР°РІСЊС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ, Рё РјРµРЅРµРґР¶РµСЂ
-              РїРѕРґС‚РІРµСЂРґРёС‚ Р·Р°РєР°Р· РІ С‚РµС‡РµРЅРёРµ СЂР°Р±РѕС‡РµРіРѕ РґРЅСЏ.
+              Заказ {lastOrderId && <b className="font-mono">{lastOrderId}</b>}{" "}
+              сформирован и открыт в WhatsApp — отправьте сообщение, и менеджер
+              подтвердит заказ в течение рабочего дня.
             </p>
             <p className="font-mono text-[0.68rem] leading-relaxed text-muted-foreground">
-              РљРѕРїРёСЏ Р·Р°РєР°Р·Р° вЂ” РІ{" "}
+              Копия заказа — в{" "}
               <a
                 href="/profile"
                 className="text-[var(--signal-text)] underline underline-offset-2 hover:no-underline"
               >
-                Р»РёС‡РЅРѕРј РєР°Р±РёРЅРµС‚Рµ
+                личном кабинете
               </a>{" "}
-              РЅР° СЌС‚РѕРј СѓСЃС‚СЂРѕР№СЃС‚РІРµ.
+              на этом устройстве.
             </p>
             <Link
               href="/catalog"
               onClick={() => setSent(false)}
               className="block w-full rounded-sm border border-border py-3 text-center text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
             >
-              Р’РµСЂРЅСѓС‚СЊСЃСЏ Рє РїРѕРєСѓРїРєР°Рј
+              Вернуться к покупкам
             </Link>
           </div>
         ) : items.length === 0 ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Р’ РєРѕСЂР·РёРЅРµ РїРѕРєР° РїСѓСЃС‚Рѕ. Р”РѕР±Р°РІСЊС‚Рµ С‚РѕРІР°СЂС‹ РёР· РєР°С‚Р°Р»РѕРіР° вЂ” РѕРЅРё РїРѕСЏРІСЏС‚СЃСЏ
-              Р·РґРµСЃСЊ.
+              В корзине пока пусто. Добавьте товары из каталога — они появятся
+              здесь.
             </p>
             <Link
               href="/catalog"
               className="inline-flex rounded-sm bg-signal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
             >
-              РћС‚РєСЂС‹С‚СЊ РєР°С‚Р°Р»РѕРі
+              Открыть каталог
             </Link>
           </div>
         ) : (
@@ -488,14 +488,14 @@ export function CartPageClient() {
                       {i.title}
                     </span>
                     {/*
-                      РљСЂСѓР¶РєРё Р±С‹Р»Рё РїРѕ 24px вЂ” РїРѕРїР°СЃС‚СЊ РїР°Р»СЊС†РµРј РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ СЃРѕ
-                      РІС‚РѕСЂРѕРіРѕ СЂР°Р·Р°. Р’РёРґРёРјС‹Р№ СЂР°Р·РјРµСЂ РѕСЃС‚Р°РІР»СЏРµРј РїСЂРµР¶РЅРёРј, Р° РѕР±Р»Р°СЃС‚СЊ
-                      РЅР°Р¶Р°С‚РёСЏ СЂР°СЃС‚СЏРіРёРІР°РµРј РїСЃРµРІРґРѕСЌР»РµРјРµРЅС‚РѕРј РґРѕ 44px: СЂР°Р·РјРµС‚РєР° РѕС‚
-                      СЌС‚РѕРіРѕ РЅРµ СЂР°СЃС…РѕРґРёС‚СЃСЏ.
+                      Кружки были по 24px — попасть пальцем можно только со
+                      второго раза. Видимый размер оставляем прежним, а область
+                      нажатия растягиваем псевдоэлементом до 44px: разметка от
+                      этого не расходится.
                     */}
                     <span className="mt-1.5 inline-flex items-center gap-2">
                       <button
-                        aria-label="РЈР±Р°РІРёС‚СЊ"
+                        aria-label="Убавить"
                         onClick={() => setQty(i.slug, i.qty - 1)}
                         className="tap-44 relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
                       >
@@ -505,14 +505,14 @@ export function CartPageClient() {
                         {i.qty}
                       </span>
                       <button
-                        aria-label="РџСЂРёР±Р°РІРёС‚СЊ"
+                        aria-label="Прибавить"
                         onClick={() => setQty(i.slug, i.qty + 1)}
                         className="tap-44 relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
                       >
                         <Plus size={12} />
                       </button>
                       <button
-                        aria-label="РЈРґР°Р»РёС‚СЊ РёР· РєРѕСЂР·РёРЅС‹"
+                        aria-label="Удалить из корзины"
                         onClick={() => remove(i.slug)}
                         className="tap-44 relative ml-1 inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors hover:text-signal"
                       >
@@ -527,11 +527,11 @@ export function CartPageClient() {
               ))}
             </ul>
 
-            {/* РџСЂРѕРіСЂРµСЃСЃ РґРѕ Р±РµСЃРїР»Р°С‚РЅРѕР№ РґРѕСЃС‚Р°РІРєРё */}
+            {/* Прогресс до бесплатной доставки */}
             <div className="mt-5 rounded-xl border border-border bg-bg p-4">
               {remaining > 0 ? (
                 <p className="text-[0.82rem]">
-                  Р”Рѕ Р±РµСЃРїР»Р°С‚РЅРѕР№ РґРѕСЃС‚Р°РІРєРё{" "}
+                  До бесплатной доставки{" "}
                   <b className="font-semibold text-[var(--signal-text)]">
                     {formatPrice(remaining)}
                   </b>
@@ -539,7 +539,7 @@ export function CartPageClient() {
               ) : (
                 <p className="flex items-center gap-2 text-[0.82rem] font-semibold text-[var(--signal-text)]">
                   <Truck size={15} />
-                  Р”РѕСЃС‚Р°РІРєР° Р±РµСЃРїР»Р°С‚РЅРѕ
+                  Доставка бесплатно
                 </p>
               )}
               <div
@@ -548,7 +548,7 @@ export function CartPageClient() {
                 aria-valuenow={Math.round(shippingPct)}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label="РџСЂРѕРіСЂРµСЃСЃ РґРѕ Р±РµСЃРїР»Р°С‚РЅРѕР№ РґРѕСЃС‚Р°РІРєРё"
+                aria-label="Прогресс до бесплатной доставки"
               >
                 <div
                   className="h-full rounded-full bg-signal transition-[width] duration-500"
@@ -558,25 +558,25 @@ export function CartPageClient() {
             </div>
 
             <p className="mb-4 mt-6 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground">
-              Р”Р°РЅРЅС‹Рµ РїРѕР»СѓС‡Р°С‚РµР»СЏ
+              Данные получателя
             </p>
             <div className="space-y-3.5">
               <div>
                 <label className={labelCls} htmlFor="rc-name">
-                  Р¤РРћ
+                  ФИО
                 </label>
                 <input
                   id="rc-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
-                  placeholder="Р¤Р°РјРёР»РёСЏ РРјСЏ РћС‚С‡РµСЃС‚РІРѕ"
+                  placeholder="Фамилия Имя Отчество"
                   className={inputCls}
                 />
               </div>
               <div>
                 <label className={labelCls} htmlFor="rc-phone">
-                  РўРµР»РµС„РѕРЅ
+                  Телефон
                 </label>
                 <PhoneInput
                   id="rc-phone"
@@ -587,7 +587,7 @@ export function CartPageClient() {
               </div>
               <div>
                 <label className={labelCls} htmlFor="rc-addr">
-                  РђРґСЂРµСЃ РґРѕСЃС‚Р°РІРєРё
+                  Адрес доставки
                 </label>
                 <textarea
                   id="rc-addr"
@@ -595,20 +595,20 @@ export function CartPageClient() {
                   onChange={(e) => setAddress(e.target.value)}
                   rows={2}
                   autoComplete="street-address"
-                  placeholder="Р“РѕСЂРѕРґ, СѓР»РёС†Р°, РґРѕРј, РєРІР°СЂС‚РёСЂР°"
+                  placeholder="Город, улица, дом, квартира"
                   className={inputCls}
                 />
               </div>
               <div>
                 <label className={labelCls} htmlFor="rc-comment">
-                  РљРѕРјРјРµРЅС‚Р°СЂРёР№ Рє Р·Р°РєР°Р·Сѓ
+                  Комментарий к заказу
                 </label>
                 <textarea
                   id="rc-comment"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   rows={2}
-                  placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ"
+                  placeholder="Необязательно"
                   className={inputCls}
                 />
               </div>
@@ -622,10 +622,10 @@ export function CartPageClient() {
                       <div>
                         <p className="flex items-center gap-2 text-sm font-semibold">
                           <MapPin size={16} className="text-[#005bff]" />
-                          РџСѓРЅРєС‚С‹ Ozon РїРѕ РІСЃРµР№ Р РѕСЃСЃРёРё
+                          Пункты Ozon по всей России
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          РќР°Р№РґРёС‚Рµ РіРѕСЂРѕРґ РёР»Рё Р°РґСЂРµСЃ Р»РёР±Рѕ РїСЂРёР±Р»РёР·СЊС‚Рµ РЅСѓР¶РЅСѓСЋ РѕР±Р»Р°СЃС‚СЊ РєР°СЂС‚С‹.
+                          Найдите город или адрес либо приблизьте нужную область карты.
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -636,24 +636,24 @@ export function CartPageClient() {
                           className="inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-[#005bff] hover:text-[#005bff] disabled:opacity-60 sm:flex-none"
                         >
                           <LocateFixed size={14} />
-                          Р СЏРґРѕРј СЃРѕ РјРЅРѕР№
+                          Рядом со мной
                         </button>
                         <button
                           type="button"
                           onClick={() => {
                             setMapTarget(russiaMapTarget);
                             setPlaceResults([]);
-                            setDeliveryMsg("РџРѕРєР°Р·С‹РІР°РµРј РїСѓРЅРєС‚С‹ Ozon РїРѕ РІСЃРµР№ Р РѕСЃСЃРёРё.");
+                            setDeliveryMsg("Показываем пункты Ozon по всей России.");
                           }}
                           className="inline-flex flex-1 items-center justify-center rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-colors hover:border-[#005bff] hover:text-[#005bff] sm:flex-none"
                         >
-                          Р’СЃСЏ Р РѕСЃСЃРёСЏ
+                          Вся Россия
                         </button>
                       </div>
                     </div>
                     <form onSubmit={findPlace} className="relative mt-3 flex gap-2">
                       <label htmlFor="ozon-place-search" className="sr-only">
-                        Р“РѕСЂРѕРґ РёР»Рё Р°РґСЂРµСЃ РґР»СЏ РїРѕРёСЃРєР° РџР’Р— Ozon
+                        Город или адрес для поиска ПВЗ Ozon
                       </label>
                       <div className="relative min-w-0 flex-1">
                         <Search
@@ -667,7 +667,7 @@ export function CartPageClient() {
                             setPlaceQuery(event.target.value);
                             setPlaceResults([]);
                           }}
-                          placeholder="РќР°РїСЂРёРјРµСЂ: РњРѕСЃРєРІР°, РўРІРµСЂСЃРєР°СЏ СѓР»РёС†Р°"
+                          placeholder="Например: Москва, Тверская улица"
                           autoComplete="off"
                           className="w-full rounded-sm border border-input bg-background py-2.5 pl-9 pr-3 text-base outline-none transition-colors focus:border-[#005bff] sm:text-sm"
                         />
@@ -677,7 +677,7 @@ export function CartPageClient() {
                         disabled={placeBusy || placeQuery.trim().length < 2}
                         className="rounded-sm bg-[#005bff] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#0047c7] disabled:opacity-60"
                       >
-                        {placeBusy ? "РС‰РµРјвЂ¦" : "РќР°Р№С‚Рё"}
+                        {placeBusy ? "Ищем…" : "Найти"}
                       </button>
                     </form>
                     {placeResults.length > 0 && (
@@ -709,15 +709,15 @@ export function CartPageClient() {
                       onSelect={(point) => {
                         setSelectedPoint(point);
                         setDelivery(null);
-                        setDeliveryMsg("РџСЂРѕРІРµСЂСЊС‚Рµ Р°РґСЂРµСЃ Рё РїРѕРґС‚РІРµСЂРґРёС‚Рµ РІС‹Р±СЂР°РЅРЅС‹Р№ РџР’Р—.");
+                        setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
                       }}
                     />
                     <div className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-full bg-white/95 px-3 py-1.5 text-[0.68rem] font-semibold text-[#005bff] shadow-md backdrop-blur dark:bg-[#151515]/95">
                       {mapBusy
-                        ? "РћР±РЅРѕРІР»СЏРµРј РџР’Р—вЂ¦"
+                        ? "Обновляем ПВЗ…"
                         : mapTarget.zoom < 5
-                          ? "РќР°Р№РґРёС‚Рµ СЃРІРѕР№ РіРѕСЂРѕРґ"
-                          : `РќР° РєР°СЂС‚Рµ: ${points.length + clusters.reduce((sum, cluster) => sum + cluster.pointsCount, 0)}`}
+                          ? "Найдите свой город"
+                          : `На карте: ${points.length + clusters.reduce((sum, cluster) => sum + cluster.pointsCount, 0)}`}
                     </div>
                   </div>
                   <div className="bg-surface p-4">
@@ -730,7 +730,7 @@ export function CartPageClient() {
                             onClick={() => {
                               setSelectedPoint(point);
                               setDelivery(null);
-                              setDeliveryMsg("РџСЂРѕРІРµСЂСЊС‚Рµ Р°РґСЂРµСЃ Рё РїРѕРґС‚РІРµСЂРґРёС‚Рµ РІС‹Р±СЂР°РЅРЅС‹Р№ РџР’Р—.");
+                              setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
                             }}
                             className={cn(
                               "rounded-lg border p-3 text-left text-xs leading-relaxed transition-colors",
@@ -741,7 +741,7 @@ export function CartPageClient() {
                           >
                             <b className="block text-foreground">{point.name}</b>
                             <span className="mt-1 block text-muted-foreground">
-                              {point.address} В· {point.distanceKm} РєРј
+                              {point.address} · {point.distanceKm} км
                             </span>
                           </button>
                         ))}
@@ -755,7 +755,7 @@ export function CartPageClient() {
                         </span>
                         {delivery && (
                           <span className="mt-1 block font-semibold text-[var(--signal-text)]">
-                            РџР’Р— РїРѕРґС‚РІРµСЂР¶РґС‘РЅ В· РґРѕСЃС‚Р°РІРєР° Р±РµСЃРїР»Р°С‚РЅРѕ
+                            ПВЗ подтверждён · доставка бесплатно
                           </span>
                         )}
                       </div>
@@ -767,7 +767,7 @@ export function CartPageClient() {
                         disabled={deliveryBusy || !selectedPoint}
                         className="mt-3 w-full rounded-sm bg-signal px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f] disabled:opacity-60"
                       >
-                        {deliveryBusy ? "РџСЂРѕРІРµСЂСЏРµРј РјР°СЂС€СЂСѓС‚вЂ¦" : "РџРѕРґС‚РІРµСЂРґРёС‚СЊ РІС‹Р±СЂР°РЅРЅС‹Р№ РџР’Р—"}
+                        {deliveryBusy ? "Проверяем маршрут…" : "Подтвердить выбранный ПВЗ"}
                       </button>
                     )}
                     {deliveryMsg && (
@@ -776,34 +776,34 @@ export function CartPageClient() {
                       </p>
                     )}
                     <p className="mt-2 text-[0.72rem] leading-relaxed text-muted-foreground">
-                      РўРѕРІР°СЂС‹ РїРµСЂРµРґР°С‘Рј РІ Ozon С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕР№ РѕРїР»Р°С‚С‹.
+                      Товары передаём в Ozon только после успешной оплаты.
                     </p>
                   </div>
                 </div>
               )}
               {payEnabled && (
                 <div className="rounded-xl border border-border bg-bg p-4 text-[0.8rem] leading-relaxed text-muted-foreground">
-                  Онлайн-доставка с Ozon доступна для любого чека: если сумма заказа ниже
-                  <b className="text-foreground">{formatPrice(freeFrom)}</b>, к оплате добавляется
+                  Онлайн-доставка с Ozon доступна для любого чека: если сумма заказа ниже{" "}
+                  <b className="text-foreground">{formatPrice(freeFrom)}</b>, к оплате добавляется{" "}
                   300 ₽ за доставку до пункта выдачи Ozon.
                 </div>
               )}
             </div>
 
-            {/* РџСЂРѕРјРѕРєРѕРґ */}
+            {/* Промокод */}
             <div className="mt-4">
               {promo ? (
                 <div className="flex items-center justify-between gap-2 rounded-sm border border-signal/40 bg-signal/10 px-3 py-2.5 text-[0.82rem]">
                   <span>
-                    РџСЂРѕРјРѕРєРѕРґ{" "}
-                    <b className="font-semibold uppercase">{promo.code}</b> вЂ”
-                    СЃРєРёРґРєР°{" "}
+                    Промокод{" "}
+                    <b className="font-semibold uppercase">{promo.code}</b> —
+                    скидка{" "}
                     <b className="text-[var(--signal-text)]">{promo.percent}%</b>
                   </span>
                   <button
                     type="button"
                     onClick={removePromo}
-                    aria-label="РЈР±СЂР°С‚СЊ РїСЂРѕРјРѕРєРѕРґ"
+                    aria-label="Убрать промокод"
                     className="shrink-0 text-muted-foreground transition-colors hover:text-signal"
                   >
                     <X size={14} />
@@ -818,8 +818,8 @@ export function CartPageClient() {
                       setPromoMsg("");
                     }}
                     onKeyDown={(e) => e.key === "Enter" && applyPromo()}
-                    placeholder="РџСЂРѕРјРѕРєРѕРґ"
-                    aria-label="РџСЂРѕРјРѕРєРѕРґ"
+                    placeholder="Промокод"
+                    aria-label="Промокод"
                     className={cn(inputCls, "uppercase")}
                   />
                   <button
@@ -828,7 +828,7 @@ export function CartPageClient() {
                     disabled={promoBusy || !promoInput.trim()}
                     className="shrink-0 rounded-sm border border-border px-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
                   >
-                    {promoBusy ? "вЂ¦" : "РџСЂРёРјРµРЅРёС‚СЊ"}
+                    {promoBusy ? "…" : "Применить"}
                   </button>
                 </div>
               )}
@@ -846,17 +846,17 @@ export function CartPageClient() {
             {discount > 0 && (
               <div className="mt-5 space-y-1 text-sm">
                 <div className="flex items-baseline justify-between text-muted-foreground">
-                  <span>РЎСѓРјРјР°</span>
+                  <span>Сумма</span>
                   <span>{formatPrice(total)}</span>
                 </div>
                 <div className="flex items-baseline justify-between text-[var(--signal-text)]">
-                  <span>РЎРєРёРґРєР° {promo?.percent}%</span>
-                  <span>в€’{formatPrice(discount)}</span>
+                  <span>Скидка {promo?.percent}%</span>
+                  <span>−{formatPrice(discount)}</span>
                 </div>
               </div>
             )}
             <div className={cn("flex items-baseline justify-between", discount > 0 ? "mt-2" : "mt-5")}>
-              <span className="text-sm">РС‚РѕРіРѕ</span>
+              <span className="text-sm">Итого</span>
               <span className="font-display text-xl font-extrabold">
                 {formatPrice(payableWithDelivery)}
               </span>
@@ -895,14 +895,14 @@ export function CartPageClient() {
                   disabled={sending}
                   className="mt-2.5 w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
                 >
-                  РћС„РѕСЂРјРёС‚СЊ С‡РµСЂРµР· WhatsApp
+                  Оформить через WhatsApp
                 </button>
                 <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
                   {paySandbox
-                    ? "РћРїР»Р°С‚Р° СЂР°Р±РѕС‚Р°РµС‚ РІ С‚РµСЃС‚РѕРІРѕРј СЂРµР¶РёРјРµ: РЅР°СЃС‚РѕСЏС‰РёРµ РґРµРЅСЊРіРё РЅРµ СЃРїРёСЃС‹РІР°СЋС‚СЃСЏ."
+                    ? "Оплата работает в тестовом режиме: настоящие деньги не списываются."
                     : customer
-                      ? "РљР°СЂС‚Р° Р±РµСЂС‘С‚СЃСЏ РёР· С‚РµРєСѓС‰РµРіРѕ РЇРЅРґРµРєСЃ ID РЅР° СЃС‚СЂР°РЅРёС†Рµ РЇРЅРґРµРєСЃ Pay вЂ” РїСЂРѕРІРµСЂСЊС‚Рµ Р°РєРєР°СѓРЅС‚ Рё РїРѕСЃР»РµРґРЅРёРµ 4 С†РёС„СЂС‹. Р—Р°РєР°Р· СѓРІРёРґРёС‚ РјРµРЅРµРґР¶РµСЂ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ РѕРїР»Р°С‚С‹."
-                      : "РћРїР»Р°С‚Р° РґРѕСЃС‚СѓРїРЅР° РїРѕСЃР»Рµ РІС…РѕРґР° РёР»Рё СЂРµРіРёСЃС‚СЂР°С†РёРё. РњР°РіР°Р·РёРЅ РЅРµ С…СЂР°РЅРёС‚ РєР°СЂС‚С‹: РёС… РїРѕРєР°Р·С‹РІР°РµС‚ РЇРЅРґРµРєСЃ Pay РёР· С‚РµРєСѓС‰РµРіРѕ РЇРЅРґРµРєСЃ ID."}
+                      ? "Карта берётся из текущего Яндекс ID на странице Яндекс Pay — проверьте аккаунт и последние 4 цифры. Заказ увидит менеджер только после оплаты."
+                      : "Оплата доступна после входа или регистрации. Магазин не хранит карты: их показывает Яндекс Pay из текущего Яндекс ID."}
                 </p>
               </>
             ) : (
@@ -912,11 +912,11 @@ export function CartPageClient() {
                   disabled={sending}
                   className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
                 >
-                  {sending ? "РћС„РѕСЂРјР»СЏРµРј Р·Р°РєР°Р·вЂ¦" : "РћС„РѕСЂРјРёС‚СЊ С‡РµСЂРµР· WhatsApp"}
+                  {sending ? "Оформляем заказ…" : "Оформить через WhatsApp"}
                 </button>
                 <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
-                  Р—Р°РєР°Р· СѓР№РґС‘С‚ РјРµРЅРµРґР¶РµСЂСѓ РІ WhatsApp: РѕРЅ РїРѕРґС‚РІРµСЂРґРёС‚ РЅР°Р»РёС‡РёРµ,
-                  РЅР°Р·РѕРІС‘С‚ СЃС‚РѕРёРјРѕСЃС‚СЊ РґРѕСЃС‚Р°РІРєРё Рё РїСЂРёС€Р»С‘С‚ СЃРїРѕСЃРѕР±С‹ РѕРїР»Р°С‚С‹.
+                  Заказ уйдёт менеджеру в WhatsApp: он подтвердит наличие,
+                  назовёт стоимость доставки и пришлёт способы оплаты.
                 </p>
               </>
             )}

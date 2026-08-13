@@ -53,6 +53,8 @@ export function AuthModal() {
   const [rgEmail, setRgEmail] = useState("");
   const [rgPhone, setRgPhone] = useState("");
   const [rgPass, setRgPass] = useState("");
+  const [rgPassConfirm, setRgPassConfirm] = useState("");
+  const [rgShow, setRgShow] = useState(false);
   // Сброс пароля: подрежим формы входа, а не отдельная вкладка.
   const [forgot, setForgot] = useState(false);
   const [fgEmail, setFgEmail] = useState("");
@@ -131,6 +133,10 @@ export function AuthModal() {
       setError("Проверьте телефон — в номере должно быть 10 цифр после +7.");
       return;
     }
+    if (rgPass !== rgPassConfirm) {
+      setError("Пароли не совпадают — проверьте оба поля.");
+      return;
+    }
     setBusy(true);
     const result = await signUp({
       name: rgName,
@@ -145,9 +151,10 @@ export function AuthModal() {
     }
     setError("");
     setRgPass("");
+    setRgPassConfirm("");
     pushToast({
-      title: "Аккаунт создан",
-      description: "Теперь заказы видны с любого устройства.",
+      title: `Добро пожаловать, ${rgName.trim().split(/\s+/)[0]}!`,
+      description: "Аккаунт создан. Письмо с логином отправим на вашу почту.",
     });
     finishCustomerAuth();
   }
@@ -301,9 +308,12 @@ export function AuthModal() {
                 value={lgId}
                 onChange={(e) => setLgId(e.target.value)}
                 autoComplete="username"
-                placeholder="+7 ___ ___-__-__ или you@mail.ru"
+                placeholder="8 999 123-45-67 или you@mail.ru"
                 className={inputCls}
               />
+              <p className="mt-1.5 text-[0.72rem] text-muted-foreground">
+                Номер можно начинать с 8, 7 или +7.
+              </p>
             </div>
             <div>
               <label className={labelCls} htmlFor="lg-pass">
@@ -401,15 +411,41 @@ export function AuthModal() {
               <label className={labelCls} htmlFor="rg-pass">
                 Пароль
               </label>
+              <div className="relative">
+                <input
+                  id="rg-pass"
+                  type={rgShow ? "text" : "password"}
+                  required
+                  minLength={8}
+                  value={rgPass}
+                  onChange={(e) => setRgPass(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="Минимум 8 символов"
+                  className={cn(inputCls, "pr-11")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setRgShow((value) => !value)}
+                  aria-label={rgShow ? "Скрыть пароли" : "Показать пароли"}
+                  className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-signal"
+                >
+                  {rgShow ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="rg-pass-confirm">
+                Подтвердите пароль
+              </label>
               <input
-                id="rg-pass"
-                type="password"
+                id="rg-pass-confirm"
+                type={rgShow ? "text" : "password"}
                 required
                 minLength={8}
-                value={rgPass}
-                onChange={(e) => setRgPass(e.target.value)}
+                value={rgPassConfirm}
+                onChange={(e) => setRgPassConfirm(e.target.value)}
                 autoComplete="new-password"
-                placeholder="Минимум 8 символов"
+                placeholder="Повторите пароль"
                 className={inputCls}
               />
             </div>
