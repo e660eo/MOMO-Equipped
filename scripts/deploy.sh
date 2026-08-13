@@ -25,18 +25,24 @@ echo "→ Собираем прод-версию отдельно от рабо�
 # развёрнута — правки данных и пустые коммиты бандлы не меняют.
 REVISION="$(git rev-parse --short HEAD)"
 RELEASE_ROOT="$(pwd)/.next-releases"
-RELEASE_DIR=".next-releases/$REVISION"
+BUILD_DIR=".next-build"
+RELEASE_DIR=".next-releases/${REVISION}-$(date -u +%Y%m%d%H%M%S)"
 mkdir -p "$RELEASE_ROOT"
 
-# Удаляем только незавершённую сборку этого же коммита внутри проверенной
-# папки релизов. Работающая версия хранится в другом каталоге и не затрагивается.
+# Сборщик всегда пишет во временную папку, которую работающий процесс никогда
+# не использует. После успеха целиком переносим её в уникальный каталог релиза.
+case "$(pwd)/$BUILD_DIR" in
+  "$(pwd)"/.next-build) rm -rf -- "$BUILD_DIR" ;;
+  *) echo "Небезопасный путь сборки: $BUILD_DIR" >&2; exit 1 ;;
+esac
 case "$(pwd)/$RELEASE_DIR" in
-  "$RELEASE_ROOT"/*) rm -rf -- "$RELEASE_DIR" ;;
-  *) echo "Небезопасный путь сборки: $RELEASE_DIR" >&2; exit 1 ;;
+  "$RELEASE_ROOT"/*) ;;
+  *) echo "Небезопасный путь релиза: $RELEASE_DIR" >&2; exit 1 ;;
 esac
 
-BUILD_REVISION="$REVISION" NEXT_DIST_DIR="$RELEASE_DIR" npm run build
-test -f "$RELEASE_DIR/BUILD_ID"
+BUILD_REVISION="$REVISION" NEXT_DIST_DIR="$BUILD_DIR" npm run build
+test -f "$BUILD_DIR/BUILD_ID"
+mv "$BUILD_DIR" "$RELEASE_DIR"
 
 echo "→ Перезапускаем приложение…"
 PREVIOUS_DIST="$(pm2 jlist 2>/dev/null | node -e '
