@@ -1,7 +1,11 @@
 import crypto from "node:crypto";
 import { audit } from "./audit-log";
 import { messageFor } from "./errors";
-import { notifyNewOrder, notifyPaidOrder } from "./order-mail";
+import {
+  notifyCustomerPaidOrder,
+  notifyNewOrder,
+  notifyPaidOrder,
+} from "./order-mail";
 import {
   getOrder,
   getOrders,
@@ -93,6 +97,7 @@ async function reconcilePayments(): Promise<void> {
           enqueueIntegrationJob("ozon_shipment", order.id);
         }
         enqueueIntegrationJob("order_mail", order.id, { kind: "paid" });
+        enqueueIntegrationJob("customer_payment_mail", order.id);
       }
     } catch (error) {
       console.error(`Не удалось сверить оплату заказа ${order.id}:`, error);
@@ -110,6 +115,10 @@ async function execute(job: IntegrationJob): Promise<void> {
   if (job.type === "order_mail") {
     if (job.payload?.kind === "paid") await notifyPaidOrder(order);
     else await notifyNewOrder(order);
+    return;
+  }
+  if (job.type === "customer_payment_mail") {
+    await notifyCustomerPaidOrder(order);
     return;
   }
   if (order.delivery?.shipment?.status === "created") return;

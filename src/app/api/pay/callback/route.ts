@@ -100,6 +100,7 @@ export async function POST(request: Request) {
         enqueueIntegrationJob("ozon_shipment", orderId);
       }
       enqueueIntegrationJob("order_mail", orderId, { kind: "paid" });
+      enqueueIntegrationJob("customer_payment_mail", orderId);
       void runIntegrationQueue();
     }
   }

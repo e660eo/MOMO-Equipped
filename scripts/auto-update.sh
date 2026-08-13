@@ -34,7 +34,9 @@ REMOTE=$(git rev-parse origin/main)
   # старте, поэтому иначе выполнялась бы прошлая его версия — правки самого
   # скрипта применялись бы только со следующего обновления.
   git pull --ff-only
-  bash scripts/deploy.sh
+  # Замок уже удерживает этот процесс. Передаём это deploy.sh, чтобы дочерний
+  # процесс не пытался повторно захватить тот же файл блокировки.
+  DEPLOY_LOCK_HELD=1 bash scripts/deploy.sh
   echo "=== $(date '+%F %T') готово ==="
 } >> logs/auto-update.log 2>&1
 

@@ -290,7 +290,11 @@ export interface DeletedProduct {
   purgeAfter: string;
 }
 
-export type IntegrationJobType = "ozon_shipment" | "order_mail" | "customer_welcome";
+export type IntegrationJobType =
+  | "ozon_shipment"
+  | "order_mail"
+  | "customer_payment_mail"
+  | "customer_welcome";
 
 export interface IntegrationJob {
   id: string;

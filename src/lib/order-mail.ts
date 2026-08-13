@@ -242,3 +242,100 @@ export async function notifyPaidOrder(order: Order): Promise<void> {
   });
   if (!result.ok) throw new Error(`Письмо об оплате не отправлено: ${result.error}`);
 }
+
+/**
+ * Почта покупателя хранится и в снимке заказа, и в аккаунте. Второй источник
+ * нужен для заказов, созданных до добавления customer.email в Order.
+ */
+export function customerEmailForOrder(order: Order): string | null {
+  const accountEmail = order.customerId
+    ? findCustomer(order.customerId)?.email
+    : undefined;
+  const email = (order.customer.email || accountEmail || "").trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
+/** Письмо покупателю не подменяет фискальный чек — его формирует онлайн-касса. */
+export function buildCustomerPaymentLetter(order: Order): Letter | null {
+  const email = customerEmailForOrder(order);
+  if (!email) return null;
+
+  const sum = formatPrice(order.payment?.amount ?? order.total);
+  const profileUrl = `${SITE_URL}/profile`;
+  const itemRows = order.items
+    .map(
+      (item) => `<tr>
+        <td style="padding:12px 0;border-top:1px solid ${LINE};font-size:14px;line-height:1.4;">
+          <span style="font-weight:600;">${esc(item.title)}</span><br>
+          <span style="font-size:12px;color:${MUTED};">${item.qty} шт. × ${formatPrice(item.price)}</span>
+        </td>
+        <td style="padding:12px 0;border-top:1px solid ${LINE};text-align:right;white-space:nowrap;font-size:14px;font-weight:700;vertical-align:top;">${formatPrice(item.price * item.qty)}</td>
+      </tr>`,
+    )
+    .join("");
+
+  const shipment = order.delivery?.shipment;
+  const deliveryText = shipment?.status === "created"
+    ? `Отправление Ozon создано: №${shipment.orderNumber ?? "—"}.`
+    : order.delivery
+      ? "Отправление Ozon готовится. Статус появится в личном кабинете."
+      : "Менеджер свяжется с вами для подтверждения доставки.";
+
+  const text = [
+    `Здравствуйте, ${order.customer.name}!`,
+    "",
+    `Оплата заказа №${order.id} подтверждена. Сумма: ${sum}.`,
+    ...order.items.map(
+      (item) => `• ${item.title} — ${item.qty} шт. × ${formatPrice(item.price)}`,
+    ),
+    "",
+    deliveryText,
+    "Фискальный чек должен прийти отдельным письмом от оператора онлайн-кассы на этот же адрес.",
+    "Если чек не пришёл, ответьте на это письмо — мы проверим его в кассе.",
+    "",
+    `Личный кабинет: ${profileUrl}`,
+  ].join("\n");
+
+  const html = `
+<div style="margin:0;padding:24px 16px;background:#f1f1f3;font-family:${FONT};color:${INK};">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+    ${header()}
+    <div style="padding:30px;">
+      <p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${GREEN};">Оплата подтверждена</p>
+      <h1 style="margin:0 0 8px;font-size:28px;line-height:1.05;font-weight:800;letter-spacing:-0.02em;color:${INK};">Заказ №${esc(order.id)}</h1>
+      <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.5;">Здравствуйте, ${esc(order.customer.name)}!</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+        ${itemRows}
+        <tr>
+          <td style="padding:16px 0 0;border-top:2px solid ${INK};font-size:16px;font-weight:700;">Оплачено</td>
+          <td style="padding:16px 0 0;border-top:2px solid ${INK};text-align:right;white-space:nowrap;font-size:24px;font-weight:800;color:${BRAND};">${sum}</td>
+        </tr>
+      </table>
+      <p style="margin:24px 0 0;padding:14px;border-radius:10px;background:#f6f6f7;font-size:14px;line-height:1.55;">${esc(deliveryText)}</p>
+      <div style="margin-top:16px;padding:14px;border:1px solid ${LINE};border-radius:10px;font-size:13px;line-height:1.55;color:#555;">
+        Фискальный чек должен прийти отдельным письмом от оператора онлайн-кассы на этот же адрес. Если чек не пришёл, ответьте на это письмо — мы проверим его в кассе.
+      </div>
+      <a href="${profileUrl}" style="display:block;margin-top:24px;background:${BRAND};color:#ffffff;text-decoration:none;text-align:center;font-weight:700;font-size:15px;padding:15px 24px;border-radius:12px;">Открыть личный кабинет →</a>
+      <p style="margin:20px 0 0;font-size:12px;color:#a8a8a8;text-align:center;">Автоматическое письмо · momo-eq.ru</p>
+    </div>
+  </div>
+</div>`.trim();
+
+  return {
+    to: [email],
+    subject: `Оплата заказа №${order.id} подтверждена — ${sum}`,
+    text,
+    html,
+  };
+}
+
+/** Отдельная задача: сбой письма покупателю не дублирует письмо администратору. */
+export async function notifyCustomerPaidOrder(order: Order): Promise<void> {
+  if (!isMailerConfigured()) return;
+  const letter = buildCustomerPaymentLetter(order);
+  if (!letter) return;
+  const result = await sendMailWithRetry(letter);
+  if (!result.ok) {
+    throw new Error(`Письмо покупателю об оплате не отправлено: ${result.error}`);
+  }
+}

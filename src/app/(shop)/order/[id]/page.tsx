@@ -89,6 +89,7 @@ export default async function OrderStatusPage({
         if (paidOrder) {
           if (paidOrder.delivery && paidOrder.payment?.sandbox !== true && paidOrder.delivery.shipment?.status !== "created") enqueueIntegrationJob("ozon_shipment", id);
           enqueueIntegrationJob("order_mail", id, { kind: "paid" });
+          enqueueIntegrationJob("customer_payment_mail", id);
           void runIntegrationQueue();
         }
       }

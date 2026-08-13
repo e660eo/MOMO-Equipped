@@ -7,6 +7,20 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Один и тот же deploy запускают и cron, и администратор вручную. Две
+# одновременные сборки делят node_modules и временную папку Next.js, поэтому
+# одна способна удалить файлы прямо во время работы другой. Общий замок
+# гарантирует строго одну установку. auto-update.sh уже держит этот замок и
+# сообщает об этом через DEPLOY_LOCK_HELD.
+if [ "${DEPLOY_LOCK_HELD:-}" != "1" ]; then
+  mkdir -p logs
+  exec 8>logs/deploy.lock
+  if ! flock -n 8; then
+    echo "Другое обновление уже выполняется — повторный запуск пропущен."
+    exit 0
+  fi
+fi
+
 echo "→ Забираем изменения из git…"
 git pull --ff-only
 
