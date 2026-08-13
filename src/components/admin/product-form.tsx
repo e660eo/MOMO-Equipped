@@ -486,6 +486,15 @@ export function ProductForm({
         <label className="flex items-center gap-2.5">
           <input
             type="checkbox"
+            name="isNew"
+            defaultChecked={product?.isNew}
+            className="h-4 w-4 accent-[var(--color-signal)]"
+          />
+          Новинка — попадёт в раздел новых поступлений
+        </label>
+        <label className="flex items-center gap-2.5">
+          <input
+            type="checkbox"
             name="isClearance"
             defaultChecked={product?.isClearance}
             className="h-4 w-4 accent-[var(--color-signal)]"

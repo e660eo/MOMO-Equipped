@@ -6,6 +6,8 @@ export interface Product {
   price: number;
   image: string;
   isClearance: boolean;
+  /** Свежая поставка: показываем бейдж и выводим товар в разделе новинок. */
+  isNew?: boolean;
   /**
    * true — есть на складе, false — под заказ; поля нет — статус неизвестен.
    * При заданном `stock` не используется: наличие считается по остатку.

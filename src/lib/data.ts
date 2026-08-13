@@ -61,6 +61,11 @@ export function getClearanceProducts(): Product[] {
   return getProducts().filter((p) => p.isClearance);
 }
 
+/** Новые поступления — единый источник для главной и страницы «Новинки». */
+export function getNewProducts(): Product[] {
+  return getProducts().filter((p) => p.isNew && !p.isClearance);
+}
+
 /**
  * Готовые сборки с подтянутыми товарами и пакетной ценой.
  * Товары с несуществующим slug молча отбрасываются, чтобы правка данных

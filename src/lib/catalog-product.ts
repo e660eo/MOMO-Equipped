@@ -16,6 +16,7 @@ export function toCatalogProduct(product: Product): CatalogProduct {
     image: product.image,
     images: product.images?.slice(0, 1),
     isClearance: product.isClearance,
+    isNew: product.isNew,
     inStock: product.inStock,
     stock: product.stock,
     tech: parseTech(product.title, product.description),

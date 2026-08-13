@@ -155,6 +155,11 @@ function ProductCardImpl({
         <span className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
           {product.brand}
         </span>
+        {product.isNew && (
+          <span className="rounded-sm bg-signal px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-white">
+            Новинка
+          </span>
+        )}
         {product.isClearance && (
           <span className="rounded-sm bg-[var(--signal-text)] px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-white">
             Уценка

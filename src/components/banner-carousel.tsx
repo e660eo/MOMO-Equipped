@@ -118,11 +118,10 @@ export function BannerCarousel() {
               Новинки 2026
             </p>
             <p className="mt-3 font-display text-[clamp(1.3rem,3.4vw,2.4rem)] font-extrabold uppercase leading-tight">
-              Новая линейка MOMO
+              FR-500 и BD-1500.1
             </p>
             <p className="mt-3 max-w-[42ch] text-[0.95rem] opacity-90">
-              Сабвуферы и усилители 2026 года: больше мощности, чище звук,
-              надёжнее сборка.
+              Два новых моноблока MOMO уже приехали и доступны для заказа.
             </p>
             <Link
               href="/news/novinki-momo-2026"

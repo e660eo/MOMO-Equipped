@@ -128,6 +128,7 @@ export async function saveProduct(
       price: Math.round(price),
       image: photos[0],
       isClearance: formData.get("isClearance") === "on",
+      ...(formData.get("isNew") === "on" ? { isNew: true } : {}),
       ...(photos.length > 1 ? { images: photos.slice(1) } : {}),
       ...(description.length ? { description } : {}),
       ...(formData.get("hidden") === "on" ? { hidden: true } : {}),

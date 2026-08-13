@@ -42,6 +42,30 @@ test("catalogue keeps service fields out of HTML and serves search results", asy
   }
 });
 
+test("new arrivals are visible with the confirmed prices and specifications", async ({ page }) => {
+  await page.goto("/");
+  const arrivals = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Новинки MOMO" }),
+  });
+  await expect(arrivals.getByRole("link", { name: /Моноблок FR-500/ }).first()).toBeVisible();
+  await expect(arrivals.getByText(/4\s000\s₽/)).toBeVisible();
+  await expect(arrivals.getByRole("link", { name: /Моноблок BD-1500.1/ }).first()).toBeVisible();
+  await expect(arrivals.getByText(/9\s184\s₽/)).toBeVisible();
+
+  await page.goto("/news/novinki-momo-2026");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Новинки MOMO: FR-500 и BD-1500.1",
+  );
+  await expect(page.getByText("RMS при 1 Ом: 1450 Вт", { exact: true })).toBeVisible();
+
+  await page.goto("/product/monoblok-bd-1500-1");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Моноблок BD-1500.1");
+  await expect(page.getByText("1 Ом", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("1450 Вт · 2 Ом: 1050 Вт · 4 Ом: 650 Вт", { exact: true }),
+  ).toBeVisible();
+});
+
 test("product page exposes Product structured data", async ({ page }) => {
   await page.goto("/product/hid-ksenonovaya-lampa-h4-3000-3200lm-5000-6000k-23000vt-zeus-857896");
   const schemas = await page.locator('script[type="application/ld+json"]').allTextContents();

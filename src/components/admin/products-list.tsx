@@ -242,6 +242,7 @@ export function ProductsList({
                             · нет на складе
                           </span>
                         )}
+                        {p.isNew && <span className="text-signal">· новинка</span>}
                         {p.isClearance && <span>· уценка</span>}
                         {p.hidden && (
                           <span className="text-[var(--signal-text)]">

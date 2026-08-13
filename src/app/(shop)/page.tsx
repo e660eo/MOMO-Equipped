@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import {
   getProducts,
+  getNewProducts,
   getCategories,
   getNews,
   getBundles,
@@ -66,6 +67,7 @@ const catalogLayout: { slug: string; span: string; feature?: boolean }[] = [
 
 export default function Home() {
   const products = getProducts();
+  const newProducts = getNewProducts().slice(0, 4);
   const categories = getCategories();
   const news = getNews();
   // Флагманы — старшие модели звукового тракта. Только сабвуферы, усиление и
@@ -257,8 +259,27 @@ export default function Home() {
 
       <WaveDivider />
 
+      {/* NEW ARRIVALS */}
+      {newProducts.length > 0 && (
+        <section className="py-20">
+          <Reveal className="mx-auto max-w-[1200px] px-6">
+            <SectionHead
+              eyebrow="Уже на складе"
+              title="Новинки MOMO"
+              linkHref="/news/novinki-momo-2026"
+              linkLabel="Подробнее →"
+            />
+            <div className="grid max-w-[590px] grid-cols-1 gap-5 sm:grid-cols-2">
+              {newProducts.map((product) => (
+                <ProductCard key={product.slug} product={product} />
+              ))}
+            </div>
+          </Reveal>
+        </section>
+      )}
+
       {/* FLAGSHIP */}
-      <section className="py-20">
+      <section className="border-t border-border bg-surface py-20">
         <Reveal className="mx-auto max-w-[1200px] px-6">
           <SectionHead
             eyebrow="Старшие модели · линейка MOMO"
