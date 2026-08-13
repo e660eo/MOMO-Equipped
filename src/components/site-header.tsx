@@ -20,7 +20,7 @@ const nav = [
   { href: "/news/novinki-momo-2026", label: "Новинки" },
   { href: "/listening-stand", label: "Онлайн-стенд", beta: true },
   { href: "/news", label: "Новости" },
-  { href: "/contacts", label: "Контакты" },
+  { href: "/support", label: "Поддержка" },
 ];
 
 // «Уценка» уехала из верхней навигации в каталог: на десктопе — ссылкой в
@@ -29,6 +29,10 @@ const mobileNav: { href: string; label: string; accent?: boolean; beta?: boolean
   { href: "/catalog", label: "Каталог", accent: true },
   { href: "/sale", label: "Уценка" },
   ...nav,
+  { href: "/dealers", label: "Купить рядом" },
+  { href: "/become-dealer", label: "Стать дилером" },
+  { href: "/dealer/login", label: "Вход для дилеров" },
+  { href: "/contacts", label: "Контакты" },
 ];
 
 /*

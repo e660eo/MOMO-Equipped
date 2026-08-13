@@ -1,0 +1,15 @@
+[
+  {
+    "id": "momo-makhachkala",
+    "name": "MOMO Equipped",
+    "city": "Махачкала",
+    "address": "пр-кт Гамидова, 16",
+    "phone": "+7 967 408 3111",
+    "email": "mail@momo-eq.ru",
+    "hours": "Пн–Пт: 9:00–18:00",
+    "latitude": 42.9849,
+    "longitude": 47.5047,
+    "active": true,
+    "createdAt": "2026-08-13T00:00:00.000Z"
+  }
+]

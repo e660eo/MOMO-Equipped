@@ -25,15 +25,12 @@ export async function register() {
     console.error("[title-cleanup] пропущено:", err);
   }
 
-  // Проставление новых фото товарам (photo-updates.json). Тоже самоограничивается
-  // и не роняет старт: данные живут на сервере, поэтому правим их здесь.
-  try {
-    const { applyPhotoUpdates } = await import("./lib/photo-updates");
-    const { changed } = applyPhotoUpdates();
-    if (changed) console.log(`[photo-updates] обновлено фото у товаров: ${changed}`);
-  } catch (err) {
-    console.error("[photo-updates] пропущено:", err);
-  }
+  /*
+    Миграцию photo-updates здесь больше не запускаем. Она уже перенесена в
+    data/products.json, а повторный запуск делал её постоянной синхронизацией:
+    после перезапуска сервера он возвращал старую галерею и стирал привязку
+    фотографий, которые администратор добавил через панель.
+  */
 
   // SKU Ozon нужны для передачи оплаченных товаров в Ozon Логистику.
   // Меняем только поля интеграции, оставляя живые данные каталога нетронутыми.

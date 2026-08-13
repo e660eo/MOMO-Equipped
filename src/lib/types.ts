@@ -312,7 +312,7 @@ export interface Order {
   history?: OrderHistoryEntry[];
 }
 
-export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration";
+export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration" | "dealer" | "support";
 
 export interface AuditLogEntry {
   id: string;
@@ -330,6 +330,98 @@ export interface DeletedProduct {
   product: Product;
   deletedAt: string;
   purgeAfter: string;
+}
+
+/* ------------------------------- B2B ----------------------------------- */
+
+/** Публичная карточка официальной точки. Закрытых цен и данных входа здесь нет. */
+export interface DealerLocation {
+  id: string;
+  name: string;
+  city: string;
+  address: string;
+  phone: string;
+  email?: string;
+  website?: string;
+  hours?: string;
+  latitude?: number;
+  longitude?: number;
+  /** Точка выполняет авторизованную установку с расширенной гарантией. */
+  authorizedInstallation?: boolean;
+  /** Точка опубликована в разделе «Купить рядом». */
+  active: boolean;
+  createdAt: string;
+}
+
+/** Закрытая учётная запись дилера. Читается только на сервере. */
+export interface DealerAccount {
+  id: string;
+  dealerId: string;
+  contactName: string;
+  email: string;
+  passwordHash: string;
+  discountPercent: number;
+  /** Исключения из общей скидки: точная цена по slug товара. */
+  priceOverrides?: Record<string, number>;
+  createdAt: string;
+  activatedAt?: string;
+  lastLoginAt?: string;
+  disabled?: boolean;
+  inviteHash?: string;
+  inviteExpiresAt?: string;
+}
+
+export type DealerApplicationStatus = "new" | "in_work" | "approved" | "rejected";
+
+export interface DealerApplication {
+  id: string;
+  createdAt: string;
+  company: string;
+  city: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  businessType: "store" | "install" | "online" | "mixed";
+  website?: string;
+  comment?: string;
+  status: DealerApplicationStatus;
+  note?: string;
+}
+
+export type DealerOrderStatus = "new" | "confirmed" | "shipped" | "done" | "canceled";
+
+export interface DealerOrder {
+  id: string;
+  dealerId: string;
+  accountId: string;
+  createdAt: string;
+  status: DealerOrderStatus;
+  items: OrderItem[];
+  total: number;
+  comment?: string;
+  history: Array<{ at: string; actor: string; from?: string; to: string }>;
+}
+
+export type SupportDocumentCategory =
+  | "instruction"
+  | "scheme"
+  | "certificate"
+  | "warranty"
+  | "catalog"
+  | "marketing";
+
+export interface SupportDocument {
+  id: string;
+  title: string;
+  description?: string;
+  category: SupportDocumentCategory;
+  audience: "public" | "dealer";
+  file: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  createdAt: string;
+  productSlugs?: string[];
 }
 
 export type IntegrationJobType =

@@ -20,6 +20,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/news`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BASE}/contacts`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/dealers`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/become-dealer`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE}/support`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/install`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/delivery`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/about`, changeFrequency: "monthly", priority: 0.5 },

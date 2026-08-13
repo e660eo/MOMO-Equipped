@@ -437,8 +437,8 @@ html[data-theme-vt="active"]::view-transition-group(root) {
    Рисуется разметкой, без WebGL: см. hero-backdrop.tsx. Движется только
    transform — ни пересчёта раскладки, ни перерисовки, работа на композиторе. */
 .hero-wave {
-  /* было className="opacity-70" на канвасе шейдера */
-  opacity: 0.7;
+  /* Фон поддерживает логотип, но не конкурирует с ним. */
+  opacity: 0.46;
 }
 /*
   10.5s — скорость исходного шейдера: он прибавлял к time 0.01 за кадр, а
@@ -450,7 +450,7 @@ html[data-theme-vt="active"]::view-transition-group(root) {
 }
 /* Размытие на неподвижном содержимом: считается один раз, дальше — текстура */
 .hero-wave__ink {
-  filter: blur(22px);
+  filter: blur(28px);
 }
 @keyframes hero-wave-scroll {
   from { transform: translateX(0); }

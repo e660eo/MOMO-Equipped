@@ -1,0 +1,121 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { requireSession } from "@/lib/admin-auth";
+import { audit } from "@/lib/audit-log";
+import { sendDealerInvite } from "@/lib/dealer-mail";
+import {
+  createDealer,
+  findDealerAccount,
+  getDealerLocation,
+  issueDealerInvite,
+  updateDealerApplication,
+  updateDealerOrderStatus,
+  updateDealerTerms,
+} from "@/lib/dealers";
+import { ExpectedError, messageFor } from "@/lib/errors";
+import { SITE_URL } from "@/lib/site-url";
+import type { DealerApplicationStatus, DealerOrderStatus } from "@/lib/types";
+
+export type CreateDealerState = { error?: string; ok?: boolean; inviteUrl?: string; mailSent?: boolean };
+
+function text(formData: FormData, key: string, max = 200): string {
+  return String(formData.get(key) ?? "").trim().slice(0, max);
+}
+
+function optionalNumber(formData: FormData, key: string): number | undefined {
+  const value = text(formData, key, 30);
+  if (!value) return undefined;
+  const parsed = Number(value.replace(",", "."));
+  if (!Number.isFinite(parsed)) throw new ExpectedError(`Проверьте поле «${key}».`);
+  return parsed;
+}
+
+export async function createDealerAdmin(_state: CreateDealerState, formData: FormData): Promise<CreateDealerState> {
+  await requireSession();
+  try {
+    const name = text(formData, "name");
+    const city = text(formData, "city", 120);
+    const address = text(formData, "address", 240);
+    const phone = text(formData, "phone", 40);
+    const contactName = text(formData, "contactName", 120);
+    const loginEmail = text(formData, "loginEmail", 160).toLowerCase();
+    const discountPercent = Number(text(formData, "discountPercent", 10));
+    if (!name || !city || !address || !phone || !contactName || !loginEmail) throw new ExpectedError("Заполните название, город, адрес, телефон, контакт и email входа.");
+    if (!/^\S+@\S+\.\S+$/.test(loginEmail)) throw new ExpectedError("Проверьте email для входа.");
+    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) throw new ExpectedError("Скидка должна быть от 0 до 80%.");
+    const result = createDealer({
+      name,
+      city,
+      address,
+      phone,
+      publicEmail: text(formData, "publicEmail", 160) || undefined,
+      website: text(formData, "website", 240) || undefined,
+      hours: text(formData, "hours", 160) || undefined,
+      latitude: optionalNumber(formData, "latitude"),
+      longitude: optionalNumber(formData, "longitude"),
+      authorizedInstallation: formData.get("authorizedInstallation") === "on",
+      contactName,
+      loginEmail,
+      discountPercent,
+      applicationId: text(formData, "applicationId", 80) || undefined,
+    });
+    const mail = await sendDealerInvite(result.account, result.dealer, result.inviteToken);
+    const inviteUrl = `${SITE_URL}/dealer/activate?token=${encodeURIComponent(result.inviteToken)}`;
+    audit({ entity: "dealer", entityId: result.account.id, action: "dealer_created", summary: `Создан дилер ${result.dealer.name}; скидка ${discountPercent}%`, after: { dealer: result.dealer, account: { ...result.account, passwordHash: "[hidden]", inviteHash: "[hidden]" } } });
+    revalidatePath("/admin/dealers");
+    revalidatePath("/dealers");
+    return { ok: true, inviteUrl, mailSent: mail.ok };
+  } catch (error) {
+    if (error instanceof Error && error.message === "ACCOUNT_EXISTS") return { error: "Дилер с таким email уже существует." };
+    return { error: messageFor(error, "Не удалось создать дилера.", "createDealerAdmin") };
+  }
+}
+
+export async function resendDealerInvite(formData: FormData): Promise<void> {
+  await requireSession();
+  const accountId = text(formData, "accountId", 80);
+  const account = findDealerAccount(accountId);
+  const dealer = account ? getDealerLocation(account.dealerId) : undefined;
+  if (!account || !dealer) return;
+  const token = issueDealerInvite(account.id);
+  if (!token) return;
+  await sendDealerInvite(findDealerAccount(account.id)!, dealer, token);
+  audit({ entity: "dealer", entityId: account.id, action: "invite_reissued", summary: `Повторно отправлена активация: ${account.email}` });
+  revalidatePath("/admin/dealers");
+}
+
+export async function setDealerApplicationStatus(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const status = text(formData, "status", 20) as DealerApplicationStatus;
+  const allowed: DealerApplicationStatus[] = ["new", "in_work", "approved", "rejected"];
+  if (!id || !allowed.includes(status)) return;
+  const note = text(formData, "note", 500);
+  updateDealerApplication(id, { status, ...(note ? { note } : {}) });
+  audit({ entity: "dealer", entityId: id, action: "application_status", summary: `Статус дилерской заявки: ${status}` });
+  revalidatePath("/admin/dealers");
+}
+
+export async function setDealerTerms(formData: FormData): Promise<void> {
+  await requireSession();
+  const accountId = text(formData, "accountId", 80);
+  const discountPercent = Number(text(formData, "discountPercent", 10));
+  if (!accountId || !Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) return;
+  updateDealerTerms(accountId, { discountPercent, disabled: formData.get("disabled") === "on" });
+  audit({ entity: "dealer", entityId: accountId, action: "terms_updated", summary: `Условия дилера обновлены: скидка ${discountPercent}%` });
+  revalidatePath("/admin/dealers");
+  revalidatePath("/dealer");
+}
+
+export async function setDealerOrderStatus(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const status = text(formData, "status", 20) as DealerOrderStatus;
+  const allowed: DealerOrderStatus[] = ["new", "confirmed", "shipped", "done", "canceled"];
+  if (!id || !allowed.includes(status)) return;
+  updateDealerOrderStatus(id, status);
+  audit({ entity: "dealer", entityId: id, action: "order_status", summary: `Статус дилерского заказа: ${status}` });
+  revalidatePath("/admin/dealers");
+  revalidatePath("/dealer");
+}

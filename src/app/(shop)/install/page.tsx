@@ -110,7 +110,7 @@ export default function InstallPage() {
                 как партнёрскую точку — клиенты MOMO будут приходить к вам.
               </p>
               <a
-                href="/dealers"
+                href="/become-dealer"
                 className="mt-4 inline-flex rounded-sm border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
               >
                 Стать партнёром

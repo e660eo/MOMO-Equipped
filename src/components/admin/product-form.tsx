@@ -41,6 +41,11 @@ import { templateForCategory } from "@/lib/spec-templates";
 */
 
 type NewItem = { file: File; url: string };
+type UploadPreview = NewItem & {
+  id: string;
+  status: "waiting" | "uploading" | "error";
+  error?: string;
+};
 type Editing =
   | { kind: "existing"; name: string }
   | { kind: "new"; index: number };
@@ -73,6 +78,8 @@ export function ProductForm({
   const [photoErr, setPhotoErr] = useState<string | null>(null);
   const [photoUndo, setPhotoUndo] = useState<string[] | null>(null);
   const [photoSaved, setPhotoSaved] = useState(false);
+  const [photoNotice, setPhotoNotice] = useState<string | null>(null);
+  const [uploadPreviews, setUploadPreviews] = useState<UploadPreview[]>([]);
   const [title, setTitle] = useState(product?.title ?? "");
   const [category, setCategory] = useState(product?.category ?? "");
   const [price, setPrice] = useState(String(product?.price ?? ""));
@@ -109,6 +116,7 @@ export function ProductForm({
         setPhotos(r.photos);
         setPhotoUndo(previous);
         setPhotoSaved(true);
+        setPhotoNotice("Изменение фотографии сохранено.");
       }
     } catch {
       setPhotoErr("Не удалось — попробуйте ещё раз.");
@@ -128,6 +136,7 @@ export function ProductForm({
       setPhotos(result.photos ?? previous);
       setPhotoUndo(null);
       setPhotoSaved(false);
+      setPhotoNotice("Последнее изменение фотографии отменено.");
     }
   }
 
@@ -136,21 +145,112 @@ export function ProductForm({
     e.target.value = ""; // позволяем выбрать тот же файл снова
     if (!files.length) return;
     if (!editingProduct) {
+      setPhotoErr(null);
       setNewItems((list) => [
         ...list,
         ...files.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
       ]);
       return;
     }
-    // Существующий товар — грузим по одному сразу: каждый файл своим запросом,
-    // это щадит память сервера и не роняет всё, если один снимок не обработался.
-    void (async () => {
-      for (const f of files) {
-        const fd = new FormData();
-        fd.append("photo", f);
-        await runPhotoOp(addPhoto(slug!, fd));
+    const selected = files.map((file, index) => ({
+      id: `${Date.now()}-${index}-${file.name}`,
+      file,
+      url: URL.createObjectURL(file),
+      status: "waiting" as const,
+    }));
+    setUploadPreviews((current) => [...current, ...selected]);
+    void uploadExistingPhotos(selected);
+  }
+
+  // Локальное превью появляется сразу. Зелёное подтверждение показываем только
+  // после ответа сервера, когда файл уже записан и привязан к товару.
+  async function uploadExistingPhotos(items: UploadPreview[]) {
+    if (!slug || items.length === 0) return;
+    const previous = [...photos];
+    const uploaded: string[] = [];
+    const failed: string[] = [];
+    setPhotoBusy(true);
+    setPhotoErr(null);
+    setPhotoNotice(null);
+    setPhotoSaved(false);
+
+    for (const item of items) {
+      setUploadPreviews((current) =>
+        current.map((preview) =>
+          preview.id === item.id
+            ? { ...preview, status: "uploading", error: undefined }
+            : preview,
+        ),
+      );
+      try {
+        const formData = new FormData();
+        formData.append("photo", item.file);
+        const result = await addPhoto(slug, formData);
+        if (result.error || !result.photos) {
+          const error = result.error ?? "Сервер не подтвердил сохранение файла.";
+          failed.push(item.file.name);
+          setUploadPreviews((current) =>
+            current.map((preview) =>
+              preview.id === item.id
+                ? { ...preview, status: "error", error }
+                : preview,
+            ),
+          );
+          continue;
+        }
+        setPhotos(result.photos);
+        uploaded.push(item.file.name);
+        URL.revokeObjectURL(item.url);
+        setUploadPreviews((current) =>
+          current.filter((preview) => preview.id !== item.id),
+        );
+      } catch {
+        failed.push(item.file.name);
+        setUploadPreviews((current) =>
+          current.map((preview) =>
+            preview.id === item.id
+              ? {
+                  ...preview,
+                  status: "error",
+                  error: "Соединение оборвалось. Повторите загрузку.",
+                }
+              : preview,
+          ),
+        );
       }
-    })();
+    }
+
+    if (uploaded.length > 0) {
+      setPhotoUndo(previous);
+      setPhotoSaved(true);
+      setPhotoNotice(
+        uploaded.length === 1
+          ? `Фото «${uploaded[0]}» загружено и сохранено.`
+          : `Загружено и сохранено фотографий: ${uploaded.length}.`,
+      );
+    }
+    if (failed.length > 0) {
+      setPhotoErr(
+        failed.length === 1
+          ? `Не загрузилось фото «${failed[0]}». Причина указана на превью.`
+          : `Не загрузились фотографии: ${failed.join(", ")}. Причины указаны на превью.`,
+      );
+    }
+    setPhotoBusy(false);
+  }
+
+  function retryUpload(id: string) {
+    const item = uploadPreviews.find((preview) => preview.id === id);
+    if (!item || photoBusy) return;
+    void uploadExistingPhotos([{ ...item, status: "waiting", error: undefined }]);
+  }
+
+  function dismissUpload(id: string) {
+    setUploadPreviews((current) => {
+      const item = current.find((preview) => preview.id === id);
+      if (item) URL.revokeObjectURL(item.url);
+      return current.filter((preview) => preview.id !== id);
+    });
   }
 
   function onCover(name: string) {
@@ -546,6 +646,69 @@ export function ProductForm({
           disabled={photoBusy}
           className="mt-3 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-signal file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-white disabled:opacity-60"
         />
+
+        {editingProduct && uploadPreviews.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-3" aria-live="polite">
+            {uploadPreviews.map((item) => (
+              <div
+                key={item.id}
+                className={`w-[156px] rounded-sm border bg-surface p-2 ${
+                  item.status === "error"
+                    ? "border-signal"
+                    : "border-amber-500/60"
+                }`}
+              >
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.url}
+                    alt={`Выбрано фото ${item.file.name}`}
+                    className="h-[104px] w-full rounded-sm bg-tile object-contain"
+                  />
+                  <span
+                    className={`absolute inset-x-1 bottom-1 rounded-sm px-2 py-1 text-center text-[0.68rem] font-semibold text-white ${
+                      item.status === "error" ? "bg-signal" : "bg-black/75"
+                    }`}
+                  >
+                    {item.status === "waiting"
+                      ? "Ожидает"
+                      : item.status === "uploading"
+                        ? "Загружается…"
+                        : "Не загружено"}
+                  </span>
+                </div>
+                <p className="mt-1.5 truncate text-[0.68rem]" title={item.file.name}>
+                  {item.file.name}
+                </p>
+                {item.error && (
+                  <p className="mt-1 text-[0.67rem] leading-snug text-[var(--signal-text)]">
+                    {item.error}
+                  </p>
+                )}
+                {item.status === "error" && (
+                  <div className="mt-2 flex items-center gap-2 text-[0.68rem] font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => retryUpload(item.id)}
+                      disabled={photoBusy}
+                      className="text-signal hover:underline disabled:opacity-50"
+                    >
+                      Повторить
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dismissUpload(item.id)}
+                      disabled={photoBusy}
+                      className="text-muted-foreground hover:underline disabled:opacity-50"
+                    >
+                      Убрать
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         {/* Для нового товара файлы уезжают этим скрытым input при «Сохранить». */}
         <input
           ref={hiddenRef}
@@ -558,7 +721,22 @@ export function ProductForm({
         />
 
         {editingProduct && (
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-[0.75rem] text-muted-foreground"><span>{photoBusy ? "Загружаю…" : photoSaved ? "Фото сохранено отдельно от остальных полей." : "Изменения фото сохраняются сразу и отражаются в журнале."}</span>{photoUndo && !photoBusy && <button type="button" onClick={undoPhotoChange} className="font-semibold text-signal hover:underline">Отменить последнее изменение фото</button>}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[0.75rem] text-muted-foreground">
+            <span>{photoBusy ? "Фотография загружается и обрабатывается…" : "Изменения фото сохраняются сразу и отражаются в журнале."}</span>
+            {photoUndo && !photoBusy && <button type="button" onClick={undoPhotoChange} className="font-semibold text-signal hover:underline">Отменить последнее изменение фото</button>}
+          </div>
+        )}
+        {photoNotice && !photoBusy && (
+          <p
+            className={`mt-2 rounded-sm border px-3 py-2 text-[0.8rem] font-medium ${
+              photoSaved
+                ? "border-green-600/30 bg-green-600/5 text-green-700"
+                : "border-border bg-tile text-foreground"
+            }`}
+            role="status"
+          >
+            {photoSaved ? "✓ " : ""}{photoNotice}
+          </p>
         )}
         {photoErr && (
           <p className="mt-2 text-[0.8rem] text-[var(--signal-text)]">{photoErr}</p>
@@ -566,8 +744,8 @@ export function ProductForm({
 
         {!editingProduct && newItems.length > 0 && (
           <div className="mt-3">
-            <p className="text-[0.75rem] text-muted-foreground">
-              Добавятся после «Сохранить» ({newItems.length}):
+            <p className="rounded-sm border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-[0.75rem] text-foreground" role="status">
+              Выбрано фотографий: {newItems.length}. Превью видно ниже; файлы загрузятся после нажатия «Сохранить товар».
             </p>
             <div className="mt-2 flex flex-wrap gap-3">
               {newItems.map((it, i) => (

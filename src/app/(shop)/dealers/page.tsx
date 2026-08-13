@@ -1,57 +1,18 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/lib/data";
+import Link from "next/link";
+import { DealerLocator } from "@/components/dealer-locator";
+import { getDealerLocations } from "@/lib/dealers";
 
 export const metadata: Metadata = {
-  title: "Стать дилером",
-  description:
-    "Дилерская программа MOMO: оптовые цены, поддержка и обучение. Продавайте автоакустику MOMO в своём городе.",
+  title: "Купить рядом — официальные дилеры MOMO и ZEUS",
+  description: "Официальные точки MOMO и ZEUS по городам России: адреса, телефоны и авторизованные установочные центры.",
 };
 
-const perks = [
-  { title: "Оптовые цены", text: "Прозрачная сетка скидок от объёма закупки — маржа, на которой можно расти." },
-  { title: "Поддержка", text: "Персональный менеджер, помощь с подбором ассортимента и обучение по продукту." },
-  { title: "Витрина и POS", text: "Фирменные материалы, каталоги и оформление точки под бренд MOMO." },
-  { title: "Гарантия и возвраты", text: "12 месяцев — стандартная гарантия; 24 месяца — при установке в авторизованном центре MOMO/ZEUS." },
-];
-
 export default function DealersPage() {
-  return (
-    <main className="mx-auto max-w-[1000px] px-6 py-14">
-      <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-        Дилерская программа
-      </p>
-      <h1 className="mt-4 font-display text-[clamp(1.8rem,3.6vw,2.8rem)] font-extrabold uppercase leading-tight">
-        Стать дилером <span className="text-signal">MOMO</span>
-      </h1>
-      <p className="mt-5 max-w-[56ch] text-[1.05rem] text-muted-foreground">
-        Продавайте автоакустику собственного бренда с понятной маржой и живой
-        поддержкой. Оставьте заявку — расскажем условия под ваш формат: магазин,
-        студия установки или интернет-площадка.
-      </p>
-
-      <div className="mt-12 grid gap-4 sm:grid-cols-2">
-        {perks.map((p) => (
-          <div key={p.title} className="rounded-xl border border-border bg-surface p-6">
-            <h2 className="font-display text-lg font-semibold">{p.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-10 flex flex-wrap gap-3">
-        <a
-          href={siteConfig.contacts.whatsapp}
-          className="inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
-        >
-          Оставить заявку в WhatsApp
-        </a>
-        <a
-          href={`tel:${siteConfig.contacts.phone.replace(/[^+\d]/g, "")}`}
-          className="inline-flex rounded-sm border border-border px-7 py-3.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
-        >
-          {siteConfig.contacts.phone}
-        </a>
-      </div>
-    </main>
-  );
+  const dealers = getDealerLocations(true);
+  return <main className="mx-auto max-w-[1120px] px-4 py-10 sm:px-6 sm:py-16">
+    <div className="grid gap-7 border-b border-border pb-10 md:grid-cols-[1fr_auto] md:items-end"><div><p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">Официальная сеть</p><h1 className="mt-4 font-display text-[clamp(2rem,4vw,3.6rem)] font-black uppercase leading-none">Купить <span className="text-signal">рядом</span></h1><p className="mt-5 max-w-[62ch] text-base leading-relaxed text-muted-foreground">Выберите город и свяжитесь с официальной точкой, чтобы уточнить наличие, посмотреть оборудование или договориться об установке.</p></div><Link href="/become-dealer" className="inline-flex min-h-12 items-center justify-center rounded-sm border border-border px-5 text-sm font-semibold hover:border-signal hover:text-signal">Добавить свою точку →</Link></div>
+    <section className="mt-8"><DealerLocator dealers={dealers} /></section>
+    <aside className="mt-12 grid gap-4 rounded-xl bg-[#111113] p-6 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:p-8"><div><p className="font-display text-lg font-bold">Нет официальной точки в вашем городе?</p><p className="mt-1 text-sm text-white/55">Доставим заказ или поможем найти подходящую установочную студию.</p></div><Link href="/contacts" className="inline-flex min-h-11 items-center justify-center rounded-sm bg-signal px-5 text-sm font-semibold">Связаться с MOMO</Link></aside>
+  </main>;
 }

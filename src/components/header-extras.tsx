@@ -98,7 +98,7 @@ export function HeaderExtras() {
         followMouse
         proximity={220}
         className="!py-2 !text-[0.8rem]"
-        onClick={() => router.push("/dealers")}
+        onClick={() => router.push("/become-dealer")}
       >
         Стать дилером
       </SpecularButton>
@@ -114,9 +114,9 @@ export function HeaderExtras() {
         followMouse
         proximity={220}
         className="!py-2 !text-[0.8rem]"
-        onClick={() => router.push("/install")}
+        onClick={() => router.push("/dealers")}
       >
-        Где установить
+        Купить рядом
       </SpecularButton>
     </div>
   );

@@ -22,8 +22,9 @@ server {
     # /etc/nginx/nginx.conf, чтобы покрыть и его.
     server_tokens off;
 
-    # Загрузка фото товаров и прочих файлов
-    client_max_body_size 20M;
+    # Server Actions принимают до 60 МБ на запрос: оставляем небольшой запас
+    # на multipart-обвязку. Один снимок всё равно ограничен приложением 20 МБ.
+    client_max_body_size 64M;
 
     # Статика Next.js неизменяема (в именах файлов хеш) — кэшируем надолго
     location /_next/static/ {
