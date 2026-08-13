@@ -5,8 +5,6 @@ import { isInStock } from "@/lib/format";
 import { CATEGORY_LANDINGS } from "@/lib/seo-landings";
 import { SeoCatalogLanding } from "@/components/seo-catalog-landing";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return getCategories().map((category) => ({ category: category.slug }));
 }
