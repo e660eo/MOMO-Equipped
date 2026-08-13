@@ -78,6 +78,18 @@ export interface Promo {
   /** Сколько раз уже применён. */
   used: number;
   createdAt: string;
+  /** Можно временно остановить промокод, не удаляя его и статистику. */
+  active?: boolean;
+  startsAt?: string;
+  endsAt?: string;
+  minSubtotal?: number;
+  maxDiscount?: number;
+  productSlugs?: string[];
+  categories?: string[];
+  /** 0 или отсутствие поля — без ограничения на одного покупателя. */
+  perCustomerLimit?: number;
+  /** Активации по customerId или нормализованному телефону. */
+  customerUses?: Record<string, number>;
 }
 
 export interface NewsItem {
@@ -108,12 +120,18 @@ export interface Customer {
   address?: string;
   createdAt: string;
   lastLoginAt?: string;
+  /** Внутренние данные панели — покупателю не показываются. */
+  admin?: {
+    note?: string;
+    tags?: string[];
+    history?: Array<{ at: string; text: string }>;
+  };
   /** scrypt-хеш; наружу не отдаётся никогда. */
   passwordHash: string;
 }
 
 /** Клиент без хеша пароля — то, что можно показать в браузере. */
-export type PublicCustomer = Omit<Customer, "passwordHash">;
+export type PublicCustomer = Omit<Customer, "passwordHash" | "admin">;
 
 /** Позиция заказа: цена фиксируется на момент оформления. */
 export interface OrderItem {
@@ -124,6 +142,15 @@ export interface OrderItem {
 }
 
 export type OrderStatus = "new" | "in_work" | "done" | "canceled";
+
+export interface OrderHistoryEntry {
+  at: string;
+  actor: string;
+  type: "created" | "status" | "note" | "payment" | "delivery";
+  from?: string;
+  to?: string;
+  detail?: string;
+}
 
 /*
   Состояние оплаты. Значения совпадают с paymentStatus Яндекс Пэй, плюс наши
@@ -237,6 +264,43 @@ export interface Order {
   payment?: OrderPayment;
   /** Выбранный и проверенный сервером вариант Ozon Доставки. */
   delivery?: OrderDelivery;
+  /** Неизменяемая хронология важных действий над заказом. */
+  history?: OrderHistoryEntry[];
+}
+
+export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration";
+
+export interface AuditLogEntry {
+  id: string;
+  at: string;
+  actor: string;
+  entity: AuditEntity;
+  entityId: string;
+  action: string;
+  summary: string;
+  before?: unknown;
+  after?: unknown;
+}
+
+export interface DeletedProduct {
+  product: Product;
+  deletedAt: string;
+  purgeAfter: string;
+}
+
+export type IntegrationJobType = "ozon_shipment" | "order_mail";
+
+export interface IntegrationJob {
+  id: string;
+  type: IntegrationJobType;
+  entityId: string;
+  status: "pending" | "running" | "done" | "failed";
+  attempts: number;
+  runAt: string;
+  createdAt: string;
+  updatedAt: string;
+  lastError?: string;
+  payload?: Record<string, string>;
 }
 
 /** Контакты и цифры доверия — редактируются из админки. */

@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
-import { updateOrder } from "@/lib/orders";
+import { getOrder, updateOrder } from "@/lib/orders";
+import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import type { OrderStatus } from "@/lib/types";
 
 /* Работа с заказом из панели: статус и заметка менеджера. */
@@ -29,4 +30,28 @@ export async function setOrderNote(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   updateOrder(id, { note: String(formData.get("note") ?? "").trim() });
   revalidatePath(`/admin/orders/${id}`);
+}
+
+export async function bulkSetOrderStatus(formData: FormData): Promise<void> {
+  await requireSession();
+  const ids = [...new Set(formData.getAll("ids").map(String).filter(Boolean))];
+  const status = String(formData.get("status") ?? "") as OrderStatus;
+  if (!ids.length || !ALLOWED.includes(status)) return;
+  for (const id of ids) updateOrder(id, { status });
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/customers");
+  for (const id of ids) revalidatePath(`/admin/orders/${id}`);
+}
+
+export async function retryOzonShipment(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  const order = getOrder(id);
+  if (!order?.delivery || order.delivery.shipment?.status === "created") return;
+
+  enqueueIntegrationJob("ozon_shipment", id);
+  await runIntegrationQueue();
+  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
 }

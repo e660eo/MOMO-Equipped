@@ -12,23 +12,25 @@ import { CustomerRow } from "@/components/admin/customer-row";
 export default async function AdminCustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; tag?: string }>;
 }) {
   await requireAdminPage();
 
-  const { q = "" } = await searchParams;
+  const { q = "", tag = "" } = await searchParams;
   const orders = getAdminOrders();
+  const customers = getCustomers();
+  const tags = [...new Set(customers.flatMap((customer) => customer.admin?.tags ?? []))].sort();
 
   /*
     toPublic снимает passwordHash. В строку уходят только публичные поля клиента
     и обрезанный состав его заказов (без лишних данных), поэтому хеш пароля не
     попадает в разметку RSC даже случайно.
   */
-  const rows = getCustomers()
+  const rows = customers
     .map((c) => {
       const mine = orders.filter((o) => o.customerId === c.id);
       return {
-        customer: toPublic(c),
+        customer: { ...toPublic(c), admin: c.admin },
         spent: mine
           .filter((o) => o.status !== "canceled")
           .reduce((sum, o) => sum + o.total, 0),
@@ -42,6 +44,7 @@ export default async function AdminCustomersPage({
       };
     })
     .filter(({ customer }) => {
+      if (tag && !customer.admin?.tags?.includes(tag)) return false;
       if (!q) return true;
       const needle = q.toLowerCase();
       return (
@@ -72,7 +75,7 @@ export default async function AdminCustomersPage({
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
         Покупатели, создавшие аккаунт на сайте. {rows.length}{" "}
         {plural(rows.length, "человек", "человека", "человек")}
-        {q && " по запросу"}.
+        {(q || tag) && " по условиям"}.
       </p>
 
       <form className="mt-6 flex flex-wrap gap-3">
@@ -82,6 +85,10 @@ export default async function AdminCustomersPage({
           placeholder="Имя, почта или телефон…"
           className="min-w-[240px] flex-1 rounded-sm border border-input bg-surface px-3 py-2 text-sm focus:border-signal focus:outline-none"
         />
+        <select name="tag" defaultValue={tag} className="rounded-sm border border-input bg-surface px-3 py-2 text-sm focus:border-signal focus:outline-none">
+          <option value="">Все сегменты</option>
+          {tags.map((item) => <option key={item} value={item}>{item}</option>)}
+        </select>
         <button
           type="submit"
           className="rounded-sm border border-border px-4 py-2 text-sm font-medium transition-all hover:border-signal hover:text-signal active:scale-95"

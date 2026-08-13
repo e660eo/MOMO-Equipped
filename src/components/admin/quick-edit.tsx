@@ -59,20 +59,26 @@ export function QuickEdit({ product }: { product: Product }) {
     }
     // Тот же предохранитель, что и в полной форме: цену вдвое ниже прежней
     // чаще набирают по ошибке, чем осознанно.
-    if (
-      nextPrice < product.price / 2 &&
-      !window.confirm(
+    let confirmedPriceDrop = false;
+    if (nextPrice < product.price / 2) {
+      confirmedPriceDrop = window.confirm(
         `Цена падает больше чем вдвое: было ${formatPrice(product.price)}, станет ${formatPrice(nextPrice)}. Всё верно?`,
-      )
-    ) {
-      setPrice(String(product.price));
-      if (priceRef.current) priceRef.current.value = String(product.price);
-      return;
+      );
+      if (!confirmedPriceDrop) {
+        setPrice(String(product.price));
+        if (priceRef.current) priceRef.current.value = String(product.price);
+        return;
+      }
     }
 
     setError("");
     startTransition(async () => {
-      const result = await quickUpdate(product.slug, nextPrice, nextStock);
+      const result = await quickUpdate(
+        product.slug,
+        nextPrice,
+        nextStock,
+        confirmedPriceDrop,
+      );
       if (result.error) {
         setError(result.error);
         return;

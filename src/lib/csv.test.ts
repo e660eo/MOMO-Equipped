@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { csvField, neutralizeSpreadsheetFormula, toCsv } from "./csv";
+import { csvField, neutralizeSpreadsheetFormula, parseCsv, toCsv } from "./csv";
 
 describe("CSV export", () => {
   it.each([
@@ -24,5 +24,18 @@ describe("CSV export", () => {
     expect(toCsv([["name", "note"], ["MOMO", "line 1\nline 2"]])).toBe(
       'name;note\r\nMOMO;"line 1\nline 2"',
     );
+  });
+});
+
+describe("parseCsv", () => {
+  it("reads semicolon CSV with quotes", () => {
+    expect(parseCsv('slug;title;price\r\nfr-500;"FR; 500";4000\r\n')).toEqual([
+      ["slug", "title", "price"],
+      ["fr-500", "FR; 500", "4000"],
+    ]);
+  });
+
+  it("removes the UTF-8 BOM", () => {
+    expect(parseCsv("\uFEFFslug;stock\nfr-500;2")[0]).toEqual(["slug", "stock"]);
   });
 });

@@ -16,10 +16,12 @@ import {
   replacePhoto,
   removePhoto,
   setCover,
+  restoreProductPhotos,
   type ActionState,
   type PhotoResult,
 } from "@/app/admin/products/actions";
 import { PhotoEditor } from "./photo-editor";
+import { templateForCategory } from "@/lib/spec-templates";
 
 /*
   Форма товара.
@@ -69,6 +71,12 @@ export function ProductForm({
   const [editing, setEditing] = useState<Editing | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoErr, setPhotoErr] = useState<string | null>(null);
+  const [photoUndo, setPhotoUndo] = useState<string[] | null>(null);
+  const [photoSaved, setPhotoSaved] = useState(false);
+  const [title, setTitle] = useState(product?.title ?? "");
+  const [category, setCategory] = useState(product?.category ?? "");
+  const [price, setPrice] = useState(String(product?.price ?? ""));
+  const [description, setDescription] = useState(product?.description?.join("\n") ?? "");
 
   // Новые файлы (с превью) — только для НОВОГО товара: у него ещё нет карточки,
   // поэтому снимки уезжают вместе с первым «Сохранить» (скрытый input ниже).
@@ -91,16 +99,35 @@ export function ProductForm({
 
   // Операция над фото существующего товара: сразу на сервер, список — из ответа.
   async function runPhotoOp(op: Promise<PhotoResult>) {
+    const previous = [...photos];
     setPhotoBusy(true);
     setPhotoErr(null);
     try {
       const r = await op;
       if (r.error) setPhotoErr(r.error);
-      else if (r.photos) setPhotos(r.photos);
+      else if (r.photos) {
+        setPhotos(r.photos);
+        setPhotoUndo(previous);
+        setPhotoSaved(true);
+      }
     } catch {
       setPhotoErr("Не удалось — попробуйте ещё раз.");
     } finally {
       setPhotoBusy(false);
+    }
+  }
+
+  async function undoPhotoChange() {
+    if (!slug || !photoUndo) return;
+    const previous = [...photoUndo];
+    setPhotoBusy(true);
+    const result = await restoreProductPhotos(slug, previous);
+    setPhotoBusy(false);
+    if (result.error) setPhotoErr(result.error);
+    else {
+      setPhotos(result.photos ?? previous);
+      setPhotoUndo(null);
+      setPhotoSaved(false);
     }
   }
 
@@ -169,7 +196,14 @@ export function ProductForm({
     setEditing(null);
   }
 
-  const stock = product?.inStock === true ? "yes" : product?.inStock === false ? "no" : "";
+  const initialAvailability = product?.inStock === true ? "yes" : product?.inStock === false ? "no" : "";
+  const previewImage = photos[0] ? productImageUrl(photos[0]) : newItems[0]?.url;
+
+  function applySpecTemplate() {
+    const existing = new Set(description.split("\n").map((line) => line.split(/\s[-—:]\s/)[0].trim().toLowerCase()));
+    const additions = templateForCategory(category).filter((name) => !existing.has(name.toLowerCase())).map((name) => `${name} - `);
+    setDescription([description.trim(), ...additions].filter(Boolean).join("\n"));
+  }
 
   return (
     <form action={formAction} className="max-w-[760px]">
@@ -184,7 +218,8 @@ export function ProductForm({
           <input
             id="title"
             name="title"
-            defaultValue={product?.title}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
             required
             className={`${field} mt-1.5`}
             placeholder="Сабвуфер автомобильный TS-12.800 12 дюймов"
@@ -202,7 +237,8 @@ export function ProductForm({
           <select
             id="category"
             name="category"
-            defaultValue={product?.category ?? ""}
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
             required
             className={`${field} mt-1.5`}
           >
@@ -242,7 +278,8 @@ export function ProductForm({
             id="price"
             name="price"
             inputMode="numeric"
-            defaultValue={product?.price}
+            value={price}
+            onChange={(event) => setPrice(event.target.value.replace(/[^\d]/g, ""))}
             required
             className={`${field} mt-1.5`}
           />
@@ -306,24 +343,24 @@ export function ProductForm({
           <select
             id="inStock"
             name="inStock"
-            defaultValue={stock}
+            defaultValue={initialAvailability}
+            required
             className={`${field} mt-1.5`}
           >
-            <option value="">Не указывать</option>
+            <option value="">Выберите обязательно…</option>
             <option value="yes">В наличии</option>
             <option value="no">Под заказ</option>
           </select>
         </div>
 
         <div className="sm:col-span-2">
-          <label className={label} htmlFor="description">
-            Характеристики и описание
-          </label>
+          <div className="flex flex-wrap items-center justify-between gap-2"><label className={label} htmlFor="description">Характеристики и описание</label><button type="button" onClick={applySpecTemplate} disabled={!category} className="rounded-sm border border-border px-3 py-1.5 text-[0.75rem] font-medium text-muted-foreground hover:border-signal hover:text-signal disabled:opacity-40">Подставить шаблон категории</button></div>
           <textarea
             id="description"
             name="description"
             rows={7}
-            defaultValue={product?.description?.join("\n")}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
             className={`${field} mt-1.5 font-mono text-[0.82rem]`}
             placeholder={"Диаметр - 300mm\nМощность MAX - 800 W\nИмпеданс - 4 Ом"}
           />
@@ -334,6 +371,19 @@ export function ProductForm({
         </div>
       </div>
 
+      <details className="mt-6 rounded-xl border border-border bg-surface p-4">
+        <summary className="cursor-pointer text-[0.85rem] font-semibold">Предпросмотр карточки и SEO</summary>
+        <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
+          <div className="flex h-36 items-center justify-center rounded-sm bg-tile">
+            {previewImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewImage} alt="" className="max-h-full max-w-full object-contain" />
+            ) : <span className="text-[0.75rem] text-muted-foreground">Добавьте фото</span>}
+          </div>
+          <div><p className="text-[0.72rem] uppercase tracking-wider text-muted-foreground">Карточка товара</p><p className="mt-1 font-display text-lg font-extrabold">{title || "Название товара"}</p><p className="mt-2 text-signal">{price ? `${Number(price).toLocaleString("ru-RU")} ₽` : "Цена не указана"}</p><p className="mt-4 text-[0.72rem] uppercase tracking-wider text-muted-foreground">Сниппет поиска</p><p className="mt-1 text-[#1a0dab]">{title ? `${title} — купить в MOMO Equipped` : "Название товара — купить в MOMO Equipped"}</p><p className="mt-1 text-[0.78rem] leading-relaxed text-muted-foreground">{description.split("\n").filter(Boolean).slice(0, 2).join(". ") || "Добавьте ключевые характеристики — они появятся в описании страницы."}</p></div>
+        </div>
+      </details>
+
       {/* Фото */}
       <fieldset className="mt-8">
         <legend className="text-[0.78rem] font-medium">Фото</legend>
@@ -341,8 +391,8 @@ export function ProductForm({
           Можно добавить сразу несколько фото — в окне выбора отметьте нужные
           с зажатым Ctrl. Первое — обложка в каталоге, «На обложку» её меняет.
           «Ред.» — повернуть, обрезать и убрать фон (сделать белым). У
-          сохранённого товара любое изменение фото применяется сразу, не выходя
-          со страницы. Снимки обрезаются по краям и сжимаются автоматически.
+           сохранённого товара изменение фото применяется сразу и записывается в
+           журнал. Последнее действие можно отменить ниже. Снимки сжимаются автоматически.
         </p>
 
         {photos.length > 0 && (
@@ -413,11 +463,7 @@ export function ProductForm({
         />
 
         {editingProduct && (
-          <p className="mt-2 text-[0.75rem] text-muted-foreground">
-            {photoBusy
-              ? "Загружаю…"
-              : "Изменения фото сохраняются сразу — форму пересохранять не нужно."}
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[0.75rem] text-muted-foreground"><span>{photoBusy ? "Загружаю…" : photoSaved ? "Фото сохранено отдельно от остальных полей." : "Изменения фото сохраняются сразу и отражаются в журнале."}</span>{photoUndo && !photoBusy && <button type="button" onClick={undoPhotoChange} className="font-semibold text-signal hover:underline">Отменить последнее изменение фото</button>}</div>
         )}
         {photoErr && (
           <p className="mt-2 text-[0.8rem] text-[var(--signal-text)]">{photoErr}</p>

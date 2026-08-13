@@ -8,6 +8,7 @@ import { sendMail, mailerConfig } from "@/lib/mailer";
 import { SITE_URL } from "@/lib/site-url";
 import { messageFor, isRedirect } from "@/lib/errors";
 import type { SiteConfig } from "@/lib/types";
+import { audit } from "@/lib/audit-log";
 
 /*
   Контакты и цифры доверия.
@@ -87,6 +88,7 @@ export async function saveSettings(
     };
 
     updateJson<SiteConfig>(FILE, () => next);
+    audit({ entity: "settings", entityId: "site", action: "updated", summary: "Изменены контакты и условия магазина", before: { contacts: site.contacts, trust: site.trust }, after: { contacts: next.contacts, trust: next.trust } });
     revalidatePath("/", "layout");
   } catch (e) {
     if (isRedirect(e)) throw e;

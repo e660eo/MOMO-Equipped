@@ -1,169 +1,38 @@
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getPromos } from "@/lib/promos";
+import { getCategories } from "@/lib/data";
 import { plural } from "@/lib/utils";
 import { savePromoAction, deletePromoAction } from "./actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import type { Category, Promo } from "@/lib/types";
 
-const inputCls =
-  "rounded-sm border border-input bg-surface px-3 py-2 text-sm focus:border-signal focus:outline-none";
+const input = "w-full rounded-sm border border-input bg-bg px-3 py-2 text-sm focus:border-signal focus:outline-none";
+const label = "text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground";
 
-export default async function AdminPromosPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
-}) {
+function PromoFields({ promo, categories }: { promo?: Promo; categories: Category[] }) {
+  return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <label className="grid gap-1"><span className={label}>Код</span><input name="code" required readOnly={Boolean(promo)} defaultValue={promo?.code} placeholder="ЛЕТО25" className={`${input} uppercase read-only:opacity-65`} /></label>
+    <label className="grid gap-1"><span className={label}>Скидка, %</span><input name="percent" type="number" min={1} max={100} required defaultValue={promo?.percent ?? 10} className={input} /></label>
+    <label className="grid gap-1"><span className={label}>Общий лимит</span><input name="limit" type="number" min={0} defaultValue={promo?.limit ?? 0} className={input} /></label>
+    <label className="grid gap-1"><span className={label}>На одного клиента</span><input name="perCustomerLimit" type="number" min={0} defaultValue={promo?.perCustomerLimit ?? 0} className={input} /></label>
+    <label className="grid gap-1"><span className={label}>Начало</span><input name="startsAt" type="date" defaultValue={promo?.startsAt?.slice(0, 10)} className={input} /></label>
+    <label className="grid gap-1"><span className={label}>Окончание</span><input name="endsAt" type="date" defaultValue={promo?.endsAt?.slice(0, 10)} className={input} /></label>
+    <label className="grid gap-1"><span className={label}>Минимальная корзина, ₽</span><input name="minSubtotal" type="number" min={0} defaultValue={promo?.minSubtotal ?? 0} className={input} /></label>
+    <label className="grid gap-1"><span className={label}>Максимальная скидка, ₽</span><input name="maxDiscount" type="number" min={0} defaultValue={promo?.maxDiscount ?? 0} className={input} /></label>
+    <label className="grid gap-1 md:col-span-2"><span className={label}>Товары (слаги через запятую)</span><input name="productSlugs" defaultValue={promo?.productSlugs?.join(", ")} placeholder="bd-1500-1, fr-500" className={input} /></label>
+    <fieldset className="md:col-span-2"><legend className={label}>Категории (пусто — весь каталог)</legend><div className="mt-2 flex flex-wrap gap-3">{categories.map((category) => <label key={category.slug} className="flex items-center gap-1.5 text-[0.78rem]"><input type="checkbox" name="categories" value={category.slug} defaultChecked={promo?.categories?.includes(category.slug)} />{category.title}</label>)}</div></fieldset>
+    <label className="flex items-center gap-2 text-[0.82rem] md:col-span-2 xl:col-span-4"><input type="checkbox" name="active" defaultChecked={promo?.active !== false} />Промокод активен</label>
+  </div>;
+}
+export default async function AdminPromosPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   await requireAdminPage();
-
   const { saved, error } = await searchParams;
   const promos = getPromos();
-
-  return (
-    <div>
-      <h1 className="font-display text-xl font-extrabold uppercase">Промокоды</h1>
-      <p className="mt-1 text-[0.85rem] text-muted-foreground">
-        Скидка в процентах на сумму заказа. Покупатель вводит код на оформлении.{" "}
-        {promos.length} {plural(promos.length, "код", "кода", "кодов")}.
-      </p>
-
-      {error && (
-        <p className="mt-4 rounded-sm border border-signal/40 bg-signal/10 px-4 py-2.5 text-[0.85rem] text-[var(--signal-text)]">
-          {error}
-        </p>
-      )}
-      {saved && !error && (
-        <p className="mt-4 rounded-sm border border-border bg-surface px-4 py-2.5 text-[0.85rem]">
-          Сохранено. Изменения уже действуют.
-        </p>
-      )}
-
-      {/* Создать новый */}
-      <form
-        action={savePromoAction}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-4"
-      >
-        <label className="flex flex-col gap-1">
-          <span className="font-mono text-[0.66rem] uppercase tracking-wider text-muted-foreground">
-            Код
-          </span>
-          <input
-            name="code"
-            required
-            placeholder="ЛЕТО25"
-            className={`${inputCls} w-[160px] uppercase`}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-mono text-[0.66rem] uppercase tracking-wider text-muted-foreground">
-            Скидка, %
-          </span>
-          <input
-            name="percent"
-            type="number"
-            min={1}
-            max={100}
-            required
-            placeholder="10"
-            className={`${inputCls} w-[110px]`}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-mono text-[0.66rem] uppercase tracking-wider text-muted-foreground">
-            Лимит активаций
-          </span>
-          <input
-            name="limit"
-            type="number"
-            min={0}
-            defaultValue={0}
-            className={`${inputCls} w-[150px]`}
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-sm bg-signal px-5 py-2 text-[0.85rem] font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-95"
-        >
-          Создать
-        </button>
-        <p className="w-full text-[0.75rem] text-muted-foreground">
-          Лимит 0 — без ограничения. Если код с таким названием уже есть — он
-          обновится (число активаций сохранится).
-        </p>
-      </form>
-
-      {promos.length === 0 ? (
-        <p className="py-12 text-center text-muted-foreground">
-          Промокодов пока нет. Создайте первый — он сразу заработает на
-          оформлении заказа.
-        </p>
-      ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-[0.85rem]">
-            <thead>
-              <tr className="border-b border-border text-left text-[0.72rem] uppercase tracking-wider text-muted-foreground">
-                <th className="py-2.5 pr-3 font-medium">Код</th>
-                <th className="py-2.5 pr-3 font-medium">Скидка и лимит</th>
-                <th className="py-2.5 pr-3 font-medium">Активаций</th>
-                <th className="py-2.5 pr-3 font-medium" />
-              </tr>
-            </thead>
-            <tbody>
-              {promos.map((p) => (
-                <tr key={p.code} className="admin-row border-b border-border align-middle">
-                  <td className="py-2.5 pr-3 font-mono font-semibold uppercase">
-                    {p.code}
-                  </td>
-                  <td className="py-2.5 pr-3">
-                    {/* Правка процента и лимита — тот же action (upsert по коду) */}
-                    <form
-                      action={savePromoAction}
-                      className="flex flex-wrap items-center gap-2"
-                    >
-                      <input type="hidden" name="code" value={p.code} />
-                      <input
-                        name="percent"
-                        type="number"
-                        min={1}
-                        max={100}
-                        defaultValue={p.percent}
-                        className={`${inputCls} w-[80px]`}
-                        aria-label={`Скидка для ${p.code}`}
-                      />
-                      <span className="text-muted-foreground">%</span>
-                      <input
-                        name="limit"
-                        type="number"
-                        min={0}
-                        defaultValue={p.limit}
-                        className={`${inputCls} w-[100px]`}
-                        aria-label={`Лимит для ${p.code}`}
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-sm border border-border px-3 py-1.5 text-[0.8rem] font-medium transition-all hover:border-signal hover:text-signal active:scale-95"
-                      >
-                        Сохранить
-                      </button>
-                    </form>
-                  </td>
-                  <td className="py-2.5 pr-3 tabular-nums text-muted-foreground">
-                    {p.used}
-                    {p.limit > 0 ? ` / ${p.limit}` : " · без лимита"}
-                  </td>
-                  <td className="py-2.5 pr-3 text-right">
-                    <form action={deletePromoAction}>
-                      <input type="hidden" name="code" value={p.code} />
-                      <ConfirmButton
-                        label="Удалить"
-                        question={`Удалить промокод «${p.code}»? Он перестанет действовать на оформлении.`}
-                      />
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
+  const categories = await getCategories();
+  return <div>
+    <h1 className="font-display text-xl font-extrabold uppercase">Промокоды</h1><p className="mt-1 text-[0.85rem] text-muted-foreground">{promos.length} {plural(promos.length, "код", "кода", "кодов")} · сроки, ограничения и статистика сохраняются отдельно.</p>
+    {error && <p className="mt-4 rounded-sm border border-signal/40 bg-signal/10 px-4 py-2.5 text-[0.85rem] text-[var(--signal-text)]">{error}</p>}{saved && !error && <p className="mt-4 rounded-sm border border-border bg-surface px-4 py-2.5 text-[0.85rem]">Сохранено. Условия уже действуют.</p>}
+    <details className="mt-6 rounded-xl border border-signal/50 bg-surface p-5" open={promos.length === 0}><summary className="cursor-pointer font-display text-base font-extrabold uppercase">Создать промокод</summary><form action={savePromoAction} className="mt-5"><PromoFields categories={categories} /><button type="submit" className="mt-5 rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white">Создать</button></form></details>
+    <div className="mt-6 grid gap-3">{promos.map((promo) => <details key={promo.code} className="rounded-xl border border-border bg-surface p-5"><summary className="cursor-pointer list-none"><div className="flex flex-wrap items-center justify-between gap-3"><div><span className="font-mono font-semibold">{promo.code}</span><span className={`ml-3 rounded-full border px-2 py-0.5 text-[0.68rem] ${promo.active === false ? "border-border text-muted-foreground" : "border-green-600/40 text-green-700"}`}>{promo.active === false ? "остановлен" : "активен"}</span></div><p className="text-[0.78rem] text-muted-foreground">Скидка {promo.percent}% · использован {promo.used}{promo.limit ? ` из ${promo.limit}` : " раз"} · нажмите для настроек</p></div></summary><form action={savePromoAction} className="mt-5 border-t border-border pt-5"><PromoFields promo={promo} categories={categories} /><div className="mt-5 flex items-center gap-4"><button type="submit" className="rounded-sm bg-signal px-5 py-2.5 text-[0.85rem] font-semibold text-white">Сохранить</button></div></form><form action={deletePromoAction} className="mt-3"><input type="hidden" name="code" value={promo.code} /><ConfirmButton label="Удалить промокод" question={`Удалить промокод «${promo.code}» и его статистику?`} /></form></details>)}</div>
+  </div>;
 }

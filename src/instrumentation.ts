@@ -52,4 +52,10 @@ export async function register() {
 
   const { scheduleHealthWatch } = await import("./lib/health-watch");
   scheduleHealthWatch();
+
+  const { scheduleIntegrationQueue } = await import("./lib/job-queue");
+  scheduleIntegrationQueue();
+
+  const { scheduleAdminNotifications } = await import("./lib/notification-watch");
+  scheduleAdminNotifications();
 }

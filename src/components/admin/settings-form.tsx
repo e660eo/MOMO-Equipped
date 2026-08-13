@@ -64,7 +64,7 @@ export function SettingsForm({ site }: { site: SiteConfig }) {
         ))}
       </div>
 
-      <h2 className="mt-9 font-display text-[1rem] font-semibold uppercase">
+      <h2 id="delivery" className="mt-9 scroll-mt-24 font-display text-[1rem] font-semibold uppercase">
         Яндекс Карта ПВЗ
       </h2>
       <div className="mt-4">

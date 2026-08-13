@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { readJson, updateJson, assertWritable } from "./store";
 import { hashPassword, verifyPassword } from "./password";
 import type { Customer, PublicCustomer } from "./types";
+import { audit } from "./audit-log";
 
 /*
   Покупатели с аккаунтом на сайте.
@@ -28,7 +29,7 @@ export function getCustomers(): Customer[] {
 
 /** Без хеша пароля — то, что можно отдать в браузер. */
 export function toPublic(c: Customer): PublicCustomer {
-  const { passwordHash: _hash, ...rest } = c;
+  const { passwordHash: _hash, admin: _admin, ...rest } = c;
   return rest;
 }
 
@@ -201,4 +202,22 @@ export function touchLogin(id: string): void {
   } catch {
     // Отметка о входе — приятная мелочь для панели, ради неё вход ломать незачем
   }
+}
+
+export function updateCustomerAdmin(id: string, input: { note: string; tags: string[]; event?: string }): boolean {
+  assertWritable();
+  const customer = findCustomer(id);
+  if (!customer) return false;
+  const now = new Date().toISOString();
+  const admin = {
+    note: input.note.trim().slice(0, 2_000),
+    tags: [...new Set(input.tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean))].slice(0, 20),
+    history: [
+      ...(customer.admin?.history ?? []),
+      ...(input.event?.trim() ? [{ at: now, text: input.event.trim().slice(0, 300) }] : []),
+    ].slice(-100),
+  };
+  updateJson<Customer[]>(FILE, (all) => all.map((item) => item.id === id ? { ...item, admin } : item));
+  audit({ entity: "customer", entityId: id, action: "admin_updated", summary: `Обновлены заметки и теги клиента ${customer.name}` });
+  return true;
 }

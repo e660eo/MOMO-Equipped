@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { ApplyBundledSpecs } from "@/components/admin/apply-bundled-specs";
 import { SpecsImport } from "@/components/admin/specs-import";
+import { CatalogDataImport } from "@/components/admin/catalog-data-import";
 
 export default async function ImportSpecsPage() {
   await requireAdminPage();
@@ -15,14 +16,15 @@ export default async function ImportSpecsPage() {
         ← К списку товаров
       </Link>
       <h1 className="mt-3 font-display text-xl font-extrabold uppercase">
-        Импорт характеристик
+        Импорт данных каталога
       </h1>
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
-        Заливает характеристики сразу многим товарам — чтобы не вбивать по
-        одному.
+        Массово обновляет цены, остатки и характеристики с предварительной проверкой.
       </p>
 
-      <div className="mt-7">
+      <div className="mt-7"><CatalogDataImport /></div>
+
+      <div className="mt-8">
         <ApplyBundledSpecs />
       </div>
 

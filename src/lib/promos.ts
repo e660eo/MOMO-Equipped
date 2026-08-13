@@ -1,5 +1,6 @@
 import { readJson, updateJson, assertWritable } from "./store";
 import type { Promo } from "./types";
+import { audit } from "./audit-log";
 
 /*
   Промокоды. Скидка в процентах, ограничение по числу активаций. Файл в папке
@@ -28,12 +29,18 @@ export function normalizeCode(code: string): string {
  * Действующий промокод по названию или null: нет такого, или лимит активаций
  * исчерпан.
  */
-export function findValidPromo(code: string): Promo | null {
+export function findValidPromo(code: string, context?: { subtotal?: number; customerKey?: string }): Promo | null {
   const norm = normalizeCode(typeof code === "string" ? code : "");
   if (!norm) return null;
   const promo = getPromos().find((p) => p.code === norm);
   if (!promo) return null;
+  const now = new Date().toISOString();
+  if (promo.active === false) return null;
+  if (promo.startsAt && promo.startsAt > now) return null;
+  if (promo.endsAt && promo.endsAt < now) return null;
   if (promo.limit > 0 && promo.used >= promo.limit) return null;
+  if (promo.minSubtotal && (context?.subtotal ?? 0) < promo.minSubtotal) return null;
+  if (promo.perCustomerLimit && context?.customerKey && (promo.customerUses?.[context.customerKey] ?? 0) >= promo.perCustomerLimit) return null;
   return promo;
 }
 
@@ -42,11 +49,27 @@ export function discountFor(subtotal: number, percent: number): number {
   return Math.round((subtotal * percent) / 100);
 }
 
+export function discountForPromo(subtotal: number, promo: Promo): number {
+  const discount = discountFor(subtotal, promo.percent);
+  return promo.maxDiscount ? Math.min(discount, promo.maxDiscount) : discount;
+}
+
+export function promoAppliesToProduct(promo: Promo, product: { slug: string; category: string }): boolean {
+  const hasProducts = Boolean(promo.productSlugs?.length);
+  const hasCategories = Boolean(promo.categories?.length);
+  if (!hasProducts && !hasCategories) return true;
+  return Boolean(promo.productSlugs?.includes(product.slug) || promo.categories?.includes(product.category));
+}
+
 /** Списать одну активацию — после того как код применён к заказу. */
-export function redeemPromo(code: string): void {
+export function redeemPromo(code: string, customerKey?: string): void {
   const norm = normalizeCode(code);
   updateJson<Promo[]>(FILE, (all) =>
-    all.map((p) => (p.code === norm ? { ...p, used: p.used + 1 } : p)),
+    all.map((p) => p.code === norm ? {
+      ...p,
+      used: p.used + 1,
+      ...(customerKey ? { customerUses: { ...(p.customerUses ?? {}), [customerKey]: (p.customerUses?.[customerKey] ?? 0) + 1 } } : {}),
+    } : p),
   );
 }
 
@@ -62,6 +85,14 @@ export function savePromo(input: {
   code: string;
   percent: number;
   limit: number;
+  active?: boolean;
+  startsAt?: string;
+  endsAt?: string;
+  minSubtotal?: number;
+  maxDiscount?: number;
+  productSlugs?: string[];
+  categories?: string[];
+  perCustomerLimit?: number;
 }): PromoResult {
   assertWritable();
 
@@ -79,22 +110,38 @@ export function savePromo(input: {
 
   const percent = Math.round(input.percent);
   const limit = Math.round(input.limit);
+  const cleanOptionalNumber = (value?: number) => Number.isFinite(value) && (value ?? 0) > 0 ? Math.round(value!) : undefined;
+  const advanced = {
+    active: input.active !== false,
+    ...(input.startsAt ? { startsAt: new Date(input.startsAt).toISOString() } : {}),
+    ...(input.endsAt ? { endsAt: new Date(`${input.endsAt}T23:59:59.999Z`).toISOString() } : {}),
+    ...(cleanOptionalNumber(input.minSubtotal) ? { minSubtotal: cleanOptionalNumber(input.minSubtotal) } : {}),
+    ...(cleanOptionalNumber(input.maxDiscount) ? { maxDiscount: cleanOptionalNumber(input.maxDiscount) } : {}),
+    ...(cleanOptionalNumber(input.perCustomerLimit) ? { perCustomerLimit: cleanOptionalNumber(input.perCustomerLimit) } : {}),
+    ...(input.productSlugs?.length ? { productSlugs: input.productSlugs } : {}),
+    ...(input.categories?.length ? { categories: input.categories } : {}),
+  };
+
+  const before = getPromos().find((promo) => promo.code === code);
 
   updateJson<Promo[]>(FILE, (all) => {
     const existing = all.find((p) => p.code === code);
     if (existing) {
-      return all.map((p) => (p.code === code ? { ...p, percent, limit } : p));
+      return all.map((p) => (p.code === code ? { ...p, percent, limit, ...advanced } : p));
     }
     return [
-      { code, percent, limit, used: 0, createdAt: new Date().toISOString() },
+      { code, percent, limit, used: 0, createdAt: new Date().toISOString(), ...advanced },
       ...all,
     ];
   });
+  audit({ entity: "promo", entityId: code, action: before ? "updated" : "created", summary: `${before ? "Изменён" : "Создан"} промокод ${code}`, ...(before ? { before } : {}), after: { percent, limit, ...advanced } });
   return { ok: true };
 }
 
 export function deletePromo(code: string): void {
   assertWritable();
   const norm = normalizeCode(code);
+  const before = getPromos().find((promo) => promo.code === norm);
   updateJson<Promo[]>(FILE, (all) => all.filter((p) => p.code !== norm));
+  if (before) audit({ entity: "promo", entityId: norm, action: "deleted", summary: `Удалён промокод ${norm}`, before });
 }

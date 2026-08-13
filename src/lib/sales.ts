@@ -32,6 +32,19 @@ export interface SalesSummary {
   hasOrders: boolean;
 }
 
+export interface RangeSales {
+  from: string;
+  to: string;
+  orders: Order[];
+  gross: number;
+  paid: number;
+  canceled: number;
+  avg: number;
+  previousGross: number;
+  previousPaid: number;
+  top: TopProduct[];
+}
+
 const DAY = 86_400_000;
 
 function daysAgoIso(days: number): string {
@@ -91,4 +104,43 @@ export function salesSummary(): SalesSummary {
   for (const o of all) status[o.status] += 1;
 
   return { periods, top, status, hasOrders: all.length > 0 };
+}
+
+function rangeOrders(all: Order[], from: string, to: string): Order[] {
+  return all.filter((order) => order.createdAt.slice(0, 10) >= from && order.createdAt.slice(0, 10) <= to);
+}
+
+function gross(orders: Order[]): number {
+  return orders.filter((order) => order.status !== "canceled").reduce((sum, order) => sum + order.total, 0);
+}
+
+function paid(orders: Order[]): number {
+  return orders.filter((order) => order.payment?.status === "CAPTURED" && !order.payment.sandbox).reduce((sum, order) => sum + (order.payment?.amount ?? 0), 0);
+}
+
+export function salesRange(from: string, to: string): RangeSales {
+  const all = getAdminOrders();
+  const orders = rangeOrders(all, from, to);
+  const start = new Date(`${from}T00:00:00Z`);
+  const end = new Date(`${to}T00:00:00Z`);
+  const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY) + 1);
+  const previousToDate = new Date(start.getTime() - DAY);
+  const previousFromDate = new Date(previousToDate.getTime() - (days - 1) * DAY);
+  const previous = rangeOrders(all, previousFromDate.toISOString().slice(0, 10), previousToDate.toISOString().slice(0, 10));
+  const active = orders.filter((order) => order.status !== "canceled");
+  const map = new Map<string, TopProduct>();
+  for (const order of active) for (const item of order.items) {
+    const current = map.get(item.slug) ?? { slug: item.slug, title: item.title, qty: 0, revenue: 0 };
+    current.qty += item.qty;
+    current.revenue += item.price * item.qty;
+    map.set(item.slug, current);
+  }
+  const grossValue = gross(orders);
+  return {
+    from, to, orders, gross: grossValue, paid: paid(orders),
+    canceled: orders.filter((order) => order.status === "canceled").reduce((sum, order) => sum + order.total, 0),
+    avg: active.length ? Math.round(grossValue / active.length) : 0,
+    previousGross: gross(previous), previousPaid: paid(previous),
+    top: [...map.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 10),
+  };
 }

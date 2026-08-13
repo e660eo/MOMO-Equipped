@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { getOrder } from "@/lib/orders";
 import { fetchPaymentStatus, isPaid, PAYMENT_LABELS } from "@/lib/yandex-pay";
 import { updatePaymentStatus } from "@/lib/orders";
-import { notifyPaidOrder } from "@/lib/order-mail";
+import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import { formatPrice } from "@/lib/format";
 import {
   ClearCartAfterPayment,
@@ -86,7 +86,11 @@ export default async function OrderStatusPage({
       // эта проверка впервые публикует заказ и должна уведомить владельца.
       if (changed && isPaid(fresh)) {
         const paidOrder = getOrder(id);
-        if (paidOrder) void notifyPaidOrder(paidOrder);
+        if (paidOrder) {
+          if (paidOrder.delivery && paidOrder.payment?.sandbox !== true && paidOrder.delivery.shipment?.status !== "created") enqueueIntegrationJob("ozon_shipment", id);
+          enqueueIntegrationJob("order_mail", id, { kind: "paid" });
+          void runIntegrationQueue();
+        }
       }
     }
   } catch {

@@ -5,7 +5,7 @@ import { getOrder, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { cn } from "@/lib/utils";
-import { setOrderStatus, setOrderNote } from "../actions";
+import { retryOzonShipment, setOrderStatus, setOrderNote } from "../actions";
 import type { OrderStatus } from "@/lib/types";
 
 /* Карточка заказа: состав, контакты, статус и заметка менеджера. */
@@ -182,9 +182,11 @@ export default async function AdminOrderPage({
               Создано в Ozon · № {order.delivery.shipment.orderNumber}
             </p>
           ) : order.delivery.shipment?.status === "failed" ? (
-            <p className="mt-2 text-sm text-signal">
-              Не создалось автоматически: {order.delivery.shipment.error}
-            </p>
+            <div className="mt-3 rounded-sm border border-signal/60 bg-signal/5 p-3">
+              <p className="text-sm text-signal">Не создалось автоматически: {order.delivery.shipment.error}</p>
+              <form action={retryOzonShipment} className="mt-3"><input type="hidden" name="id" value={order.id} /><button type="submit" className="rounded-sm bg-signal px-4 py-2 text-[0.82rem] font-semibold text-white">Повторить отправку в Ozon</button></form>
+              <p className="mt-2 text-[0.75rem] text-muted-foreground">Если Ozon снова не ответит, задача повторится автоматически до пяти раз.</p>
+            </div>
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
               Отправление создаётся после подтверждённой оплаты.
@@ -214,6 +216,20 @@ export default async function AdminOrderPage({
           Сохранить заметку
         </button>
       </form>
+
+      <section className="mt-7 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">История заказа</h2>
+        <ol className="mt-4 space-y-3 border-l border-border pl-4">
+          {(order.history ?? [{ at: order.createdAt, actor: "Система", type: "created" as const, detail: "Заказ создан" }]).slice().reverse().map((event, index) => (
+            <li key={`${event.at}-${index}`} className="relative text-[0.82rem] before:absolute before:-left-[20px] before:top-1.5 before:h-2 before:w-2 before:rounded-full before:bg-signal">
+              <p className="font-medium">
+                {event.type === "status" ? `Статус: ${STATUS_LABELS[(event.from ?? "new") as OrderStatus]} → ${STATUS_LABELS[(event.to ?? order.status) as OrderStatus]}` : event.type === "payment" ? `Оплата: ${event.to}` : event.type === "delivery" ? `Ozon: ${event.to}` : event.detail ?? "Заказ создан"}
+              </p>
+              <p className="mt-0.5 text-[0.72rem] text-muted-foreground">{new Date(event.at).toLocaleString("ru-RU")} · {event.actor}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
   );
 }

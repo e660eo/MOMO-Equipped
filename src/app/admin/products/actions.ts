@@ -7,8 +7,16 @@ import { readJson, updateJson, assertWritable } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
 import { saveProductImage, deleteProductImage } from "@/lib/image-pipeline";
 import { messageFor, isRedirect } from "@/lib/errors";
+import { audit } from "@/lib/audit-log";
+import {
+  findDeletedProduct,
+  moveProductToTrash,
+  purgeExpiredDeletedProducts,
+  removeFromTrash,
+} from "@/lib/product-trash";
 import type { Product } from "@/lib/types";
 import profileSpecs from "./profile-specs.json";
+import { parseCsv } from "@/lib/csv";
 
 /*
   Действия панели над каталогом.
@@ -77,27 +85,6 @@ export async function saveProduct(
       };
     }
 
-    // Фото: оставленные в форме (порядок задаёт админ) плюс только что
-    // загруженные файлы.
-    const kept = String(formData.get("photos") ?? "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const uploads = formData
-      .getAll("newPhotos")
-      .filter((f): f is File => f instanceof File && f.size > 0);
-
-    const added: string[] = [];
-    for (const file of uploads) {
-      added.push(await saveProductImage(file));
-    }
-
-    const photos = [...kept, ...added];
-    if (photos.length === 0) {
-      return { error: "Добавьте хотя бы одно фото — карточка без снимка не продаёт." };
-    }
-
     const description = String(formData.get("description") ?? "")
       .split("\n")
       .map((line) => line.trim())
@@ -112,6 +99,37 @@ export async function saveProduct(
       }
       ozonSku = value;
     }
+
+    // Сначала проверяем все обычные поля и только потом сохраняем тяжёлые
+    // файлы. Ошибка в SKU/остатке больше не оставляет сиротские изображения.
+    const flag = parseStock(String(formData.get("inStock") ?? ""));
+    const stockRaw = String(formData.get("stock") ?? "").trim();
+    let stock: number | undefined;
+    if (stockRaw !== "") {
+      const value = Number(stockRaw);
+      if (!Number.isInteger(value) || value < 0) {
+        return { error: "Остаток — целое число, не меньше нуля." };
+      }
+      stock = value;
+    }
+    if (stock === undefined && flag === undefined) {
+      return { error: "Укажите наличие: «В наличии» или «Под заказ»." };
+    }
+
+    const kept = String(formData.get("photos") ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const uploads = formData
+      .getAll("newPhotos")
+      .filter((f): f is File => f instanceof File && f.size > 0);
+    if (kept.length === 0 && uploads.length === 0) {
+      return { error: "Добавьте хотя бы одно фото — карточка без снимка не продаёт." };
+    }
+
+    const added: string[] = [];
+    for (const file of uploads) added.push(await saveProductImage(file));
+    const photos = [...kept, ...added];
 
     const slug =
       existing?.slug ??
@@ -136,24 +154,22 @@ export async function saveProduct(
       ...(ozonOfferId ? { ozonOfferId } : {}),
     };
 
-    const flag = parseStock(String(formData.get("inStock") ?? ""));
     if (flag !== undefined) product.inStock = flag;
-
-    // Остаток: пустое поле — учёта по товару нет, наличие берётся из флага.
-    const stockRaw = String(formData.get("stock") ?? "").trim();
-    if (stockRaw !== "") {
-      const stock = Number(stockRaw);
-      if (!Number.isFinite(stock) || stock < 0) {
-        return { error: "Остаток — целое число, не меньше нуля." };
-      }
-      product.stock = Math.round(stock);
-    }
+    if (stock !== undefined) product.stock = stock;
 
     updateJson<Product[]>(FILE, (all) =>
       existing
         ? all.map((p) => (p.slug === slug ? product : p))
         : [product, ...all],
     );
+    audit({
+      entity: "product",
+      entityId: slug,
+      action: existing ? "updated" : "created",
+      summary: existing ? `Изменён товар «${title}»` : `Создан товар «${title}»`,
+      ...(existing ? { before: existing } : {}),
+      after: product,
+    });
     refreshSite();
   } catch (e) {
     // redirect() внутри try бросает управляющее исключение — пропускаем дальше
@@ -198,14 +214,6 @@ function withPhotos(
   return out;
 }
 
-/** Удаляет файл снимка, если он больше не используется ни одним товаром. */
-function cleanupPhotoFile(name: string): void {
-  const used = readJson<Product[]>(FILE).some(
-    (p) => p.image === name || (p.images ?? []).includes(name),
-  );
-  if (!used) void deleteProductImage(name);
-}
-
 export async function addPhoto(
   slug: string,
   formData: FormData,
@@ -222,6 +230,7 @@ export async function addPhoto(
       void deleteProductImage(name); // товар исчез — не плодим сирот
       return { error: "Товар не найден." };
     }
+    audit({ entity: "product", entityId: slug, action: "photo_added", summary: "Добавлено фото товара", after: photos });
     refreshSite();
     return { photos };
   } catch (e) {
@@ -252,7 +261,9 @@ export async function replacePhoto(
       void deleteProductImage(name);
       return { error: "Товар не найден." };
     }
-    cleanupPhotoFile(oldName);
+    // Старый файл сохраняем: журнал действий и 30-дневная корзина должны
+    // позволять восстановить карточку без потерянной фотографии.
+    audit({ entity: "product", entityId: slug, action: "photo_replaced", summary: "Заменено фото товара", before: oldName, after: name });
     refreshSite();
     return { photos };
   } catch (e) {
@@ -272,7 +283,7 @@ export async function removePhoto(
     if (1 + (current.images?.length ?? 0) <= 1)
       return { error: "Нельзя убрать единственное фото — карточке нужен снимок." };
     const photos = withPhotos(slug, (cur) => cur.filter((p) => p !== name));
-    cleanupPhotoFile(name);
+    audit({ entity: "product", entityId: slug, action: "photo_removed", summary: "Фото убрано из карточки (файл сохранён для восстановления)", before: name, after: photos });
     refreshSite();
     return { photos };
   } catch (e) {
@@ -289,6 +300,7 @@ export async function setCover(slug: string, name: string): Promise<PhotoResult>
       ...cur.filter((p) => p !== name),
     ]);
     if (!photos) return { error: "Товар не найден." };
+    audit({ entity: "product", entityId: slug, action: "cover_changed", summary: "Изменена обложка товара", after: name });
     refreshSite();
     return { photos };
   } catch (e) {
@@ -453,6 +465,7 @@ export async function quickUpdate(
   slug: string,
   price: number,
   stock: number | null,
+  confirmPriceDrop = false,
 ): Promise<ActionState> {
   try {
     await requireSession();
@@ -468,6 +481,11 @@ export async function quickUpdate(
     const products = readJson<Product[]>(FILE);
     const existing = products.find((p) => p.slug === slug);
     if (!existing) return { error: "Товар не найден." };
+    if (price < existing.price / 2 && !confirmPriceDrop) {
+      return {
+        error: `Цена падает больше чем вдвое: было ${existing.price} ₽, стало ${price} ₽. Подтвердите изменение.`,
+      };
+    }
 
     updateJson<Product[]>(FILE, (all) =>
       all.map((p) => {
@@ -478,6 +496,14 @@ export async function quickUpdate(
         return updated;
       }),
     );
+    audit({
+      entity: "product",
+      entityId: slug,
+      action: "quick_updated",
+      summary: `Быстро изменены цена/остаток товара «${existing.title}»`,
+      before: { price: existing.price, stock: existing.stock },
+      after: { price: Math.round(price), stock },
+    });
     refreshSite();
     revalidatePath("/admin/products");
     return { ok: "Сохранено" };
@@ -491,9 +517,20 @@ export async function toggleHidden(formData: FormData): Promise<void> {
   assertWritable();
 
   const slug = String(formData.get("slug") ?? "");
+  const existing = readJson<Product[]>(FILE).find((p) => p.slug === slug);
   updateJson<Product[]>(FILE, (all) =>
     all.map((p) => (p.slug === slug ? { ...p, hidden: !p.hidden } : p)),
   );
+  if (existing) {
+    audit({
+      entity: "product",
+      entityId: slug,
+      action: existing.hidden ? "shown" : "hidden",
+      summary: `${existing.hidden ? "Возвращён на витрину" : "Скрыт с витрины"} товар «${existing.title}»`,
+      before: { hidden: existing.hidden ?? false },
+      after: { hidden: !existing.hidden },
+    });
+  }
   refreshSite();
   revalidatePath("/admin/products");
 }
@@ -506,21 +543,141 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   const products = readJson<Product[]>(FILE);
   const victim = products.find((p) => p.slug === slug);
 
+  if (!victim) return;
+  moveProductToTrash(victim);
   updateJson<Product[]>(FILE, (all) => all.filter((p) => p.slug !== slug));
+  audit({ entity: "product", entityId: slug, action: "trashed", summary: `Товар «${victim.title}» перемещён в корзину на 30 дней`, before: victim });
 
-  // Файлы фото подчищаем, но только те, что не используются другими
-  // карточками: часть снимков досталась каталогу общими.
-  if (victim) {
-    const stillUsed = new Set(
-      products
-        .filter((p) => p.slug !== slug)
-        .flatMap((p) => [p.image, ...(p.images ?? [])]),
-    );
-    for (const photo of [victim.image, ...(victim.images ?? [])]) {
-      if (!stillUsed.has(photo)) await deleteProductImage(photo);
+  refreshSite();
+  revalidatePath("/admin/products");
+}
+
+export async function importCatalogData(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    await requireSession();
+    assertWritable();
+    const file = formData.get("file");
+    if (!(file instanceof File) || !file.size) return { error: "Выберите CSV-файл." };
+    const rows = parseCsv(await file.text());
+    if (rows.length < 2) return { error: "В файле нет строк с товарами." };
+    const headers = rows[0].map((value) => value.trim().toLowerCase());
+    const at = (row: string[], name: string) => row[headers.indexOf(name)]?.trim() ?? "";
+    if (!headers.includes("slug") && !headers.includes("ozonsku") && !headers.includes("ozonofferid")) return { error: "Нужен столбец slug, ozonSku или ozonOfferId." };
+    const source = readJson<Product[]>(FILE);
+    let updated = 0;
+    const errors: string[] = [];
+    const changes = new Map<string, Partial<Product>>();
+    for (const [index, row] of rows.slice(1).entries()) {
+      const slug = at(row, "slug");
+      const sku = at(row, "ozonsku");
+      const offer = at(row, "ozonofferid");
+      const product = source.find((item) => slug ? item.slug === slug : sku ? String(item.ozonSku ?? "") === sku : item.ozonOfferId === offer);
+      if (!product) { errors.push(`строка ${index + 2}: товар не найден`); continue; }
+      const patch: Partial<Product> = {};
+      const price = at(row, "price");
+      const stock = at(row, "stock");
+      const inStock = at(row, "instock").toLowerCase();
+      if (price) {
+        const value = Number(price.replace(/\s/g, "").replace(",", "."));
+        if (!Number.isFinite(value) || value <= 0) { errors.push(`строка ${index + 2}: неверная цена`); continue; }
+        patch.price = Math.round(value);
+      }
+      if (stock) {
+        const value = Number(stock);
+        if (!Number.isInteger(value) || value < 0) { errors.push(`строка ${index + 2}: неверный остаток`); continue; }
+        patch.stock = value;
+      }
+      if (["yes", "да", "true", "1"].includes(inStock)) patch.inStock = true;
+      if (["no", "нет", "false", "0"].includes(inStock)) patch.inStock = false;
+      if (!Object.keys(patch).length) continue;
+      changes.set(product.slug, patch);
+      updated++;
     }
+    updateJson<Product[]>(FILE, (all) => all.map((product) => changes.has(product.slug) ? { ...product, ...changes.get(product.slug) } : product));
+    audit({ entity: "product", entityId: "catalog-import", action: "catalog_import", summary: `Импортированы цены/остатки: ${updated} товаров`, after: { updated, errors: errors.length } });
+    refreshSite();
+    revalidatePath("/admin/products");
+    return { ok: `Обновлено: ${updated}. Пропущено с ошибками: ${errors.length}.${errors.length ? ` Первые ошибки: ${errors.slice(0, 5).join("; ")}` : ""}` };
+  } catch (error) {
+    return { error: messageFor(error, "Не удалось импортировать каталог.", "importCatalogData") };
   }
+}
 
+export async function restoreProductPhotos(slug: string, previous: string[]): Promise<PhotoResult> {
+  try {
+    await requireSession();
+    assertWritable();
+    const safe = previous.map(String).filter((name) => name.length > 0 && name.length <= 240 && !name.includes(".."));
+    if (!safe.length) return { error: "Нет фотографий для восстановления." };
+    const current = readJson<Product[]>(FILE).find((product) => product.slug === slug);
+    if (!current) return { error: "Товар не найден." };
+    const photos = withPhotos(slug, () => safe);
+    audit({ entity: "product", entityId: slug, action: "photos_undo", summary: "Отменено последнее изменение фотографий", before: [current.image, ...(current.images ?? [])], after: safe });
+    refreshSite();
+    return { photos: photos ?? safe };
+  } catch (error) {
+    return { error: messageFor(error, "Не удалось вернуть фотографии.", "restoreProductPhotos") };
+  }
+}
+
+export async function restoreProduct(formData: FormData): Promise<void> {
+  await requireSession();
+  assertWritable();
+  const slug = String(formData.get("slug") ?? "");
+  const record = findDeletedProduct(slug);
+  if (!record) return;
+  if (readJson<Product[]>(FILE).some((product) => product.slug === slug)) return;
+  updateJson<Product[]>(FILE, (all) => {
+    return [record.product, ...all];
+  });
+  removeFromTrash(slug);
+  audit({ entity: "product", entityId: slug, action: "restored", summary: `Восстановлен товар «${record.product.title}»`, after: record.product });
+  refreshSite();
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/products/trash");
+}
+
+export async function purgeExpiredTrash(): Promise<void> {
+  await requireSession();
+  assertWritable();
+  const purged = await purgeExpiredDeletedProducts();
+  if (purged) audit({ entity: "product", entityId: "trash", action: "purged", summary: `Окончательно удалено просроченных товаров: ${purged}` });
+  revalidatePath("/admin/products/trash");
+}
+
+const BULK_ACTIONS = new Set([
+  "in_stock",
+  "preorder",
+  "hide",
+  "show",
+  "new_on",
+  "new_off",
+  "clearance_on",
+  "clearance_off",
+]);
+
+export async function bulkUpdateProducts(formData: FormData): Promise<void> {
+  await requireSession();
+  assertWritable();
+  const slugs = [...new Set(formData.getAll("slugs").map(String).filter(Boolean))];
+  const action = String(formData.get("bulkAction") ?? "");
+  if (!slugs.length || !BULK_ACTIONS.has(action)) return;
+  const selected = new Set(slugs);
+  updateJson<Product[]>(FILE, (all) =>
+    all.map((product) => {
+      if (!selected.has(product.slug)) return product;
+      const next = { ...product };
+      if (action === "in_stock" || action === "preorder") {
+        delete next.stock;
+        next.inStock = action === "in_stock";
+      }
+      if (action === "hide" || action === "show") next.hidden = action === "hide";
+      if (action === "new_on" || action === "new_off") next.isNew = action === "new_on";
+      if (action === "clearance_on" || action === "clearance_off") next.isClearance = action === "clearance_on";
+      return next;
+    }),
+  );
+  audit({ entity: "product", entityId: slugs.join(","), action: `bulk_${action}`, summary: `Массово изменено товаров: ${slugs.length}` });
   refreshSite();
   revalidatePath("/admin/products");
 }

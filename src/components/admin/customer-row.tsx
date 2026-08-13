@@ -4,6 +4,7 @@ import { useState } from "react";
 import { formatPrice } from "@/lib/format";
 import { setOrderStatus } from "@/app/admin/orders/actions";
 import { ResetPasswordButton } from "@/components/admin/reset-password-button";
+import { saveCustomerAdmin } from "@/app/admin/customers/actions";
 import { cn } from "@/lib/utils";
 import type { OrderStatus } from "@/lib/types";
 
@@ -36,6 +37,7 @@ export type CustomerRowData = {
   address?: string;
   createdAt: string;
   lastLoginAt?: string;
+  admin?: { note?: string; tags?: string[]; history?: Array<{ at: string; text: string }> };
 };
 
 const STATUS: { value: OrderStatus; label: string }[] = [
@@ -104,14 +106,23 @@ export function CustomerRow({
           {spent > 0 ? formatPrice(spent) : "—"}
         </td>
         <td className="py-3 pr-3 text-right">
-          <ResetPasswordButton customerId={customer.id} name={customer.name} />
+          <div className="flex items-center justify-end gap-3"><button type="button" onClick={() => setOpen((value) => !value)} className="font-medium text-signal">{open ? "Закрыть" : "Карточка"}</button><ResetPasswordButton customerId={customer.id} name={customer.name} /></div>
         </td>
       </tr>
 
-      {open && count > 0 && (
+      {open && (
         <tr className="border-b border-border">
           <td colSpan={7} className="bg-bg/40 px-3 py-4">
+            <form action={saveCustomerAdmin} className="mb-4 grid gap-3 rounded-xl border border-border bg-surface p-4 md:grid-cols-2">
+              <input type="hidden" name="id" value={customer.id} />
+              <label className="grid gap-1 text-[0.75rem] text-muted-foreground">Теги и сегменты<input name="tags" defaultValue={customer.admin?.tags?.join(", ")} placeholder="VIP, установочный центр, опт" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm text-foreground" /></label>
+              <label className="grid gap-1 text-[0.75rem] text-muted-foreground">Добавить событие<input name="event" placeholder="Позвонил, интересуется новой поставкой" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm text-foreground" /></label>
+              <label className="grid gap-1 text-[0.75rem] text-muted-foreground md:col-span-2">Заметка менеджера<textarea name="note" rows={3} defaultValue={customer.admin?.note} placeholder="Предпочтения, договорённости, подходящее время для связи…" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm text-foreground" /></label>
+              <div className="md:col-span-2"><button type="submit" className="rounded-sm bg-foreground px-4 py-2 text-[0.8rem] font-semibold text-bg">Сохранить карточку клиента</button></div>
+              {customer.admin?.history?.length ? <div className="md:col-span-2"><p className="text-[0.72rem] font-semibold uppercase tracking-wider text-muted-foreground">История взаимодействий</p><ul className="mt-2 space-y-1 text-[0.78rem]">{customer.admin.history.slice().reverse().map((event, index) => <li key={`${event.at}-${index}`}>{fmtDate(event.at)} · {event.text}</li>)}</ul></div> : null}
+            </form>
             <div className="flex flex-col gap-3">
+              {orders.length === 0 && <p className="text-[0.82rem] text-muted-foreground">Заказов у этого клиента пока нет.</p>}
               {orders.map((o) => (
                 <div
                   key={o.id}

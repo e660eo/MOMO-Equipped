@@ -261,7 +261,7 @@ export function CartPageClient() {
     if (!code) return;
     setPromoBusy(true);
     setPromoMsg("");
-    const res = await checkPromo(code);
+    const res = await checkPromo(code, total);
     setPromoBusy(false);
     if (res.ok) {
       setPromo({ code: res.code, percent: res.percent });

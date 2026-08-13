@@ -18,6 +18,14 @@ export async function savePromoAction(formData: FormData): Promise<void> {
     code: String(formData.get("code") ?? ""),
     percent: Number(String(formData.get("percent") ?? "").replace(",", ".")),
     limit: Number(String(formData.get("limit") ?? "").trim() || "0"),
+    active: formData.get("active") === "on",
+    startsAt: String(formData.get("startsAt") ?? "").trim(),
+    endsAt: String(formData.get("endsAt") ?? "").trim(),
+    minSubtotal: Number(String(formData.get("minSubtotal") ?? "").trim() || "0"),
+    maxDiscount: Number(String(formData.get("maxDiscount") ?? "").trim() || "0"),
+    perCustomerLimit: Number(String(formData.get("perCustomerLimit") ?? "").trim() || "0"),
+    productSlugs: String(formData.get("productSlugs") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
+    categories: formData.getAll("categories").map(String).filter(Boolean),
   });
 
   revalidatePath("/admin/promos");

@@ -1,32 +1,28 @@
 "use client";
 
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import { AdminNavLink } from "./nav-link";
 
 const LINKS = [
   { href: "/admin/orders", label: "Заказы" },
-  { href: "/admin/sales", label: "Сводка" },
+  { href: "/admin/sales", label: "Отчёты" },
   { href: "/admin/customers", label: "Клиенты" },
   { href: "/admin/products", label: "Товары" },
   { href: "/admin/news", label: "Новости" },
   { href: "/admin/bundles", label: "Сборки" },
   { href: "/admin/promos", label: "Промокоды" },
-  { href: "/admin/settings", label: "Контакты" },
+  { href: "/admin/settings", label: "Настройки" },
+  { href: "/admin/audit", label: "Журнал" },
 ];
 
-/**
- * Навигация панели. Заказы первыми: за ними сюда заходят чаще всего,
- * а счётчик показывает, сколько заявок ещё не разобрано.
- */
 export function AdminNav({ newOrders = 0 }: { newOrders?: number }) {
-  return (
-    <nav className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[0.85rem]">
-      {LINKS.map((link) => (
-        <AdminNavLink
-          key={link.href}
-          {...link}
-          badge={link.href === "/admin/orders" ? newOrders : 0}
-        />
-      ))}
+  const [open, setOpen] = useState(false);
+  return <>
+    <nav className="hidden flex-1 flex-wrap items-center gap-x-5 gap-y-1.5 text-[0.82rem] lg:flex">
+      {LINKS.map((link) => <AdminNavLink key={link.href} {...link} badge={link.href === "/admin/orders" ? newOrders : 0} />)}
     </nav>
-  );
+    <button type="button" onClick={() => setOpen(true)} className="ml-auto inline-flex items-center gap-2 rounded-sm border border-border px-3 py-2 text-[0.82rem] lg:hidden" aria-expanded={open}><Menu size={17} /> Разделы {newOrders > 0 && <span className="rounded-full bg-signal px-1.5 text-white">{newOrders}</span>}</button>
+    {open && <div className="fixed inset-0 z-[300] lg:hidden"><button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="absolute inset-0 bg-black/45" /><aside className="absolute right-0 top-0 h-full w-[min(86vw,360px)] border-l border-border bg-surface p-5 shadow-2xl"><div className="flex items-center justify-between"><p className="font-display text-sm font-extrabold uppercase">Разделы панели</p><button type="button" onClick={() => setOpen(false)} aria-label="Закрыть"><X size={20} /></button></div><nav onClick={() => setOpen(false)} className="mt-6 grid gap-1 text-[0.92rem]">{LINKS.map((link) => <AdminNavLink key={link.href} {...link} badge={link.href === "/admin/orders" ? newOrders : 0} />)}</nav></aside></div>}
+  </>;
 }

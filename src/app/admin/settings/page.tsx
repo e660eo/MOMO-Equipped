@@ -12,6 +12,7 @@ import { mailerConfig, lastMailResult } from "@/lib/mailer";
 import { isFiscalEnabled, payConfig } from "@/lib/yandex-pay";
 import { getHealthReport } from "@/lib/health";
 import { SITE_URL } from "@/lib/site-url";
+import { getIntegrationJobs } from "@/lib/job-queue";
 
 export default async function AdminSettingsPage({
   searchParams,
@@ -49,15 +50,15 @@ export default async function AdminSettingsPage({
   };
 
   const health = await getHealthReport();
+  const jobs = getIntegrationJobs(20);
 
   return (
     <div>
       <h1 className="font-display text-xl font-extrabold uppercase">
-        Контакты и условия
+        Настройки
       </h1>
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
-        Эти данные подставляются по всему сайту: шапка, футер, корзина,
-        страницы доставки и контактов.
+        Контакты, условия продажи, интеграции, уведомления и состояние системы.
       </p>
 
       {saved && (
@@ -66,21 +67,45 @@ export default async function AdminSettingsPage({
         </p>
       )}
 
-      <div className="mt-7">
+      <nav className="mt-5 flex flex-wrap gap-2 text-[0.8rem]">
+        {[ ["contacts", "Контакты"], ["delivery", "Доставка"], ["payment", "Оплата"], ["integrations", "Интеграции"], ["notifications", "Уведомления"], ["health", "Состояние системы"] ].map(([id, title]) => <a key={id} href={`#${id}`} className="rounded-full border border-border px-3 py-1.5 text-muted-foreground hover:border-signal hover:text-signal">{title}</a>)}
+      </nav>
+
+      <section id="contacts" className="mt-7 scroll-mt-24 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">Контакты и условия</h2>
+        <p className="mt-1 text-[0.78rem] text-muted-foreground">Телефоны, адрес, гарантии, возврат и порог бесплатной доставки.</p>
+        <div className="mt-5">
         <SettingsForm site={site} />
-      </div>
+        </div>
+      </section>
 
-      <div className="mt-10">
+      <section id="notifications" className="mt-6 scroll-mt-24 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">Уведомления</h2>
+        <p className="mt-1 text-[0.78rem] text-muted-foreground">Письма о заказах и автоматические предупреждения об остатках и ошибках отправляются на настроенную почту.</p>
+        <div className="mt-5">
         <MailStatusPanel status={mailStatus} />
-      </div>
+        </div>
+      </section>
 
-      <div className="mt-6">
+      <section id="payment" className="mt-6 scroll-mt-24 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">Оплата</h2>
+        <div className="mt-5">
         <PayStatusPanel status={payStatus} />
-      </div>
+        </div>
+      </section>
 
-      <div className="mt-6">
+      <section id="integrations" className="mt-6 scroll-mt-24 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">Интеграции и фоновая очередь</h2>
+        <p className="mt-1 text-[0.78rem] text-muted-foreground">Ozon и почта повторяются автоматически при временной ошибке. Последние задачи:</p>
+        {jobs.length === 0 ? <p className="mt-4 text-[0.82rem] text-muted-foreground">Очередь пока не использовалась.</p> : <div className="mt-4 grid gap-2">{jobs.map((job) => <div key={job.id} className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border px-3 py-2 text-[0.78rem]"><span><b>{job.type === "ozon_shipment" ? "Ozon" : "Почта"}</b> · заказ {job.entityId}</span><span className={job.status === "failed" ? "text-signal" : "text-muted-foreground"}>{job.status} · попыток {job.attempts}{job.lastError ? ` · ${job.lastError}` : ""}</span></div>)}</div>}
+      </section>
+
+      <section id="health" className="mt-6 scroll-mt-24 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">Состояние системы</h2>
+        <div className="mt-5">
         <HealthPanel report={health} endpoint={`${SITE_URL}/api/health`} />
-      </div>
+        </div>
+      </section>
 
       <p className="mt-6 max-w-[680px] rounded-sm border border-border bg-surface px-4 py-3 text-[0.82rem] text-muted-foreground">
         Реквизиты ИП (ИНН, ОГРНИП, счёт в банке) здесь не меняются — они уходят

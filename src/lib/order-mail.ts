@@ -180,15 +180,8 @@ export function buildOrderLetter(order: Order): Letter {
  */
 export async function notifyNewOrder(order: Order): Promise<void> {
   if (!isMailerConfigured()) return;
-
-  try {
-    const result = await sendMailWithRetry(buildOrderLetter(order));
-    if (!result.ok) {
-      console.error(`Заказ ${order.id}: письмо не отправлено — ${result.error}`);
-    }
-  } catch (e) {
-    console.error(`Заказ ${order.id}: сбой отправки письма`, e);
-  }
+  const result = await sendMailWithRetry(buildOrderLetter(order));
+  if (!result.ok) throw new Error(`Письмо о заказе не отправлено: ${result.error}`);
 }
 
 /**
@@ -235,8 +228,7 @@ export async function notifyPaidOrder(order: Order): Promise<void> {
   </div>
 </div>`.trim();
 
-  try {
-    const result = await sendMailWithRetry({
+  const result = await sendMailWithRetry({
       subject: `Оплачен заказ №${order.id} — ${sum}${test ? " (тестовая оплата)" : ""}`,
       text: [
         `Заказ №${order.id} оплачен: ${sum}${test ? " (тестовая оплата)" : ""}`,
@@ -247,11 +239,6 @@ export async function notifyPaidOrder(order: Order): Promise<void> {
         `Открыть в панели: ${orderUrl}`,
       ].join("\n"),
       html,
-    });
-    if (!result.ok) {
-      console.error(`Заказ ${order.id}: письмо об оплате не ушло — ${result.error}`);
-    }
-  } catch (e) {
-    console.error(`Заказ ${order.id}: сбой письма об оплате`, e);
-  }
+  });
+  if (!result.ok) throw new Error(`Письмо об оплате не отправлено: ${result.error}`);
 }

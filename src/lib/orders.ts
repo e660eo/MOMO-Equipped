@@ -8,6 +8,7 @@ import type {
   Product,
   OrderDelivery,
 } from "./types";
+import { audit } from "./audit-log";
 
 export { STATUS_LABELS } from "./order-status";
 
@@ -119,6 +120,12 @@ export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Ord
     id: nextId(orders),
     createdAt: new Date().toISOString(),
     status: "new",
+    history: [{
+      at: new Date().toISOString(),
+      actor: "Система",
+      type: "created",
+      detail: "Заказ создан",
+    }],
   };
   // Свежие сверху, заодно чистим просроченные
   updateJson<Order[]>(FILE, (all) => [full, ...withoutExpired(all)]);
@@ -160,6 +167,7 @@ export function updateOrder(
     Правку остатка делаем ДО записи заказа, а сам флаг пишем тем же патчем.
   */
   let stockPatch: { stockDeducted: boolean } | undefined;
+  const before = getOrder(id);
   if (patch.status) {
     const order = getOrder(id);
     if (order && order.status !== patch.status) {
@@ -176,8 +184,24 @@ export function updateOrder(
   }
 
   updateJson<Order[]>(FILE, (all) =>
-    all.map((o) => (o.id === id ? { ...o, ...patch, ...stockPatch } : o)),
+    all.map((o) => {
+      if (o.id !== id) return o;
+      const history = [...(o.history ?? [])];
+      if (patch.status && patch.status !== o.status) {
+        history.push({ at: new Date().toISOString(), actor: "Администратор", type: "status", from: o.status, to: patch.status });
+      }
+      if (patch.note !== undefined && patch.note !== (o.note ?? "")) {
+        history.push({ at: new Date().toISOString(), actor: "Администратор", type: "note", detail: patch.note ? "Заметка изменена" : "Заметка удалена" });
+      }
+      return { ...o, ...patch, ...stockPatch, history };
+    }),
   );
+  if (before) {
+    const summary = patch.status && patch.status !== before.status
+      ? `Статус заказа изменён: ${before.status} → ${patch.status}`
+      : "Изменена заметка заказа";
+    audit({ entity: "order", entityId: id, action: patch.status ? "status_changed" : "note_changed", summary, before: { status: before.status, note: before.note }, after: patch });
+  }
 }
 
 /** Сколько заказов ждут обработки — для счётчика в панели. */
@@ -197,8 +221,13 @@ export function countNewOrders(): number {
 export function setOrderPayment(id: string, payment: OrderPayment): void {
   assertWritable();
   updateJson<Order[]>(FILE, (all) =>
-    all.map((o) => (o.id === id ? { ...o, payment } : o)),
+    all.map((o) => o.id === id ? {
+      ...o,
+      payment,
+      history: [...(o.history ?? []), { at: new Date().toISOString(), actor: "Платёжная система", type: "payment" as const, from: o.payment?.status, to: payment.status }],
+    } : o),
   );
+  audit({ entity: "order", entityId: id, action: "payment_changed", summary: `Статус оплаты: ${payment.status}`, after: { status: payment.status, amount: payment.amount, sandbox: payment.sandbox } });
 }
 
 /**
@@ -229,9 +258,14 @@ export function updateOzonShipment(
   updateJson<Order[]>(FILE, (all) =>
     all.map((order) =>
       order.id === id && order.delivery
-        ? { ...order, delivery: { ...order.delivery, shipment } }
+        ? {
+            ...order,
+            delivery: { ...order.delivery, shipment },
+            history: [...(order.history ?? []), { at: new Date().toISOString(), actor: "Ozon", type: "delivery" as const, to: shipment.status, detail: shipment.error ?? shipment.orderNumber }],
+          }
         : order,
     ),
   );
+  audit({ entity: "integration", entityId: id, action: "ozon_shipment", summary: `Отправление Ozon: ${shipment.status}`, after: shipment });
 }
 

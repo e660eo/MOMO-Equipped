@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
-import { resetPassword } from "@/lib/customers";
+import { resetPassword, updateCustomerAdmin } from "@/lib/customers";
 import { messageFor } from "@/lib/errors";
 
 /*
@@ -28,4 +28,15 @@ export async function issueTempPassword(
       error: messageFor(e, "Не получилось сбросить пароль.", "issueTempPassword"),
     };
   }
+}
+
+export async function saveCustomerAdmin(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  updateCustomerAdmin(id, {
+    note: String(formData.get("note") ?? ""),
+    tags: String(formData.get("tags") ?? "").split(","),
+    event: String(formData.get("event") ?? ""),
+  });
+  revalidatePath("/admin/customers");
 }

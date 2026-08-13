@@ -2,12 +2,12 @@
 
 import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment } from "@/lib/orders";
-import { notifyNewOrder } from "@/lib/order-mail";
+import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
-import { findValidPromo, discountFor, redeemPromo } from "@/lib/promos";
+import { findValidPromo, discountForPromo, promoAppliesToProduct, redeemPromo } from "@/lib/promos";
 import {
   searchRussianPlaces,
   type PublicPlaceResult,
@@ -73,10 +73,11 @@ export async function selectOzonPickup(payload: {
 /* Проверка промокода из корзины: показать скидку до оформления. */
 export async function checkPromo(
   code: string,
+  subtotal = 0,
 ): Promise<
   { ok: true; code: string; percent: number } | { ok: false; error: string }
 > {
-  const promo = findValidPromo(typeof code === "string" ? code : "");
+  const promo = findValidPromo(typeof code === "string" ? code : "", { subtotal });
   if (!promo) {
     return { ok: false, error: "Промокод не найден или больше не действует." };
   }
@@ -263,10 +264,16 @@ export async function submitOrder(payload: {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
   let total = subtotal;
   let promo: Order["promo"];
+  const customerKey = me?.id ?? phone.replace(/\D/g, "");
   if (typeof payload.promoCode === "string" && payload.promoCode.trim()) {
-    const valid = findValidPromo(payload.promoCode);
+    const valid = findValidPromo(payload.promoCode, { subtotal, customerKey });
     if (valid) {
-      const discount = discountFor(subtotal, valid.percent);
+      const eligibleSubtotal = items.reduce((sum, item) => {
+        const product = catalog.get(item.slug);
+        return product && promoAppliesToProduct(valid, product) ? sum + item.price * item.qty : sum;
+      }, 0);
+      const discount = discountForPromo(eligibleSubtotal, valid);
+      if (discount <= 0) return { ok: false, error: "Промокод не действует на товары в корзине." };
       total = subtotal - discount;
       promo = { code: valid.code, percent: valid.percent, discount };
     }
@@ -307,7 +314,7 @@ export async function submitOrder(payload: {
     });
 
     // Активацию списываем после сохранения заказа — код применён.
-    if (promo) redeemPromo(promo.code);
+    if (promo) redeemPromo(promo.code, customerKey);
 
     /*
       Для WhatsApp-заявки письмо отправляем сразу и не задерживаем покупателя
@@ -316,7 +323,10 @@ export async function submitOrder(payload: {
     */
     // Онлайн-заказ сообщаем владельцу только после CAPTURED из вебхука.
     // Заявка через WhatsApp по-прежнему появляется и отправляется сразу.
-    if (!payload.pay) void notifyNewOrder(order);
+    if (!payload.pay) {
+      enqueueIntegrationJob("order_mail", order.id, { kind: "new" });
+      void runIntegrationQueue();
+    }
 
     /*
       Оплата на сайте. Техническая запись уже получила уникальный номер, но

@@ -10,11 +10,11 @@ import { ProductsList } from "@/components/admin/products-list";
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; availability?: string }>;
 }) {
   await requireAdminPage();
 
-  const { saved } = await searchParams;
+  const { saved, availability } = await searchParams;
   const categories = await getCategories();
   const products = getAllProducts();
 
@@ -36,6 +36,7 @@ export default async function AdminProductsPage({
       categories={categories}
       bundleNames={bundleNames}
       saved={Boolean(saved)}
+      initialAvailability={availability === "unknown" || availability === "out" || availability === "low" ? availability : ""}
     />
   );
 }
