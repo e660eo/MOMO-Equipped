@@ -18,14 +18,14 @@ import { cn } from "@/lib/utils";
 const nav = [
   { href: "/about", label: "О компании" },
   { href: "/news/novinki-momo-2026", label: "Новинки" },
-  { href: "/listening-stand", label: "Онлайн-стенд" },
+  { href: "/listening-stand", label: "Онлайн-стенд", beta: true },
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
 ];
 
 // «Уценка» уехала из верхней навигации в каталог: на десктопе — ссылкой в
 // мега-меню «Каталог», на телефоне держим её сразу за «Каталогом».
-const mobileNav: { href: string; label: string; accent?: boolean }[] = [
+const mobileNav: { href: string; label: string; accent?: boolean; beta?: boolean }[] = [
   { href: "/catalog", label: "Каталог", accent: true },
   { href: "/sale", label: "Уценка" },
   ...nav,
@@ -177,9 +177,14 @@ export function SiteHeader() {
                 <Link
                   key={n.href}
                   href={n.href}
-                  className="text-[0.82rem] font-medium tracking-wide text-muted-foreground transition-colors hover:text-signal"
+                  className="relative inline-flex text-[0.82rem] font-medium tracking-wide text-muted-foreground transition-colors hover:text-signal"
                 >
                   {n.label}
+                  {n.beta && (
+                    <span className="absolute left-1/2 top-full mt-0.5 -translate-x-1/2 rounded-full bg-signal px-1.5 py-px font-mono text-[0.5rem] font-bold uppercase leading-none tracking-[0.12em] text-white">
+                      Beta
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>
@@ -223,7 +228,14 @@ export function SiteHeader() {
                         : "font-medium text-muted-foreground",
                     )}
                   >
-                    {n.label}
+                    <span className="inline-flex flex-col items-start gap-1">
+                      <span>{n.label}</span>
+                      {n.beta && (
+                        <span className="rounded-full bg-signal px-1.5 py-px font-mono text-[0.5rem] font-bold uppercase leading-none tracking-[0.12em] text-white">
+                          Beta
+                        </span>
+                      )}
+                    </span>
                   </Link>
                 </MenuRow>
               ))}
