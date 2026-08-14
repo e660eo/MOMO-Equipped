@@ -110,20 +110,20 @@ export function BannerCarousel() {
           <div aria-hidden className="absolute bottom-2 left-[5%] h-[250px] w-[90%] sm:-bottom-[8%] sm:left-auto sm:right-[2%] sm:h-[112%] sm:w-[57%]">
             <div className="absolute bottom-0 right-[-4%] h-[92%] w-[68%] -rotate-6">
               <Image
-                src="/uploads/momo-bd-1500-1-new.webp"
+                src="/uploads/momo-bd-1500-1-cutout.png"
                 alt=""
                 fill
                 sizes="(max-width: 639px) 60vw, 34vw"
-                className="object-contain mix-blend-multiply drop-shadow-[0_24px_30px_rgba(0,0,0,0.35)]"
+                className="object-contain drop-shadow-[0_24px_30px_rgba(0,0,0,0.35)]"
               />
             </div>
             <div className="absolute -bottom-[4%] left-[2%] h-[67%] w-[45%] rotate-6">
               <Image
-                src="/uploads/momo-fr-500-new.webp"
+                src="/uploads/momo-fr-500-cutout.png"
                 alt=""
                 fill
                 sizes="(max-width: 639px) 42vw, 24vw"
-                className="object-contain mix-blend-multiply drop-shadow-[0_18px_22px_rgba(0,0,0,0.3)]"
+                className="object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.3)]"
               />
             </div>
           </div>
@@ -159,11 +159,11 @@ export function BannerCarousel() {
           <div aria-hidden className="absolute bottom-0 left-[12%] h-[260px] w-[76%] sm:-bottom-[14%] sm:left-auto sm:right-[2%] sm:h-[118%] sm:w-[55%]">
             <div className="absolute inset-0">
               <Image
-                src="/uploads/k_df56b42ff4614c3592cf59cf997d866c.webp"
+                src="/uploads/momo-achilles-12-cutout.png"
                 alt=""
                 fill
                 sizes="(max-width: 639px) 76vw, 42vw"
-                className="object-contain mix-blend-multiply drop-shadow-[0_28px_32px_rgba(0,0,0,0.23)]"
+                className="object-contain drop-shadow-[0_28px_32px_rgba(0,0,0,0.23)]"
               />
             </div>
             <span className="absolute bottom-[4%] right-0 font-display text-[5rem] font-extrabold leading-none tracking-[-0.08em] text-[#f05a1a] sm:bottom-[20%] sm:text-[7.5rem]">
@@ -205,7 +205,7 @@ export function BannerCarousel() {
             </span>
             <div className="absolute inset-[8%_2%_0_6%]">
               <Image
-                src="/uploads/k_0155f86054604a42918acae04d400518.webp"
+                src="/uploads/zeus-fr-2-1100-cutout.png"
                 alt=""
                 fill
                 sizes="(max-width: 639px) 82vw, 44vw"
