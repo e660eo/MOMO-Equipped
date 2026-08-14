@@ -19,6 +19,9 @@ import {
   makeResetToken,
   verifyResetToken,
 } from "@/lib/customer-auth";
+import { endDealerSession, startDealerSession } from "@/lib/dealer-auth";
+import { findDealerAccountByEmail, markDealerLogin } from "@/lib/dealers";
+import { verifyPassword } from "@/lib/password";
 import {
   sendMailWithRetry,
   isMailerConfigured,
@@ -38,7 +41,8 @@ import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 */
 
 export type AuthResult =
-  | { ok: true; customer: PublicCustomer }
+  | { ok: true; customer: PublicCustomer; dealer?: false }
+  | { ok: true; dealer: true }
   | { ok: false; error: string };
 
 /* Защита от перебора паролей — как на входе в панель. */
@@ -173,6 +177,29 @@ export async function signIn(
     return { ok: false, error: "Не подошли почта, телефон или пароль." };
   }
 
+  /*
+    Одна форма обслуживает и розничный, и дилерский вход. Дилера проверяем
+    именно по его отдельному хешу пароля, а не просто по совпавшему email:
+    почта покупателя пока не подтверждается, и одно совпадение не должно
+    открывать закрытые B2B-цены.
+  */
+  const normalizedLogin = login.trim().toLowerCase();
+  const dealer = normalizedLogin.includes("@")
+    ? findDealerAccountByEmail(normalizedLogin)
+    : undefined;
+  if (
+    dealer &&
+    !dealer.disabled &&
+    dealer.activatedAt &&
+    verifyPassword(password, dealer.passwordHash)
+  ) {
+    attempts.delete(ip);
+    await startDealerSession(dealer.id);
+    markDealerLogin(dealer.id);
+    revalidatePath("/", "layout");
+    return { ok: true, dealer: true };
+  }
+
   const customer = authenticate(login, password);
   if (!customer) {
     noteFailure(ip);
@@ -188,6 +215,9 @@ export async function signIn(
 
 export async function signOut(): Promise<void> {
   await endCustomerSession();
+  // Обычная кнопка выхода завершает и дилерскую сессию, если обе были
+  // открыты в одном браузере.
+  await endDealerSession();
   revalidatePath("/", "layout");
 }
 

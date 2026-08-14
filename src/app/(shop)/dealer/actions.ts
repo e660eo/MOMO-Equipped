@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit-log";
 import { currentDealer, endDealerSession, startDealerSession } from "@/lib/dealer-auth";
+import { endCustomerSession } from "@/lib/customer-auth";
 import { notifyDealerOrder } from "@/lib/dealer-mail";
 import {
   accountForInvite,
@@ -80,6 +81,7 @@ export async function activateDealer(_state: DealerAuthState, formData: FormData
 
 export async function logoutDealer(): Promise<void> {
   await endDealerSession();
+  await endCustomerSession();
   redirect("/dealer/login");
 }
 

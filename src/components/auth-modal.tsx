@@ -123,6 +123,15 @@ export function AuthModal() {
     }
     setError("");
     setLgPass("");
+    if (result.dealer) {
+      pushToast({
+        title: "Добро пожаловать!",
+        description: "Открываем кабинет дилера.",
+      });
+      closeModal();
+      window.location.href = "/dealer";
+      return;
+    }
     pushToast({ title: "С возвращением!", description: "Вы вошли в кабинет." });
     finishCustomerAuth();
   }

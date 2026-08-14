@@ -31,7 +31,7 @@ const mobileNav: { href: string; label: string; accent?: boolean; beta?: boolean
   ...nav,
   { href: "/dealers", label: "Купить рядом" },
   { href: "/become-dealer", label: "Стать дилером" },
-  { href: "/dealer/login", label: "Вход для дилеров" },
+  { href: "/dealer/login", label: "Кабинет дилера" },
   { href: "/contacts", label: "Контакты" },
 ];
 
