@@ -10,6 +10,7 @@ import {
   getDealerLocation,
   issueDealerInvite,
   recordDealerAccessMail,
+  setDealerLocationActive,
   updateDealerApplication,
   updateDealerOrderStatus,
   updateDealerTerms,
@@ -117,6 +118,26 @@ export async function setDealerApplicationStatus(formData: FormData): Promise<vo
   updateDealerApplication(id, { status, ...(note ? { note } : {}) });
   audit({ entity: "dealer", entityId: id, action: "application_status", summary: `Статус дилерской заявки: ${status}` });
   revalidatePath("/admin/dealers");
+}
+
+export async function setDealerLocationVisibility(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const before = getDealerLocation(id);
+  if (!before) return;
+  const active = formData.get("active") === "true";
+  const after = setDealerLocationActive(id, active);
+  if (!after) return;
+  audit({
+    entity: "dealer",
+    entityId: id,
+    action: active ? "location_published" : "location_hidden",
+    summary: `${active ? "Опубликована" : "Скрыта"} дилерская точка ${after.name}`,
+    before: { active: before.active },
+    after: { active: after.active },
+  });
+  revalidatePath("/admin/dealers");
+  revalidatePath("/dealers");
 }
 
 export async function setDealerTerms(formData: FormData): Promise<void> {

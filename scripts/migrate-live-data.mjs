@@ -66,6 +66,22 @@ for (const seedDealer of seedDealers) {
 }
 if (dealerLocationsAdded) write("dealers.json", dealers);
 
+const migrationState = read("data-migrations.json", {});
+const hidePlaceholdersKey = "hide-placeholder-dealers-2026-08-14";
+let dealerLocationsHidden = 0;
+if (!migrationState[hidePlaceholdersKey]) {
+  const hiddenNames = new Set(["тестовая", "камиль аудио"]);
+  for (const dealer of dealers) {
+    if (dealer.active && hiddenNames.has(String(dealer.name).trim().toLowerCase())) {
+      dealer.active = false;
+      dealerLocationsHidden += 1;
+    }
+  }
+  if (dealerLocationsHidden) write("dealers.json", dealers);
+  migrationState[hidePlaceholdersKey] = new Date().toISOString();
+  write("data-migrations.json", migrationState);
+}
+
 const fiscalEnabled = process.env.YANDEX_PAY_LIVE?.trim() === "1" || process.env.YANDEX_PAY_FISCAL?.trim() === "1";
 const orders = read("orders.json");
 let orderChanges = 0;
@@ -127,4 +143,4 @@ function harden(dir) {
 }
 harden(dataDir);
 
-console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры ${dealerLocationsAdded}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
+console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/скрыто ${dealerLocationsHidden}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);

@@ -29,6 +29,17 @@ export function getDealerLocation(id: string): DealerLocation | undefined {
   return readJson<DealerLocation[]>(DEALERS).find((dealer) => dealer.id === id);
 }
 
+export function setDealerLocationActive(id: string, active: boolean): DealerLocation | undefined {
+  assertWritable();
+  let updated: DealerLocation | undefined;
+  updateJson<DealerLocation[]>(DEALERS, (all) => all.map((dealer) => {
+    if (dealer.id !== id) return dealer;
+    updated = { ...dealer, active };
+    return updated;
+  }));
+  return updated;
+}
+
 export function getDealerAccounts(): DealerAccount[] {
   return readJson<DealerAccount[]>(ACCOUNTS);
 }
