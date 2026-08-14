@@ -19,7 +19,7 @@ const cols = [
     links: [
       { href: "/delivery", label: "Доставка и оплата" },
       { href: "/sale", label: "Уценка" },
-      { href: "/#promo", label: "Акции и сплит" },
+      { href: "/#promo", label: "Новинки и подборки" },
       { href: "/install", label: "Где установить" },
       { href: "/about", label: "О компании" },
       { href: "/contacts", label: "Контакты" },

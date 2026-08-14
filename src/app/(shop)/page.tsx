@@ -161,6 +161,13 @@ export default function Home() {
         </div>
       </section>
 
+      {/* PRODUCT BANNERS — широкая редакционная карусель, как у профильного магазина, но с продукцией MOMO и ZEUS */}
+      <section id="promo" className="pb-5 pt-8 sm:pt-10">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+          <BannerCarousel />
+        </div>
+      </section>
+
       {/* CATALOG — редакторская bento-сетка категорий */}
       <section className="py-20">
         <Reveal className="mx-auto max-w-[1200px] px-6">
@@ -240,19 +247,6 @@ export default function Home() {
             })}
           </div>
         </Reveal>
-      </section>
-
-      {/* BANNERS */}
-      <section id="promo" className="pb-4">
-        <div className="mx-auto max-w-[1200px] px-6">
-          <BannerCarousel />
-          {/*
-            График платежей — только на широких экранах. На телефоне ему
-            попросту негде развернуться: четыре подписи под шкалой в 375 px
-            сжимаются до нечитаемых столбиков. Условия сплита там всё равно
-            сказаны текстом в корзине и на странице доставки.
-          */}
-        </div>
       </section>
 
       <WaveDivider />
