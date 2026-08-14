@@ -356,6 +356,8 @@ export interface DeletedProduct {
 /* ------------------------------- B2B ----------------------------------- */
 
 /** Публичная карточка официального дилера. Закрытых цен и данных входа здесь нет. */
+export type DealerLocationKind = "store" | "installation" | "store_install";
+
 export interface DealerLocation {
   id: string;
   name: string;
@@ -367,6 +369,8 @@ export interface DealerLocation {
   hours?: string;
   latitude?: number;
   longitude?: number;
+  /** Магазин, установочный центр или совмещённая точка. */
+  kind?: DealerLocationKind;
   /** Точка выполняет авторизованную установку с расширенной гарантией. */
   authorizedInstallation?: boolean;
   /** Точка опубликована в разделе «Купить рядом». */

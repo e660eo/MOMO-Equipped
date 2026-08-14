@@ -9,6 +9,7 @@
     "hours": "Пн–Пт: 9:00–18:00",
     "latitude": 42.9849,
     "longitude": 47.5047,
+    "kind": "store",
     "active": true,
     "createdAt": "2026-08-13T00:00:00.000Z"
   },
@@ -23,6 +24,7 @@
     "hours": "Пн–Сб: 10:00–19:00; Вс: 11:00–17:00",
     "latitude": 45.0066413,
     "longitude": 39.1031044,
+    "kind": "store",
     "active": true,
     "createdAt": "2026-08-14T00:00:00.000Z"
   },
@@ -36,6 +38,7 @@
     "website": "https://agruppa.ru/",
     "latitude": 47.2379636,
     "longitude": 39.6151829,
+    "kind": "store",
     "active": true,
     "createdAt": "2026-08-14T00:00:00.000Z"
   }

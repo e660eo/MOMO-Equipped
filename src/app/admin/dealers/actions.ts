@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
 import { audit } from "@/lib/audit-log";
+import { DEALER_LOCATION_KINDS, DEALER_LOCATION_KIND_LABELS } from "@/lib/dealer-location";
 import { sendDealerInvite, sendDealerPasswordReset } from "@/lib/dealer-mail";
 import {
   createDealer,
@@ -11,6 +12,7 @@ import {
   issueDealerInvite,
   recordDealerAccessMail,
   setDealerLocationActive,
+  setDealerLocationProfile,
   updateDealerApplication,
   updateDealerOrderStatus,
   updateDealerTerms,
@@ -18,7 +20,7 @@ import {
 import { ExpectedError, messageFor } from "@/lib/errors";
 import { SITE_URL } from "@/lib/site-url";
 import { DEALER_PRICE_TIERS, DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
-import type { DealerApplicationStatus, DealerOrderStatus, DealerPriceTier } from "@/lib/types";
+import type { DealerApplicationStatus, DealerLocationKind, DealerOrderStatus, DealerPriceTier } from "@/lib/types";
 
 export type CreateDealerState = { error?: string; ok?: boolean; inviteUrl?: string; mailSent?: boolean };
 
@@ -44,10 +46,12 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
     const contactName = text(formData, "contactName", 120);
     const loginEmail = text(formData, "loginEmail", 160).toLowerCase();
     const priceTier = text(formData, "priceTier", 20) as DealerPriceTier;
+    const kind = text(formData, "kind", 30) as DealerLocationKind;
     const discountPercent = Number(text(formData, "discountPercent", 10));
     if (!name || !city || !address || !phone || !contactName || !loginEmail) throw new ExpectedError("Заполните название, город, адрес, телефон, контакт и email входа.");
     if (!/^\S+@\S+\.\S+$/.test(loginEmail)) throw new ExpectedError("Проверьте email для входа.");
     if (!DEALER_PRICE_TIERS.includes(priceTier)) throw new ExpectedError("Выберите ценовой уровень партнёра.");
+    if (!DEALER_LOCATION_KINDS.includes(kind)) throw new ExpectedError("Выберите тип дилерской точки.");
     if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) throw new ExpectedError("Скидка должна быть от 0 до 80%.");
     const result = createDealer({
       name,
@@ -59,7 +63,8 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
       hours: text(formData, "hours", 160) || undefined,
       latitude: optionalNumber(formData, "latitude"),
       longitude: optionalNumber(formData, "longitude"),
-      authorizedInstallation: formData.get("authorizedInstallation") === "on",
+      kind,
+      authorizedInstallation: kind !== "store" && formData.get("authorizedInstallation") === "on",
       contactName,
       loginEmail,
       priceTier,
@@ -135,6 +140,27 @@ export async function setDealerLocationVisibility(formData: FormData): Promise<v
     summary: `${active ? "Опубликована" : "Скрыта"} дилерская точка ${after.name}`,
     before: { active: before.active },
     after: { active: after.active },
+  });
+  revalidatePath("/admin/dealers");
+  revalidatePath("/dealers");
+}
+
+export async function setDealerLocationProfileAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const kind = text(formData, "kind", 30) as DealerLocationKind;
+  const before = getDealerLocation(id);
+  if (!before || !DEALER_LOCATION_KINDS.includes(kind)) return;
+  const authorizedInstallation = kind !== "store" && formData.get("authorizedInstallation") === "on";
+  const after = setDealerLocationProfile(id, { kind, authorizedInstallation });
+  if (!after) return;
+  audit({
+    entity: "dealer",
+    entityId: id,
+    action: "location_profile_updated",
+    summary: `Тип точки ${after.name}: ${DEALER_LOCATION_KIND_LABELS[kind]}${authorizedInstallation ? "; авторизованная установка" : ""}`,
+    before: { kind: before.kind, authorizedInstallation: before.authorizedInstallation },
+    after: { kind: after.kind, authorizedInstallation: after.authorizedInstallation },
   });
   revalidatePath("/admin/dealers");
   revalidatePath("/dealers");

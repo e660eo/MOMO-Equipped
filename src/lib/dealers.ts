@@ -7,6 +7,7 @@ import type {
   DealerApplication,
   DealerApplicationStatus,
   DealerLocation,
+  DealerLocationKind,
   DealerOrder,
   DealerOrderStatus,
   DealerPriceTier,
@@ -35,6 +36,20 @@ export function setDealerLocationActive(id: string, active: boolean): DealerLoca
   updateJson<DealerLocation[]>(DEALERS, (all) => all.map((dealer) => {
     if (dealer.id !== id) return dealer;
     updated = { ...dealer, active };
+    return updated;
+  }));
+  return updated;
+}
+
+export function setDealerLocationProfile(
+  id: string,
+  patch: { kind: DealerLocationKind; authorizedInstallation: boolean },
+): DealerLocation | undefined {
+  assertWritable();
+  let updated: DealerLocation | undefined;
+  updateJson<DealerLocation[]>(DEALERS, (all) => all.map((dealer) => {
+    if (dealer.id !== id) return dealer;
+    updated = { ...dealer, ...patch };
     return updated;
   }));
   return updated;
@@ -172,6 +187,7 @@ export function createDealer(input: {
   hours?: string;
   latitude?: number;
   longitude?: number;
+  kind: DealerLocationKind;
   authorizedInstallation?: boolean;
   contactName: string;
   loginEmail: string;
@@ -194,6 +210,7 @@ export function createDealer(input: {
     ...(input.hours ? { hours: input.hours } : {}),
     ...(Number.isFinite(input.latitude) ? { latitude: input.latitude } : {}),
     ...(Number.isFinite(input.longitude) ? { longitude: input.longitude } : {}),
+    kind: input.kind,
     ...(input.authorizedInstallation ? { authorizedInstallation: true } : {}),
     active: true,
     createdAt: now,

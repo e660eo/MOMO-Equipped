@@ -66,6 +66,15 @@ for (const seedDealer of seedDealers) {
 }
 if (dealerLocationsAdded) write("dealers.json", dealers);
 
+const dealerKinds = new Set(["store", "installation", "store_install"]);
+let dealerKindsBackfilled = 0;
+for (const dealer of dealers) {
+  if (dealerKinds.has(dealer.kind)) continue;
+  dealer.kind = dealer.authorizedInstallation ? "store_install" : "store";
+  dealerKindsBackfilled += 1;
+}
+if (dealerKindsBackfilled) write("dealers.json", dealers);
+
 const migrationState = read("data-migrations.json", {});
 const hidePlaceholdersKey = "hide-placeholder-dealers-2026-08-14";
 let dealerLocationsHidden = 0;
@@ -143,4 +152,4 @@ function harden(dir) {
 }
 harden(dataDir);
 
-console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/скрыто ${dealerLocationsHidden}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
+console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/типы ${dealerKindsBackfilled}/скрыто ${dealerLocationsHidden}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
