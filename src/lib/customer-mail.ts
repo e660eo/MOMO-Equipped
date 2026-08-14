@@ -1,5 +1,5 @@
 import { findCustomer } from "./customers";
-import { makeResetToken } from "./customer-auth";
+import { makeEmailVerificationToken, makeResetToken } from "./customer-auth";
 import { sendMailWithRetry, type Letter } from "./mailer";
 import { escapeHtml } from "./sanitize";
 import { SITE_URL } from "./site-url";
@@ -57,6 +57,57 @@ export async function notifyCustomerWelcome(customerId: string): Promise<void> {
     email: customer.email,
     phone: customer.phone,
     resetLink,
+  }));
+  if (!result.ok) throw new Error(result.error);
+}
+
+export function emailVerificationLetter(input: {
+  name: string;
+  email: string;
+  verifyLink: string;
+  welcome?: boolean;
+}): Letter {
+  const name = escapeHtml(input.name);
+  const verifyLink = escapeHtml(input.verifyLink);
+  return {
+    to: [input.email],
+    subject: input.welcome
+      ? "Добро пожаловать — подтвердите почту в MOMO Equipped"
+      : "Подтвердите почту — MOMO Equipped",
+    text: [
+      `Здравствуйте, ${input.name}!`,
+      "",
+      input.welcome ? "Ваш аккаунт MOMO Equipped создан." : "Вы запросили подтверждение почты.",
+      "Подтвердите адрес по ссылке (она действует 24 часа):",
+      input.verifyLink,
+      "",
+      "До подтверждения почты онлайн-оплата недоступна.",
+      "Если это были не вы — просто не открывайте ссылку.",
+    ].join("\n"),
+    html: `<div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#151515;">
+      <p style="font-size:20px;font-weight:700;margin:0 0 16px;">${input.welcome ? "Добро пожаловать" : "Подтвердите почту"}, ${name}!</p>
+      <p>${input.welcome ? "Ваш аккаунт <b>MOMO Equipped</b> создан." : "Вы запросили подтверждение адреса."} Нажмите кнопку, чтобы подтвердить, что почта принадлежит вам.</p>
+      <p style="margin:22px 0;"><a href="${verifyLink}" style="display:inline-block;background:#ff5500;color:#fff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:7px;">Подтвердить почту</a></p>
+      <p style="color:#767676;font-size:13px;">Ссылка действует 24 часа. До подтверждения почты онлайн-оплата недоступна. Если это были не вы — не открывайте ссылку.</p>
+    </div>`,
+  };
+}
+
+export async function notifyCustomerEmailVerification(
+  customerId: string,
+  welcome = false,
+): Promise<void> {
+  const customer = findCustomer(customerId);
+  if (!customer) throw new Error(`Клиент ${customerId} не найден.`);
+  if (customer.emailVerifiedAt) return;
+  const token = makeEmailVerificationToken(customer.id);
+  if (!token) throw new Error("Не удалось создать ссылку подтверждения почты.");
+  const verifyLink = `${SITE_URL}/verify-email?token=${encodeURIComponent(token)}`;
+  const result = await sendMailWithRetry(emailVerificationLetter({
+    name: customer.name,
+    email: customer.email,
+    verifyLink,
+    welcome,
   }));
   if (!result.ok) throw new Error(result.error);
 }

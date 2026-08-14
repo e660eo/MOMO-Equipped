@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/admin-auth";
 import { b2bPriceCounts, DEALER_PRICE_TIER_LABELS, getB2BPriceBook } from "@/lib/b2b-prices";
 import { formatPrice } from "@/lib/format";
 import { getDealerAccounts, getDealerApplications, getDealerLocation, getDealerOrders } from "@/lib/dealers";
-import { resendDealerInvite, setDealerApplicationStatus, setDealerOrderStatus, setDealerTerms } from "./actions";
+import { enableAndSendDealerAccess, resendDealerInvite, setDealerApplicationStatus, setDealerOrderStatus, setDealerTerms } from "./actions";
 
 const APP_LABELS = { new: "Новая", in_work: "В работе", approved: "Одобрена", rejected: "Отклонена" } as const;
 const ORDER_LABELS = { new: "Новый", confirmed: "Подтверждён", shipped: "Отгружен", done: "Выполнен", canceled: "Отменён" } as const;
@@ -30,5 +30,34 @@ export default async function AdminDealersPage({ searchParams }: { searchParams:
     <section className="mt-5 rounded-xl border border-border bg-surface p-5"><div className="flex items-center gap-3"><Building2 className="text-signal" size={21} /><div><h2 className="font-display text-lg font-extrabold uppercase">Дилерские аккаунты</h2><p className="text-xs text-muted-foreground">{accounts.length} аккаунтов</p></div></div><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[980px] text-left text-xs"><thead className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground"><tr><th className="pb-3">Дилер</th><th className="pb-3">Вход</th><th className="pb-3">Состояние</th><th className="pb-3">Условия</th><th className="pb-3 text-right">Доступ</th></tr></thead><tbody className="divide-y divide-border">{accounts.map((account) => { const dealer = getDealerLocation(account.dealerId); const tier = account.priceTier ?? "dealer"; return <tr key={account.id}><td className="py-4"><b>{dealer?.name ?? "Точка удалена"}</b><p className="mt-1 text-muted-foreground">{dealer?.city} · {account.contactName}</p></td><td className="py-4">{account.email}<p className="mt-1 text-muted-foreground">{account.lastLoginAt ? `Был ${new Date(account.lastLoginAt).toLocaleDateString("ru-RU")}` : "Ещё не входил"}</p></td><td className="py-4"><span className={`rounded-full px-2 py-1 font-bold ${account.disabled ? "bg-red-50 text-red-700" : account.activatedAt ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{account.disabled ? "Отключён" : account.activatedAt ? "Активен" : "Ждёт активации"}</span></td><td className="py-4"><form action={setDealerTerms} className="flex items-center gap-2"><input type="hidden" name="accountId" value={account.id} /><select className={`${inputClass} w-40`} name="priceTier" defaultValue={tier}><option value="dealer">{DEALER_PRICE_TIER_LABELS.dealer}</option><option value="dagestan">{DEALER_PRICE_TIER_LABELS.dagestan}</option><option value="wholesale">{DEALER_PRICE_TIER_LABELS.wholesale}</option></select><input className={`${inputClass} w-16`} title="Резервная скидка" type="number" min="0" max="80" step="0.1" name="discountPercent" defaultValue={account.discountPercent} /><span>%</span><label className="flex items-center gap-1"><input type="checkbox" name="disabled" defaultChecked={account.disabled} /> выкл.</label><button className="rounded-md border border-border px-2 py-1.5 font-bold">OK</button></form></td><td className="py-4 text-right"><form action={resendDealerInvite}><input type="hidden" name="accountId" value={account.id} /><button className="font-bold text-signal hover:underline">Новая ссылка</button></form></td></tr>; })}</tbody></table></div></section>
 
     <section className="mt-5 rounded-xl border border-border bg-surface p-5"><div className="flex items-center gap-3"><Package className="text-signal" size={21} /><div><h2 className="font-display text-lg font-extrabold uppercase">Дилерские заказы</h2><p className="text-xs text-muted-foreground">Не смешиваются с розничными заказами.</p></div></div><div className="mt-5 space-y-3">{orders.map((order) => { const dealer = getDealerLocation(order.dealerId); return <article key={order.id} className="rounded-lg border border-border p-4"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-wider text-signal">{ORDER_LABELS[order.status]} · {new Date(order.createdAt).toLocaleString("ru-RU")}</p><h3 className="mt-1 font-bold">{order.id} · {dealer?.name ?? "Дилер"}</h3><p className="mt-1 text-xs text-muted-foreground">{order.items.map((item) => `${item.title} × ${item.qty}`).join("; ")}</p>{order.comment && <p className="mt-2 text-xs">Комментарий: {order.comment}</p>}</div><div className="text-right"><p className="text-lg font-black">{formatPrice(order.total)}</p><form action={setDealerOrderStatus} className="mt-2 flex gap-2"><input type="hidden" name="id" value={order.id} /><select className={inputClass} name="status" defaultValue={order.status}><option value="new">Новый</option><option value="confirmed">Подтверждён</option><option value="shipped">Отгружен</option><option value="done">Выполнен</option><option value="canceled">Отменён</option></select><button className="rounded-md bg-black px-3 text-xs font-bold text-white">Сохранить</button></form></div></div></article>; })}{!orders.length && <p className="rounded-lg bg-black/[.025] p-6 text-center text-sm text-muted-foreground">Дилерские заказы появятся после отправки из кабинета.</p>}</div></section>
+    <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+      <h2 className="font-display text-lg font-extrabold uppercase">Управление доступом</h2>
+      <p className="mt-1 text-xs text-muted-foreground">Включение аккаунта и безопасная ссылка для установки нового пароля.</p>
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {accounts.map((account) => {
+          const dealer = getDealerLocation(account.dealerId);
+          return <article key={`access-${account.id}`} className="rounded-lg border border-border p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-bold">{dealer?.name ?? account.contactName}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{account.email}</p>
+                <p className={`mt-2 text-xs font-semibold ${account.disabled ? "text-red-600" : account.activatedAt ? "text-emerald-700" : "text-amber-700"}`}>
+                  {account.disabled ? "Доступ отключён" : account.activatedAt ? "Доступ активен" : "Ожидает установки пароля"}
+                </p>
+                {account.lastAccessMailAt && <p className={`mt-1 text-[11px] ${account.lastAccessMailError ? "text-red-600" : "text-muted-foreground"}`}>
+                  {account.lastAccessMailError ? `Письмо не отправлено: ${account.lastAccessMailError}` : `Последняя ссылка отправлена ${new Date(account.lastAccessMailAt).toLocaleString("ru-RU")}`}
+                </p>}
+              </div>
+              <form action={enableAndSendDealerAccess}>
+                <input type="hidden" name="accountId" value={account.id} />
+                <button className="rounded-md bg-signal px-3 py-2 text-xs font-bold text-white">
+                  {account.disabled ? "Включить и отправить" : account.activatedAt ? "Новый пароль" : "Активировать"}
+                </button>
+              </form>
+            </div>
+          </article>;
+        })}
+      </div>
+    </section>
   </div>;
 }

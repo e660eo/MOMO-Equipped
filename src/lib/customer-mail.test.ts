@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { welcomeLetter } from "./customer-mail";
+import { emailVerificationLetter, welcomeLetter } from "./customer-mail";
 
 describe("welcomeLetter", () => {
   it("содержит оба логина и безопасную ссылку, но не обещает прислать пароль", () => {
@@ -24,5 +24,19 @@ describe("welcomeLetter", () => {
     });
     expect(letter.html).toContain("&lt;Иван&gt;");
     expect(letter.html).not.toContain("<Иван>");
+  });
+});
+
+describe("emailVerificationLetter", () => {
+  it("contains the signed verification link and no password", () => {
+    const letter = emailVerificationLetter({
+      name: "Иван",
+      email: "ivan@example.com",
+      verifyLink: "https://momo-eq.ru/verify-email?token=safe",
+      welcome: true,
+    });
+    expect(letter.text).toContain("verify-email?token=safe");
+    expect(letter.text).toContain("24 часа");
+    expect(letter.text.toLowerCase()).not.toContain("ваш пароль:");
   });
 });

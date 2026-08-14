@@ -29,6 +29,21 @@ export async function sendDealerInvite(
   return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
 
+export async function sendDealerPasswordReset(
+  account: DealerAccount,
+  dealer: DealerLocation,
+  token: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const url = `${SITE_URL}/dealer/activate?token=${encodeURIComponent(token)}`;
+  const result = await sendMailWithRetry({
+    to: [account.email],
+    subject: "Новый пароль дилерского кабинета MOMO/ZEUS",
+    text: `Здравствуйте, ${account.contactName}!\n\nДля ${dealer.name} запрошена смена пароля. Задайте новый пароль по одноразовой ссылке (действует 72 часа):\n${url}\n\nЕсли это были не вы — не открывайте ссылку.`,
+    html: shell(`<h1 style="margin:0 0 12px;font-size:26px">Смена пароля дилера</h1><p style="line-height:1.6">Здравствуйте, ${escapeHtml(account.contactName)}. Для <b>${escapeHtml(dealer.name)}</b> запрошен новый пароль.</p><a href="${url}" style="display:block;margin-top:22px;background:#ff5500;color:#fff;text-align:center;text-decoration:none;padding:15px;border-radius:8px;font-weight:700">Задать новый пароль</a><p style="margin-top:16px;color:#777;font-size:13px">Ссылка действует 72 часа. Если это были не вы — не открывайте её.</p>`),
+  });
+  return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
 export async function notifyDealerOrder(order: DealerOrder, dealer: DealerLocation): Promise<void> {
   await sendMailWithRetry({
     subject: `Дилерский заказ ${order.id} — ${dealer.name}`,

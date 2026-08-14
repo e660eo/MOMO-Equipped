@@ -137,6 +137,20 @@ export function markDealerLogin(accountId: string): void {
   );
 }
 
+export function recordDealerAccessMail(
+  accountId: string,
+  result: { ok: boolean; error?: string },
+): void {
+  assertWritable();
+  updateJson<DealerAccount[]>(ACCOUNTS, (all) =>
+    all.map((account) => account.id === accountId ? {
+      ...account,
+      lastAccessMailAt: new Date().toISOString(),
+      lastAccessMailError: result.ok ? undefined : result.error?.slice(0, 500),
+    } : account),
+  );
+}
+
 export function createDealer(input: {
   name: string;
   city: string;

@@ -29,6 +29,18 @@ export { dataDir, uploadsDir, seedUploadsDir, isRepoData } from "./store-paths";
 */
 const cache = new Map<string, unknown>();
 
+const PRIVATE_DIR_MODE = 0o700;
+const PRIVATE_FILE_MODE = 0o600;
+
+function makePrivate(target: string, mode: number): void {
+  if (process.platform === "win32") return;
+  try {
+    fs.chmodSync(target, mode);
+  } catch (error) {
+    console.error(`Не удалось ограничить права ${target}:`, error);
+  }
+}
+
 let seeded = false;
 
 /**
@@ -43,12 +55,15 @@ function ensureSeeded(): void {
   const dir = dataDir();
   fs.mkdirSync(dir, { recursive: true });
   fs.mkdirSync(path.join(dir, "uploads"), { recursive: true });
+  makePrivate(dir, PRIVATE_DIR_MODE);
+  makePrivate(path.join(dir, "uploads"), PRIVATE_DIR_MODE);
 
   for (const file of fs.readdirSync(SEED_DIR)) {
     if (!file.endsWith(".json")) continue;
     const target = path.join(dir, file);
     if (!fs.existsSync(target)) {
       fs.copyFileSync(path.join(SEED_DIR, file), target);
+      makePrivate(target, PRIVATE_FILE_MODE);
     }
   }
 
@@ -84,14 +99,18 @@ export function writeJson(file: string, data: unknown): void {
   if (fs.existsSync(full)) {
     const backups = path.join(dir, "backups");
     fs.mkdirSync(backups, { recursive: true });
+    makePrivate(backups, PRIVATE_DIR_MODE);
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    fs.copyFileSync(full, path.join(backups, `${file}.${stamp}`));
+    const backup = path.join(backups, `${file}.${stamp}`);
+    fs.copyFileSync(full, backup);
+    makePrivate(backup, PRIVATE_FILE_MODE);
     pruneBackups(backups, file);
   }
 
   const tmp = `${full}.tmp`;
-  fs.writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  fs.writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, { encoding: "utf8", mode: PRIVATE_FILE_MODE });
   fs.renameSync(tmp, full);
+  makePrivate(full, PRIVATE_FILE_MODE);
   cache.delete(file);
 }
 

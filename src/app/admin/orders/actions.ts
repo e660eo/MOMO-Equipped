@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/admin-auth";
 import { getOrder, updateOrder } from "@/lib/orders";
 import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import type { OrderStatus } from "@/lib/types";
+import type { IntegrationJobType } from "@/lib/types";
 
 /* Работа с заказом из панели: статус и заметка менеджера. */
 
@@ -54,4 +55,17 @@ export async function retryOzonShipment(formData: FormData): Promise<void> {
   revalidatePath(`/admin/orders/${id}`);
   revalidatePath("/admin/orders");
   revalidatePath("/admin");
+}
+
+export async function retryOrderIntegration(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  const type = String(formData.get("type") ?? "") as IntegrationJobType;
+  const allowed: IntegrationJobType[] = ["order_mail", "customer_payment_mail", "fiscal_check"];
+  if (!getOrder(id) || !allowed.includes(type)) return;
+  const kind = String(formData.get("kind") ?? "").slice(0, 40);
+  enqueueIntegrationJob(type, id, kind ? { kind } : undefined);
+  await runIntegrationQueue();
+  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/admin/orders");
 }

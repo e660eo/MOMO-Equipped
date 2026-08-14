@@ -90,7 +90,7 @@ export function CartPageClient() {
   const [lastOrderId, setLastOrderId] = useState("");
   const [sending, setSending] = useState(false);
   const [promoInput, setPromoInput] = useState("");
-  const [promo, setPromo] = useState<{ code: string; percent: number } | null>(
+  const [promo, setPromo] = useState<{ code: string; percent: number; discount: number } | null>(
     null,
   );
   const [promoMsg, setPromoMsg] = useState("");
@@ -136,9 +136,9 @@ export function CartPageClient() {
   const total = cartTotal(items);
   const freeFrom = trust.freeShippingFrom;
 
-  // Скидка по промокоду. Процент подтверждает сервер (checkPromo), но настоящую
-  // проверку и списание делает submitOrder — здесь только показ.
-  const discount = promo ? Math.round((total * promo.percent) / 100) : 0;
+  // Предпросмотр использует тот же серверный расчёт, что окончательный заказ:
+  // ограничения по товарам/категориям и максимальная скидка не расходятся.
+  const discount = promo?.discount ?? 0;
   const payable = total - discount;
   const bonusLimit = customer
     ? Math.min(customer.bonusBalance, Math.floor(payable * 0.3))
@@ -158,6 +158,25 @@ export function CartPageClient() {
   useEffect(() => {
     setDelivery(null);
   }, [phone, items]);
+
+  useEffect(() => {
+    if (!promo?.code) return;
+    let cancelled = false;
+    void checkPromo(
+      promo.code,
+      items.map((item) => ({ slug: item.slug, qty: item.qty })),
+      phone,
+    ).then((result) => {
+      if (cancelled) return;
+      if (result.ok) {
+        setPromo({ code: result.code, percent: result.percent, discount: result.discount });
+      } else {
+        setPromo(null);
+        setPromoMsg(result.error);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [promo?.code, items, phone]);
 
   async function loadMapArea(view: MapView) {
     lastMapViewRef.current = view;
@@ -272,10 +291,14 @@ export function CartPageClient() {
     if (!code) return;
     setPromoBusy(true);
     setPromoMsg("");
-    const res = await checkPromo(code, total);
+    const res = await checkPromo(
+      code,
+      items.map((item) => ({ slug: item.slug, qty: item.qty })),
+      phone,
+    );
     setPromoBusy(false);
     if (res.ok) {
-      setPromo({ code: res.code, percent: res.percent });
+      setPromo({ code: res.code, percent: res.percent, discount: res.discount });
       setPromoInput(res.code);
     } else {
       setPromo(null);
@@ -816,7 +839,7 @@ export function CartPageClient() {
                     Промокод{" "}
                     <b className="font-semibold uppercase">{promo.code}</b> —
                     скидка{" "}
-                    <b className="text-[var(--signal-text)]">{promo.percent}%</b>
+                    <b className="text-[var(--signal-text)]">{formatPrice(promo.discount)} ({promo.percent}%)</b>
                   </span>
                   <button
                     type="button"

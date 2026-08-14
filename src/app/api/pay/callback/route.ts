@@ -101,6 +101,7 @@ export async function POST(request: Request) {
       }
       enqueueIntegrationJob("order_mail", orderId, { kind: "paid" });
       enqueueIntegrationJob("customer_payment_mail", orderId);
+      if (fresh.payment?.receipt) enqueueIntegrationJob("fiscal_check", orderId);
       void runIntegrationQueue();
     }
   }

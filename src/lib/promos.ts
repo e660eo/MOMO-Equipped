@@ -1,5 +1,5 @@
 import { readJson, updateJson, assertWritable } from "./store";
-import type { Promo } from "./types";
+import type { OrderItem, Product, Promo } from "./types";
 import { audit } from "./audit-log";
 
 /*
@@ -59,6 +59,22 @@ export function promoAppliesToProduct(promo: Promo, product: { slug: string; cat
   const hasCategories = Boolean(promo.categories?.length);
   if (!hasProducts && !hasCategories) return true;
   return Boolean(promo.productSlugs?.includes(product.slug) || promo.categories?.includes(product.category));
+}
+
+/** Один расчёт для предпросмотра корзины и окончательного заказа. */
+export function promoDiscountForItems(
+  promo: Promo,
+  items: Pick<OrderItem, "slug" | "price" | "qty">[],
+  products: Pick<Product, "slug" | "category">[],
+): { eligibleSubtotal: number; discount: number } {
+  const catalog = new Map(products.map((product) => [product.slug, product]));
+  const eligibleSubtotal = items.reduce((sum, item) => {
+    const product = catalog.get(item.slug);
+    return product && promoAppliesToProduct(promo, product)
+      ? sum + item.price * item.qty
+      : sum;
+  }, 0);
+  return { eligibleSubtotal, discount: discountForPromo(eligibleSubtotal, promo) };
 }
 
 /** Списать одну активацию — после того как код применён к заказу. */

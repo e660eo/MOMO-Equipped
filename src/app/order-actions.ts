@@ -7,7 +7,7 @@ import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
-import { findValidPromo, discountForPromo, promoAppliesToProduct, redeemPromo } from "@/lib/promos";
+import { findValidPromo, promoDiscountForItems, redeemPromo } from "@/lib/promos";
 import {
   searchRussianPlaces,
   type PublicPlaceResult,
@@ -80,15 +80,36 @@ export async function selectOzonPickup(payload: {
 /* Проверка промокода из корзины: показать скидку до оформления. */
 export async function checkPromo(
   code: string,
-  subtotal = 0,
+  requestedItems: { slug: string; qty: number }[] = [],
+  phone = "",
 ): Promise<
-  { ok: true; code: string; percent: number } | { ok: false; error: string }
+  { ok: true; code: string; percent: number; discount: number; eligibleSubtotal: number }
+  | { ok: false; error: string }
 > {
-  const promo = findValidPromo(typeof code === "string" ? code : "", { subtotal });
+  const products = getProducts();
+  const productMap = new Map(products.map((product) => [product.slug, product]));
+  const items = requestedItems
+    .slice(0, 200)
+    .map((item) => {
+      const product = productMap.get(typeof item?.slug === "string" ? item.slug : "");
+      const qty = Number(item?.qty);
+      return product && Number.isSafeInteger(qty) && qty > 0
+        ? { slug: product.slug, price: product.price, qty: Math.min(qty, 99) }
+        : null;
+    })
+    .filter((item): item is Pick<OrderItem, "slug" | "price" | "qty"> => item !== null);
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const me = await currentCustomer();
+  const customerKey = me?.id ?? phone.replace(/\D/g, "");
+  const promo = findValidPromo(typeof code === "string" ? code : "", { subtotal, customerKey });
   if (!promo) {
     return { ok: false, error: "Промокод не найден или больше не действует." };
   }
-  return { ok: true, code: promo.code, percent: promo.percent };
+  const calculated = promoDiscountForItems(promo, items, products);
+  if (calculated.discount <= 0) {
+    return { ok: false, error: "Промокод не действует на товары в корзине." };
+  }
+  return { ok: true, code: promo.code, percent: promo.percent, ...calculated };
 }
 
 /*
@@ -141,7 +162,7 @@ function tooManyFrom(ip: string): boolean {
 
 export type OrderResult =
   | { ok: true; id: string; paymentUrl?: string }
-  | { ok: false; error: string; requiresAuth?: boolean };
+  | { ok: false; error: string; requiresAuth?: boolean; requiresEmailVerification?: boolean };
 
 export async function submitOrder(payload: {
   name: string;
@@ -168,6 +189,13 @@ export async function submitOrder(payload: {
       ok: false,
       error: "Для оплаты на сайте войдите или зарегистрируйтесь.",
       requiresAuth: true,
+    };
+  }
+  if (payload.pay && me && !me.emailVerifiedAt) {
+    return {
+      ok: false,
+      error: "Подтвердите почту по ссылке из письма — после этого онлайн-оплата станет доступна.",
+      requiresEmailVerification: true,
     };
   }
 
@@ -277,11 +305,7 @@ export async function submitOrder(payload: {
   if (typeof payload.promoCode === "string" && payload.promoCode.trim()) {
     const valid = findValidPromo(payload.promoCode, { subtotal, customerKey });
     if (valid) {
-      const eligibleSubtotal = items.reduce((sum, item) => {
-        const product = catalog.get(item.slug);
-        return product && promoAppliesToProduct(valid, product) ? sum + item.price * item.qty : sum;
-      }, 0);
-      const discount = discountForPromo(eligibleSubtotal, valid);
+      const { discount } = promoDiscountForItems(valid, items, [...catalog.values()]);
       if (discount <= 0) return { ok: false, error: "Промокод не действует на товары в корзине." };
       total = subtotal - discount;
       promo = { code: valid.code, percent: valid.percent, discount };
@@ -391,6 +415,7 @@ export async function submitOrder(payload: {
           amount: payment.amount,
           updatedAt: new Date().toISOString(),
           sandbox: payment.sandbox,
+          ...(payment.receipt ? { receipt: payment.receipt } : {}),
         });
         return { ok: true, id: order.id, paymentUrl: payment.url };
       } catch (e) {

@@ -133,6 +133,8 @@ export interface Customer {
   address?: string;
   createdAt: string;
   lastLoginAt?: string;
+  /** Email подтверждён переходом по одноразовой подписанной ссылке. */
+  emailVerifiedAt?: string;
   /** Внутренние данные панели — покупателю не показываются. */
   admin?: {
     note?: string;
@@ -185,10 +187,27 @@ export type OrderStatus = "new" | "in_work" | "done" | "canceled";
 export interface OrderHistoryEntry {
   at: string;
   actor: string;
-  type: "created" | "status" | "note" | "payment" | "delivery" | "bonus";
+  type: "created" | "status" | "note" | "payment" | "delivery" | "bonus" | "notification" | "receipt";
   from?: string;
   to?: string;
   detail?: string;
+}
+
+export interface OrderFiscalReceipt {
+  provider: "yandex_pay";
+  /**
+   * Yandex Pay подтверждает приём реквизитов чека, но Merchant API не отдаёт
+   * номер фискального документа и факт доставки письма ОФД.
+   */
+  status: "submitted" | "payment_confirmed" | "error";
+  contact: string;
+  submittedAt: string;
+  checkedAt?: string;
+  /** Идентификатор платёжной операции — не номер кассового чека. */
+  operationId?: string;
+  operationStatus?: "PENDING" | "SUCCESS" | "FAIL";
+  payloadConfirmed?: boolean;
+  error?: string;
 }
 
 /*
@@ -229,6 +248,8 @@ export interface OrderPayment {
   updatedAt: string;
   /** Песочница или боевой приём денег — чтобы тестовые не считались выручкой. */
   sandbox: boolean;
+  /** Контроль передачи данных для электронного фискального чека. */
+  receipt?: OrderFiscalReceipt;
 }
 
 export interface OzonDeliverySplit {
@@ -374,6 +395,8 @@ export interface DealerAccount {
   disabled?: boolean;
   inviteHash?: string;
   inviteExpiresAt?: string;
+  lastAccessMailAt?: string;
+  lastAccessMailError?: string;
 }
 
 export type DealerApplicationStatus = "new" | "in_work" | "approved" | "rejected";
@@ -433,7 +456,9 @@ export type IntegrationJobType =
   | "ozon_shipment"
   | "order_mail"
   | "customer_payment_mail"
-  | "customer_welcome";
+  | "customer_welcome"
+  | "customer_email_verification"
+  | "fiscal_check";
 
 export interface IntegrationJob {
   id: string;
@@ -445,6 +470,7 @@ export interface IntegrationJob {
   createdAt: string;
   updatedAt: string;
   lastError?: string;
+  lastResult?: string;
   payload?: Record<string, string>;
 }
 

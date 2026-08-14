@@ -5,8 +5,9 @@ import { getOrder, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { cn } from "@/lib/utils";
-import { retryOzonShipment, setOrderStatus, setOrderNote } from "../actions";
+import { retryOrderIntegration, retryOzonShipment, setOrderStatus, setOrderNote } from "../actions";
 import type { OrderStatus } from "@/lib/types";
+import { getIntegrationJobsForEntity } from "@/lib/job-queue";
 
 /* Карточка заказа: состав, контакты, статус и заметка менеджера. */
 
@@ -22,6 +23,7 @@ export default async function AdminOrderPage({
   const { id } = await params;
   const order = getOrder(id);
   if (!order) notFound();
+  const integrationJobs = getIntegrationJobsForEntity(order.id);
 
   const { customer } = order;
   const waText = encodeURIComponent(
@@ -90,6 +92,8 @@ export default async function AdminOrderPage({
               написать в WhatsApp
             </a>
           </dd>
+          <dt className="text-muted-foreground">Email</dt>
+          <dd>{customer.email ? <a href={`mailto:${customer.email}`} className="hover:text-signal">{customer.email}</a> : <span className="text-[var(--signal-text)]">Не указан — письмо и чек по email не отправить</span>}</dd>
           <dt className="text-muted-foreground">Адрес</dt>
           <dd>{customer.address}</dd>
           {customer.comment && (
@@ -185,6 +189,33 @@ export default async function AdminOrderPage({
         </section>
       )}
 
+      {order.payment?.receipt && (
+        <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+          <h2 className="font-display text-base font-extrabold uppercase">Электронный чек</h2>
+          <p className={`mt-2 text-sm font-semibold ${order.payment.receipt.status === "error" ? "text-red-600" : "text-emerald-700"}`}>
+            {order.payment.receipt.status === "payment_confirmed"
+              ? "Оплата подтверждена, реквизиты чека приняты"
+              : order.payment.receipt.status === "submitted"
+                ? "Реквизиты чека переданы в Yandex Pay"
+                : "Ошибка проверки реквизитов чека"}
+          </p>
+          <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-[190px_1fr]">
+            <dt className="text-muted-foreground">Контакт для чека</dt><dd>{order.payment.receipt.contact}</dd>
+            <dt className="text-muted-foreground">Передано</dt><dd>{new Date(order.payment.receipt.submittedAt).toLocaleString("ru-RU")}</dd>
+            <dt className="text-muted-foreground">Последняя сверка</dt><dd>{order.payment.receipt.checkedAt ? new Date(order.payment.receipt.checkedAt).toLocaleString("ru-RU") : "Ещё не выполнялась"}</dd>
+            <dt className="text-muted-foreground">Операция Yandex Pay</dt><dd className="break-all font-mono">{order.payment.receipt.operationId ?? "Пока не получена"}{order.payment.receipt.operationStatus ? ` · ${order.payment.receipt.operationStatus}` : ""}</dd>
+            <dt className="text-muted-foreground">Номер кассового чека</dt><dd>Merchant API Yandex Pay его не возвращает; для номера нужен API АТОЛ/CloudKassir.</dd>
+            <dt className="text-muted-foreground">Доставка письма ОФД</dt><dd>Yandex Pay не передаёт подтверждение доставки. Ниже отдельно виден результат письма магазина.</dd>
+          </dl>
+          {order.payment.receipt.error && <p className="mt-3 rounded-sm border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-700">{order.payment.receipt.error}</p>}
+          <form action={retryOrderIntegration} className="mt-4">
+            <input type="hidden" name="id" value={order.id} />
+            <input type="hidden" name="type" value="fiscal_check" />
+            <button className="rounded-sm border border-border px-4 py-2 text-xs font-semibold hover:border-signal hover:text-signal">Повторно сверить с Yandex Pay</button>
+          </form>
+        </section>
+      )}
+
       {order.delivery && (
         <section className="mt-5 rounded-xl border border-border bg-surface p-5">
           <h2 className="font-display text-base font-extrabold uppercase">
@@ -222,6 +253,20 @@ export default async function AdminOrderPage({
           )}
         </section>
       )}
+
+      <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-display text-base font-extrabold uppercase">Письма и интеграции</h2>
+        {integrationJobs.length ? <div className="mt-4 space-y-3">{integrationJobs.map((job) => {
+          const labels = { order_mail: "Письмо администратору", customer_payment_mail: "Письмо покупателю", ozon_shipment: "Отправление Ozon", fiscal_check: "Проверка чека", customer_welcome: "Приветственное письмо", customer_email_verification: "Подтверждение email" } as const;
+          return <article key={job.id} className="rounded-lg border border-border p-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2"><b>{labels[job.type]}</b><span className={job.status === "done" ? "text-emerald-700" : job.status === "failed" ? "text-red-600" : "text-amber-700"}>{job.status === "done" ? "Выполнено" : job.status === "failed" ? "Ошибка" : job.status === "running" ? "Выполняется" : "В очереди"} · попыток {job.attempts}</span></div>
+            <p className="mt-1 text-muted-foreground">Обновлено {new Date(job.updatedAt).toLocaleString("ru-RU")}</p>
+            {job.lastResult && <p className="mt-2 text-emerald-700">{job.lastResult}</p>}
+            {job.lastError && <p className="mt-2 text-red-600">{job.lastError}</p>}
+            {job.status === "failed" && ["order_mail", "customer_payment_mail", "fiscal_check"].includes(job.type) && <form action={retryOrderIntegration} className="mt-2"><input type="hidden" name="id" value={order.id} /><input type="hidden" name="type" value={job.type} /><input type="hidden" name="kind" value={job.payload?.kind ?? ""} /><button className="font-semibold text-signal hover:underline">Повторить сейчас</button></form>}
+          </article>;
+        })}</div> : <p className="mt-3 text-sm text-muted-foreground">Для старого заказа задачи интеграций не записаны.</p>}
+      </section>
 
       {/* Заметка */}
       <form action={setOrderNote} className="mt-5">

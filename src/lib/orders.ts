@@ -7,6 +7,8 @@ import type {
   PaymentStatus,
   Product,
   OrderDelivery,
+  OrderFiscalReceipt,
+  OrderHistoryEntry,
 } from "./types";
 import { audit } from "./audit-log";
 import { reconcileOrderBonus } from "./bonus-ledger";
@@ -298,6 +300,53 @@ export function updatePaymentStatus(id: string, status: PaymentStatus): boolean 
     updatedAt: new Date().toISOString(),
   });
   return true;
+}
+
+export function updateOrderReceipt(id: string, receipt: OrderFiscalReceipt): void {
+  assertWritable();
+  updateJson<Order[]>(FILE, (all) =>
+    all.map((order) => {
+      if (order.id !== id || !order.payment) return order;
+      const previous = order.payment.receipt;
+      const changed = !previous ||
+        previous.status !== receipt.status ||
+        previous.error !== receipt.error ||
+        previous.operationId !== receipt.operationId ||
+        previous.payloadConfirmed !== receipt.payloadConfirmed;
+      return {
+        ...order,
+        payment: { ...order.payment, receipt },
+        history: changed ? [
+          ...(order.history ?? []),
+          {
+            at: new Date().toISOString(),
+            actor: "Yandex Pay",
+            type: "receipt" as const,
+            to: receipt.status,
+            detail: receipt.error ?? (receipt.payloadConfirmed
+              ? "Реквизиты электронного чека подтверждены API"
+              : "Данные электронного чека переданы"),
+          },
+        ] : order.history,
+      };
+    }),
+  );
+  audit({
+    entity: "order",
+    entityId: id,
+    action: "receipt_checked",
+    summary: `Фискализация: ${receipt.status}`,
+    after: receipt,
+  });
+}
+
+export function appendOrderHistory(id: string, entry: OrderHistoryEntry): void {
+  assertWritable();
+  updateJson<Order[]>(FILE, (all) =>
+    all.map((order) => order.id === id
+      ? { ...order, history: [...(order.history ?? []), entry].slice(-300) }
+      : order),
+  );
 }
 
 /** Обновить только состояние отправления Ozon, не затрагивая оплату и заказ. */

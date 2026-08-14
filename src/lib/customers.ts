@@ -212,6 +212,25 @@ export function touchLogin(id: string): void {
   }
 }
 
+/** Подтвердить владение email. Повторный переход по ссылке идемпотентен. */
+export function markCustomerEmailVerified(id: string): boolean {
+  assertWritable();
+  const customer = findCustomer(id);
+  if (!customer) return false;
+  if (customer.emailVerifiedAt) return true;
+  const verifiedAt = new Date().toISOString();
+  updateJson<Customer[]>(FILE, (all) =>
+    all.map((item) => item.id === id ? { ...item, emailVerifiedAt: verifiedAt } : item),
+  );
+  audit({
+    entity: "customer",
+    entityId: id,
+    action: "email_verified",
+    summary: `Подтверждён email клиента ${customer.email}`,
+  });
+  return true;
+}
+
 export function updateCustomerAdmin(id: string, input: { note: string; tags: string[]; event?: string }): boolean {
   assertWritable();
   const customer = findCustomer(id);

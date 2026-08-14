@@ -9,7 +9,7 @@ import { useToast } from "@/lib/toast-store";
 import { formatPrice } from "@/lib/format";
 import { isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "./phone-input";
-import { saveProfile, signOut, deleteMyAccount } from "@/app/customer-actions";
+import { saveProfile, signOut, deleteMyAccount, resendEmailVerification } from "@/app/customer-actions";
 import { STATUS_LABELS } from "@/lib/order-status";
 import type { Order, PublicCustomer } from "@/lib/types";
 import { notifyCustomerSessionChanged } from "./customer-provider";
@@ -127,6 +127,20 @@ export function ProfileView({
     router.push("/");
   }
 
+  async function resendVerification() {
+    setBusy(true);
+    const result = await resendEmailVerification();
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error ?? "Не получилось отправить письмо.");
+      return;
+    }
+    pushToast({
+      title: "Письмо отправляется",
+      description: "Откройте ссылку из письма. Она действует 24 часа.",
+    });
+  }
+
   return (
     <main className="mx-auto max-w-[1000px] px-4 py-12 sm:px-6 sm:py-14">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -166,6 +180,23 @@ export function ProfileView({
           </div>
         </div>
       </section>
+
+      {!customer.emailVerifiedAt && (
+        <section className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <div>
+            <p className="text-sm font-semibold">Подтвердите почту {customer.email}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Это защищает аккаунт и открывает онлайн-оплату.</p>
+          </div>
+          <button
+            type="button"
+            onClick={resendVerification}
+            disabled={busy}
+            className="rounded-sm border border-amber-600/40 px-4 py-2 text-xs font-semibold disabled:opacity-60"
+          >
+            Отправить письмо ещё раз
+          </button>
+        </section>
+      )}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,380px)_1fr]">
         {/* Данные доставки */}

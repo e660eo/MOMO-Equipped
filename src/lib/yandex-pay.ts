@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { SITE_URL } from "./site-url";
-import type { Order, PaymentStatus } from "./types";
+import type { Order, OrderFiscalReceipt, PaymentStatus } from "./types";
 import { allocatedGoodsLineTotals } from "./order-totals";
 
 /*
@@ -166,6 +166,7 @@ export interface CreatedPayment {
   amount: number;
   sandbox: boolean;
   token: string;
+  receipt?: OrderFiscalReceipt;
 }
 
 /**
@@ -257,18 +258,72 @@ export async function createPayment(order: Order): Promise<CreatedPayment> {
     throw new Error(`Яндекс Пэй не принял заказ: ${detail}`);
   }
 
-  return { url: body.data.paymentUrl, amount: total, sandbox: config.sandbox, token };
+  return {
+    url: body.data.paymentUrl,
+    amount: total,
+    sandbox: config.sandbox,
+    token,
+    ...(fiscal ? {
+      receipt: {
+        provider: "yandex_pay",
+        status: "submitted",
+        contact: fiscalContact(order.customer.email, order.customer.phone),
+        submittedAt: new Date().toISOString(),
+      } satisfies OrderFiscalReceipt,
+    } : {}),
+  };
 }
 
 /* ------------------------------- проверка --------------------------------- */
 
 interface FetchedOrder {
   data?: {
+    operations?: Array<{
+      operationId?: string;
+      status?: "PENDING" | "SUCCESS" | "FAIL";
+      operationType?: string;
+      updated?: string;
+    }>;
     order?: {
       orderId?: string;
       paymentStatus?: string;
-      cart?: { total?: { amount?: string } };
+      fiscalContact?: string;
+      updated?: string;
+      cart?: {
+        total?: { amount?: string };
+        items?: Array<{ receipt?: { tax?: number } | null }>;
+      };
     };
+  };
+}
+
+export interface PaymentDetails {
+  status: PaymentStatus | null;
+  fiscalContact?: string;
+  receiptPayloadConfirmed: boolean;
+  operationId?: string;
+  operationStatus?: "PENDING" | "SUCCESS" | "FAIL";
+  updatedAt?: string;
+}
+
+export function paymentDetailsFromResponse(body: FetchedOrder): PaymentDetails {
+  const remoteOrder = body.data?.order;
+  const items = remoteOrder?.cart?.items ?? [];
+  const operation = (body.data?.operations ?? [])
+    .slice()
+    .sort((a, b) => (b.updated ?? "").localeCompare(a.updated ?? ""))
+    .find((item) => item.operationId);
+  return {
+    status: toPaymentStatus(remoteOrder?.paymentStatus),
+    ...(remoteOrder?.fiscalContact ? { fiscalContact: remoteOrder.fiscalContact } : {}),
+    receiptPayloadConfirmed: Boolean(
+      remoteOrder?.fiscalContact &&
+      items.length > 0 &&
+      items.every((item) => Number.isInteger(item.receipt?.tax)),
+    ),
+    ...(operation?.operationId ? { operationId: operation.operationId } : {}),
+    ...(operation?.status ? { operationStatus: operation.status } : {}),
+    ...(remoteOrder?.updated ? { updatedAt: remoteOrder.updated } : {}),
   };
 }
 
@@ -297,8 +352,18 @@ function toPaymentStatus(raw: string | undefined): PaymentStatus | null {
 export async function fetchPaymentStatus(
   orderId: string,
 ): Promise<PaymentStatus | null> {
+  return (await fetchPaymentDetails(orderId)).status;
+}
+
+/**
+ * Сверить оплату и доказуемую часть фискализации. Merchant API не отдаёт
+ * номер фискального документа и доставку письма ОФД, поэтому здесь храним
+ * только то, что действительно подтверждает Яндекс: контакт, реквизиты строк
+ * и идентификатор платёжной операции.
+ */
+export async function fetchPaymentDetails(orderId: string): Promise<PaymentDetails> {
   const config = payConfig();
-  if (!config) return null;
+  if (!config) return { status: null, receiptPayloadConfirmed: false };
 
   const response = await fetch(
     `${apiBase(config)}/orders/${encodeURIComponent(orderId)}`,
@@ -313,7 +378,7 @@ export async function fetchPaymentStatus(
   }
 
   const body = (await response.json()) as FetchedOrder;
-  return toPaymentStatus(body.data?.order?.paymentStatus);
+  return paymentDetailsFromResponse(body);
 }
 
 /* -------------------------- проверка подписи ------------------------------ */

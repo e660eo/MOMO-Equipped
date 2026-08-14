@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
 import { audit } from "@/lib/audit-log";
-import { sendDealerInvite } from "@/lib/dealer-mail";
+import { sendDealerInvite, sendDealerPasswordReset } from "@/lib/dealer-mail";
 import {
   createDealer,
   findDealerAccount,
   getDealerLocation,
   issueDealerInvite,
+  recordDealerAccessMail,
   updateDealerApplication,
   updateDealerOrderStatus,
   updateDealerTerms,
@@ -77,15 +78,32 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
 }
 
 export async function resendDealerInvite(formData: FormData): Promise<void> {
+  await enableAndSendDealerAccess(formData);
+}
+
+/** Включить доступ и отправить дилеру ссылку установки нового пароля. */
+export async function enableAndSendDealerAccess(formData: FormData): Promise<void> {
   await requireSession();
   const accountId = text(formData, "accountId", 80);
   const account = findDealerAccount(accountId);
   const dealer = account ? getDealerLocation(account.dealerId) : undefined;
   if (!account || !dealer) return;
+
+  if (account.disabled) updateDealerTerms(account.id, { disabled: false });
+  const enabled = findDealerAccount(account.id);
   const token = issueDealerInvite(account.id);
-  if (!token) return;
-  await sendDealerInvite(findDealerAccount(account.id)!, dealer, token);
-  audit({ entity: "dealer", entityId: account.id, action: "invite_reissued", summary: `Повторно отправлена активация: ${account.email}` });
+  if (!enabled || !token) return;
+  const result = enabled.activatedAt
+    ? await sendDealerPasswordReset(enabled, dealer, token)
+    : await sendDealerInvite(enabled, dealer, token);
+  recordDealerAccessMail(account.id, result);
+  audit({
+    entity: "dealer",
+    entityId: account.id,
+    action: "access_link_sent",
+    summary: `${account.disabled ? "Дилер включён; " : ""}отправлена ссылка нового пароля: ${account.email}`,
+    after: { mailSent: result.ok },
+  });
   revalidatePath("/admin/dealers");
 }
 

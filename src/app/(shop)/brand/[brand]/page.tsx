@@ -7,8 +7,6 @@ import { SeoCatalogLanding } from "@/components/seo-catalog-landing";
 
 const SEO_BRANDS = ["momo", "zeus"] as const;
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return SEO_BRANDS.map((brand) => ({ brand }));
 }

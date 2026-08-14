@@ -11,6 +11,7 @@ import {
   deleteCustomer,
   findByLogin,
   setCustomerPassword,
+  markCustomerEmailVerified,
 } from "@/lib/customers";
 import {
   startCustomerSession,
@@ -18,9 +19,17 @@ import {
   currentCustomer,
   makeResetToken,
   verifyResetToken,
+  verifyEmailVerificationToken,
 } from "@/lib/customer-auth";
 import { endDealerSession, startDealerSession } from "@/lib/dealer-auth";
-import { findDealerAccountByEmail, markDealerLogin } from "@/lib/dealers";
+import {
+  findDealerAccountByEmail,
+  getDealerLocation,
+  issueDealerInvite,
+  markDealerLogin,
+  recordDealerAccessMail,
+} from "@/lib/dealers";
+import { sendDealerPasswordReset } from "@/lib/dealer-mail";
 import { verifyPassword } from "@/lib/password";
 import {
   sendMailWithRetry,
@@ -134,7 +143,7 @@ export async function signUp(input: {
       return result;
     }
     await startCustomerSession(result.customer.id);
-    enqueueIntegrationJob("customer_welcome", result.customer.id);
+    enqueueIntegrationJob("customer_email_verification", result.customer.id, { kind: "welcome" });
     void runIntegrationQueue();
     revalidatePath("/", "layout");
     return { ok: true, customer: result.customer };
@@ -320,16 +329,58 @@ export async function requestPasswordReset(
 
   const login = typeof email === "string" ? email.trim() : "";
   if (login) {
-    const customer = findByLogin(login);
-    if (customer?.email) {
-      const token = makeResetToken(customer.id);
-      if (token) {
-        const link = `${SITE_URL}/reset-password?token=${encodeURIComponent(token)}`;
-        void sendResetEmail(customer.email, customer.name, link);
+    const normalized = login.toLowerCase();
+    const dealer = normalized.includes("@")
+      ? findDealerAccountByEmail(normalized)
+      : undefined;
+    if (dealer && !dealer.disabled && dealer.activatedAt) {
+      try {
+        const location = getDealerLocation(dealer.dealerId);
+        const token = issueDealerInvite(dealer.id);
+        if (location && token) {
+          void sendDealerPasswordReset(dealer, location, token).then((result) => {
+            try {
+              recordDealerAccessMail(dealer.id, result);
+            } catch (error) {
+              console.error("dealer reset status:", error);
+            }
+          });
+        }
+      } catch (error) {
+        // Форма всегда отвечает одинаково, но настоящая причина остаётся в логе.
+        console.error("dealer password reset:", error);
+      }
+    } else {
+      const customer = findByLogin(login);
+      if (customer?.email) {
+        const token = makeResetToken(customer.id);
+        if (token) {
+          const link = `${SITE_URL}/reset-password?token=${encodeURIComponent(token)}`;
+          void sendResetEmail(customer.email, customer.name, link);
+        }
       }
     }
   }
   return { ok: true };
+}
+
+/** Повторно отправить письмо подтверждения текущему покупателю. */
+export async function resendEmailVerification(): Promise<{ ok: boolean; error?: string }> {
+  const me = await currentCustomer();
+  if (!me) return { ok: false, error: "Сначала войдите в аккаунт." };
+  if (me.emailVerifiedAt) return { ok: true };
+  enqueueIntegrationJob("customer_email_verification", me.id, { kind: "resend" });
+  void runIntegrationQueue();
+  return { ok: true };
+}
+
+/** Подтверждение по подписанной ссылке из письма. */
+export async function confirmEmailByToken(token: string): Promise<boolean> {
+  const id = verifyEmailVerificationToken(typeof token === "string" ? token : "");
+  if (!id) return false;
+  const ok = markCustomerEmailVerified(id);
+  if (ok) revalidatePath("/", "layout");
+  return ok;
 }
 
 /** Установить новый пароль по токену из письма и сразу войти. */
@@ -355,6 +406,9 @@ export async function resetPassword(
     if (!setCustomerPassword(id, password)) {
       return { ok: false, error: "Аккаунт не найден." };
     }
+    // Ссылка пришла на этот email, поэтому успешный сброс одновременно
+    // доказывает владение адресом и не требует второго письма.
+    markCustomerEmailVerified(id);
     // Смена пароля рвёт старые сессии (отпечаток), поэтому сразу выдаём новую.
     await startCustomerSession(id);
     revalidatePath("/", "layout");

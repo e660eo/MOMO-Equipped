@@ -163,7 +163,7 @@ export function AuthModal() {
     setRgPassConfirm("");
     pushToast({
       title: `Добро пожаловать, ${rgName.trim().split(/\s+/)[0]}!`,
-      description: "Аккаунт создан. Письмо с логином отправим на вашу почту.",
+      description: "Аккаунт создан. Подтвердите почту по ссылке из письма.",
     });
     finishCustomerAuth();
   }

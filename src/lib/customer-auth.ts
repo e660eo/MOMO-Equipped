@@ -159,3 +159,40 @@ export function verifyResetToken(token: string | undefined): string | null {
   if (fingerprint(customer.passwordHash) !== fp) return null;
   return id;
 }
+
+/* ----------------------- подтверждение email ---------------------------- */
+
+const VERIFY_EMAIL_TTL_MS = 24 * 60 * 60 * 1000;
+
+function emailFingerprint(email: string): string {
+  return crypto.createHash("sha256").update(email.trim().toLowerCase()).digest("base64url").slice(0, 16);
+}
+
+function verificationSign(payload: string): string {
+  return crypto
+    .createHmac("sha256", secret())
+    .update(`verify-email:${payload}`)
+    .digest("base64url");
+}
+
+export function makeEmailVerificationToken(customerId: string): string | null {
+  const customer = findCustomer(customerId);
+  if (!customer || !secret()) return null;
+  const payload = `${customer.id}.${Date.now() + VERIFY_EMAIL_TTL_MS}.${emailFingerprint(customer.email)}`;
+  return `${payload}.${verificationSign(payload)}`;
+}
+
+export function verifyEmailVerificationToken(token: string | undefined): string | null {
+  if (!token || !secret()) return null;
+  const parts = token.split(".");
+  if (parts.length !== 4) return null;
+  const [id, expires, fp, signature] = parts;
+  const payload = `${id}.${expires}.${fp}`;
+  const expected = Buffer.from(verificationSign(payload));
+  const actual = Buffer.from(signature);
+  if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return null;
+  if (Number(expires) < Date.now()) return null;
+  const customer = findCustomer(id);
+  if (!customer || emailFingerprint(customer.email) !== fp) return null;
+  return id;
+}

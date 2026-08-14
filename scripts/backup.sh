@@ -9,6 +9,7 @@
 # KEEP архивов по умолчанию 14 — при суточном запуске это две недели истории.
 #
 set -euo pipefail
+umask 077
 
 cd "$(dirname "$0")/.."
 # У крона минимальный PATH — tar/gzip/du могут быть не видны без этого.
@@ -26,12 +27,14 @@ if [ ! -d "$DATA_DIR" ]; then
 fi
 
 mkdir -p "$BACKUP_DIR"
+chmod 700 "$DATA_DIR" "$BACKUP_DIR"
 STAMP="$(date +%Y-%m-%d_%H%M)"
 ARCHIVE="$BACKUP_DIR/momo-data-$STAMP.tar.gz"
 
 # Архивируем всё, кроме самой папки backups — иначе каждый новый бэкап тащил
 # бы в себя все прежние и рос лавиной.
 tar -czf "$ARCHIVE" -C "$DATA_DIR" --exclude=backups .
+chmod 600 "$ARCHIVE"
 echo "$(date '+%F %T') Бэкап готов: $ARCHIVE ($(du -h "$ARCHIVE" | cut -f1))"
 
 # Чистка: оставляем последние KEEP архивов (по времени), остальные удаляем.
