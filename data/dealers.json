@@ -11,5 +11,32 @@
     "longitude": 47.5047,
     "active": true,
     "createdAt": "2026-08-13T00:00:00.000Z"
+  },
+  {
+    "id": "r2v-krasnodar",
+    "name": "R2V",
+    "city": "Краснодар",
+    "address": "ул. Бородинская, 158",
+    "phone": "+7 928 228-26-99",
+    "email": "r2v_shop@mail.ru",
+    "website": "https://r2v.ru/",
+    "hours": "Пн–Сб: 10:00–19:00; Вс: 11:00–17:00",
+    "latitude": 45.0066413,
+    "longitude": 39.1031044,
+    "active": true,
+    "createdAt": "2026-08-14T00:00:00.000Z"
+  },
+  {
+    "id": "avtogruppa-rostov",
+    "name": "АвтоГруппа",
+    "city": "Ростов-на-Дону",
+    "address": "ул. Доватора, 144/30, офис 16",
+    "phone": "+7 988 519-19-19",
+    "email": "zakaz@agruppa.ru",
+    "website": "https://agruppa.ru/",
+    "latitude": 47.2379636,
+    "longitude": 39.6151829,
+    "active": true,
+    "createdAt": "2026-08-14T00:00:00.000Z"
   }
 ]

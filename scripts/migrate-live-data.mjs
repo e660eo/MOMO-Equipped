@@ -55,6 +55,17 @@ for (const product of products) {
 }
 if (availabilityFixed) write("products.json", products);
 
+const seedDealersFile = path.join(root, "data", "dealers.json");
+const seedDealers = JSON.parse(fs.readFileSync(seedDealersFile, "utf8"));
+const dealers = read("dealers.json");
+let dealerLocationsAdded = 0;
+for (const seedDealer of seedDealers) {
+  if (dealers.some((dealer) => dealer.id === seedDealer.id)) continue;
+  dealers.push(seedDealer);
+  dealerLocationsAdded += 1;
+}
+if (dealerLocationsAdded) write("dealers.json", dealers);
+
 const fiscalEnabled = process.env.YANDEX_PAY_LIVE?.trim() === "1" || process.env.YANDEX_PAY_FISCAL?.trim() === "1";
 const orders = read("orders.json");
 let orderChanges = 0;
@@ -116,4 +127,4 @@ function harden(dir) {
 }
 harden(dataDir);
 
-console.log(`  Миграция данных: наличие ${availabilityFixed}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
+console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры ${dealerLocationsAdded}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
