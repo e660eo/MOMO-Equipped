@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { HeroLogo } from "@/components/hero-logo";
 import {
   Disc3,
   Zap,
@@ -89,32 +90,34 @@ export default function Home() {
 
   return (
     <main className="overflow-x-hidden">
-      {/* HERO — неоновые звуковые ленты Strands на тёмном поле */}
+      {/* HERO — чёрная звуковая линия на белой плашке за логотипом */}
       <section className="border-b border-border">
-        <div className="relative overflow-hidden bg-[#100d17] text-white">
-          {/* ReactBits Strands: неоновые ленты как на референсе */}
+        <div className="relative overflow-hidden bg-white text-zinc-900">
+          {/* фон: WebGL-шейдер — чёрная звуковая линия на белом */}
           <HeroBackdrop />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_64%_60%_at_50%_48%,transparent_34%,rgba(16,13,23,0.2)_68%,rgba(16,13,23,0.78)_100%)]" />
-          <div className="pointer-events-none absolute inset-2 rounded-2xl border border-white/[0.09] sm:inset-3" />
+          {/* мягкое высветление за текстом для читаемости */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_54%_at_50%_44%,rgba(255,255,255,0.92),rgba(255,255,255,0.45)_58%,transparent_82%)]" />
 
           <div className="relative z-10 mx-auto max-w-[1100px] px-6 pb-14 pt-10 text-center">
-            <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-white/50 before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
+            <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-neutral-500 before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
               Автоакустика · с 2015 года
             </p>
 
             {/* Слоган остаётся единственным заголовком первого экрана. */}
-            <h1 className="mt-4 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-white/85">
+            <h1 className="mt-4 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-neutral-600">
               Звук, который чувствуешь
             </h1>
 
-            {/* Свободная сцена для Strands — без объектов поверх свечения. */}
-            <div aria-hidden="true" className="h-[250px] sm:h-[330px]" />
+            {/* Логотип остаётся самым крупным объектом первого экрана. */}
+            <div className="mt-5 flex items-center justify-center">
+              <HeroLogo className="w-[clamp(260px,52vw,660px)]" />
+            </div>
 
-            <div className="mx-auto mt-6 max-w-2xl border-y border-white/10 py-4">
-              <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-white sm:text-lg">
+            <div className="mx-auto mt-6 max-w-2xl border-y border-neutral-200/80 py-4">
+              <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-zinc-900 sm:text-lg">
                 Автоакустика MOMO и ZEUS
               </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-white/60 sm:text-base">
+              <p className="mt-1.5 text-sm leading-relaxed text-neutral-600 sm:text-base">
                 Сабвуферы, усилители, динамики и готовые системы автозвука.
               </p>
             </div>
@@ -128,7 +131,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/contacts"
-                className="inline-flex rounded-sm border border-white/20 bg-white/[0.06] px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:border-signal hover:text-signal"
+                className="inline-flex rounded-sm border border-neutral-300 bg-white/70 px-7 py-3.5 text-sm font-semibold text-zinc-900 backdrop-blur-sm transition-colors hover:border-signal hover:text-signal"
               >
                 Подобрать комплект
               </Link>
