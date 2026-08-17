@@ -434,11 +434,35 @@ html[data-theme-vt="active"]::view-transition-group(root) {
 }
 
 /* ── Звуковая линия на первом экране ──
-   Рисуется разметкой, без WebGL: см. hero-backdrop.tsx. Движется только
-   transform — ни пересчёта раскладки, ни перерисовки, работа на композиторе. */
+   SVG — резерв под объёмным WebGL Strands: виден до гидратации и в браузерах
+   без WebGL2. Маска уводит нити в белый фон без жёстких прямоугольных краёв. */
+.hero-strands {
+  opacity: 0.9;
+  filter: contrast(1.06) saturate(0.94);
+  -webkit-mask-image: radial-gradient(
+    ellipse 72% 62% at 50% 48%,
+    #000 0%,
+    rgba(0, 0, 0, 0.96) 48%,
+    transparent 82%
+  );
+  mask-image: radial-gradient(
+    ellipse 72% 62% at 50% 48%,
+    #000 0%,
+    rgba(0, 0, 0, 0.96) 48%,
+    transparent 82%
+  );
+}
+.hero-strands canvas {
+  height: 100%;
+  width: 100%;
+}
 .hero-wave {
-  /* Фон поддерживает логотип, но не конкурирует с ним. */
-  opacity: 0.46;
+  opacity: 0.14;
+  transition: opacity 0.4s ease;
+}
+/* После успешной компиляции WebGL старая волна больше не спорит с Strands. */
+.hero-strands[data-strands-status="ready"] + .hero-wave {
+  opacity: 0.035;
 }
 /*
   10.5s — скорость исходного шейдера: он прибавлял к time 0.01 за кадр, а
@@ -462,6 +486,11 @@ html[data-theme-vt="active"]::view-transition-group(root) {
 */
 @media (prefers-reduced-motion: reduce) {
   .hero-wave__track { animation-name: none !important; }
+}
+@media (max-width: 640px) {
+  .hero-strands { opacity: 0.7; }
+  .hero-wave { opacity: 0.1; }
+  .hero-strands[data-strands-status="ready"] + .hero-wave { opacity: 0.025; }
 }
 
 /* ── Осциллограмма-разделитель ── */
