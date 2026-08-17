@@ -8,7 +8,7 @@ import {
   type ChangeEvent,
 } from "react";
 import Link from "next/link";
-import { productAudioUrl, productImageUrl } from "@/lib/format";
+import { productImageUrl } from "@/lib/format";
 import type { Product, Category, Brand } from "@/lib/types";
 import {
   saveProduct,
@@ -20,7 +20,7 @@ import {
   type ActionState,
   type PhotoResult,
 } from "@/app/admin/products/actions";
-import { PhotoEditor } from "./photo-editor";
+import { ImageCropper } from "@/components/ui/image-cropper";
 import { templateForCategory } from "@/lib/spec-templates";
 
 /*
@@ -48,7 +48,8 @@ type UploadPreview = NewItem & {
 };
 type Editing =
   | { kind: "existing"; name: string }
-  | { kind: "new"; index: number };
+  | { kind: "new"; index: number }
+  | { kind: "picked"; file: File; remaining: File[] };
 
 const field =
   "w-full rounded-sm border border-input bg-surface px-3 py-2.5 text-sm focus:border-signal focus:outline-none";
@@ -144,22 +145,8 @@ export function ProductForm({
     const files = Array.from(e.target.files ?? []);
     e.target.value = ""; // позволяем выбрать тот же файл снова
     if (!files.length) return;
-    if (!editingProduct) {
-      setPhotoErr(null);
-      setNewItems((list) => [
-        ...list,
-        ...files.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
-      ]);
-      return;
-    }
-    const selected = files.map((file, index) => ({
-      id: `${Date.now()}-${index}-${file.name}`,
-      file,
-      url: URL.createObjectURL(file),
-      status: "waiting" as const,
-    }));
-    setUploadPreviews((current) => [...current, ...selected]);
-    void uploadExistingPhotos(selected);
+    setPhotoErr(null);
+    setEditing({ kind: "picked", file: files[0], remaining: files.slice(1) });
   }
 
   // Локальное превью появляется сразу. Зелёное подтверждение показываем только
@@ -271,13 +258,30 @@ export function ProductForm({
     });
   }
 
-  function applyEdit(file: File) {
+  async function applyEdit(file: File) {
     if (!editing) return;
+    if (editing.kind === "picked") {
+      if (editingProduct) {
+        const selected: UploadPreview = {
+          id: `${Date.now()}-${file.name}`,
+          file,
+          url: URL.createObjectURL(file),
+          status: "waiting",
+        };
+        setUploadPreviews((current) => [...current, selected]);
+        await uploadExistingPhotos([selected]);
+      } else {
+        setNewItems((list) => [...list, { file, url: URL.createObjectURL(file) }]);
+      }
+      const [next, ...remaining] = editing.remaining;
+      setEditing(next ? { kind: "picked", file: next, remaining } : null);
+      return;
+    }
     // Существующий товар: правка уже загруженного = замена сразу на сервере.
     if (editingProduct && editing.kind === "existing") {
       const fd = new FormData();
       fd.append("photo", file);
-      void runPhotoOp(replacePhoto(slug!, editing.name, fd));
+      await runPhotoOp(replacePhoto(slug!, editing.name, fd));
       setEditing(null);
       return;
     }
@@ -484,101 +488,6 @@ export function ProductForm({
         </div>
       </details>
 
-      <fieldset className="mt-8 rounded-xl border border-border bg-surface p-4 sm:p-5">
-        <legend className="px-2 text-[0.78rem] font-semibold">Онлайн-стенд</legend>
-        <p className="text-[0.75rem] leading-relaxed text-muted-foreground">
-          Запись должна быть сделана тем же микрофоном, с того же расстояния и на
-          одинаковых настройках. Пока запись не опубликована, покупатели увидят
-          только отметку «Запись готовится».
-        </p>
-
-        {product?.listening?.audio && (
-          <div className="mt-4 rounded-sm border border-border bg-bg p-3">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-wider text-muted-foreground">
-              Текущая запись
-            </p>
-            <audio
-              controls
-              preload="metadata"
-              src={productAudioUrl(product.listening.audio)}
-              className="mt-2 w-full"
-            />
-            <label className="mt-3 flex items-center gap-2 text-[0.78rem] text-muted-foreground">
-              <input
-                type="checkbox"
-                name="removeListeningAudio"
-                className="h-4 w-4 accent-[var(--color-signal)]"
-              />
-              Удалить текущую запись при сохранении
-            </label>
-          </div>
-        )}
-
-        <div className="mt-4">
-          <label className={label} htmlFor="listeningAudio">
-            {product?.listening?.audio ? "Заменить запись" : "Загрузить запись"}
-          </label>
-          <input
-            id="listeningAudio"
-            name="listeningAudio"
-            type="file"
-            accept="audio/mpeg,audio/wav,audio/x-wav,audio/ogg,audio/mp4,audio/x-m4a,.mp3,.wav,.ogg,.m4a"
-            className="mt-2 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-fg file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-bg"
-          />
-          <p className="mt-1.5 text-[0.72rem] text-muted-foreground">
-            MP3, WAV, OGG или M4A, не больше 30 МБ. Для сайта предпочтительнее MP3.
-          </p>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            ["listeningHighs", "Верха", product?.listening?.highs],
-            ["listeningMids", "Середина", product?.listening?.mids],
-            ["listeningLows", "Низы", product?.listening?.lows],
-            ["listeningVolume", "Громкость", product?.listening?.volume],
-          ].map(([name, text, value]) => (
-            <label key={String(name)} className="text-[0.75rem] font-medium">
-              {text}
-              <input
-                name={String(name)}
-                inputMode="decimal"
-                defaultValue={value ?? ""}
-                placeholder="0–10"
-                className={`${field} mt-1.5`}
-              />
-            </label>
-          ))}
-        </div>
-
-        <div className="mt-4">
-          <label className={label} htmlFor="listeningNote">Комментарий эксперта</label>
-          <textarea
-            id="listeningNote"
-            name="listeningNote"
-            rows={3}
-            maxLength={240}
-            defaultValue={product?.listening?.note ?? ""}
-            placeholder="Например: яркая подача вокала, лучше раскрывается от 100 Вт RMS."
-            className={`${field} mt-1.5`}
-          />
-        </div>
-
-        <label className="mt-4 flex items-start gap-2.5 text-[0.82rem]">
-          <input
-            type="checkbox"
-            name="listeningPublished"
-            defaultChecked={product?.listening?.published}
-            className="mt-0.5 h-4 w-4 accent-[var(--color-signal)]"
-          />
-          <span>
-            <b className="font-semibold">Показывать запись покупателям</b>
-            <span className="mt-0.5 block text-[0.72rem] text-muted-foreground">
-              Включайте только после проверки записи в наушниках.
-            </span>
-          </span>
-        </label>
-      </fieldset>
-
       {/* Фото */}
       <fieldset className="mt-8">
         <legend className="text-[0.78rem] font-medium">Фото</legend>
@@ -783,18 +692,23 @@ export function ProductForm({
       </fieldset>
 
       {editing &&
-        (editing.kind === "existing" || newItems[editing.index]) && (
-          <PhotoEditor
+        (editing.kind !== "new" || newItems[editing.index]) && (
+          <ImageCropper
             src={
               editing.kind === "existing"
                 ? productImageUrl(editing.name)
-                : newItems[editing.index].file
+                : editing.kind === "new"
+                  ? newItems[editing.index].file
+                  : editing.file
             }
             fileName={
               editing.kind === "existing"
                 ? editing.name
-                : newItems[editing.index].file.name
+                : editing.kind === "new"
+                  ? newItems[editing.index].file.name
+                  : editing.file.name
             }
+            applyLabel={editing.kind === "picked" ? "Добавить фото" : "Применить"}
             onApply={applyEdit}
             onCancel={() => setEditing(null)}
           />

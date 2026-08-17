@@ -99,6 +99,13 @@ export async function saveProduct(
       .map((line) => line.trim())
       .filter(Boolean);
     const listeningFields = ["listeningHighs", "listeningMids", "listeningLows", "listeningVolume"];
+    const hasListeningFields = [
+      ...listeningFields,
+      "listeningNote",
+      "listeningAudio",
+      "removeListeningAudio",
+      "listeningPublished",
+    ].some((name) => formData.has(name));
     if (listeningFields.some((name) => hasInvalidListeningScore(formData.get(name)))) {
       return { error: "Оценки онлайн-стенда должны быть числами от 0 до 10." };
     }
@@ -188,24 +195,26 @@ export async function saveProduct(
       ...(ozonOfferId ? { ozonOfferId } : {}),
     };
 
-    const listening = {
-      ...(listeningAudio ? { audio: listeningAudio } : {}),
-      ...(listeningPublished ? { published: true } : {}),
-      ...(parseListeningScore(formData.get("listeningHighs")) !== undefined
-        ? { highs: parseListeningScore(formData.get("listeningHighs")) }
-        : {}),
-      ...(parseListeningScore(formData.get("listeningMids")) !== undefined
-        ? { mids: parseListeningScore(formData.get("listeningMids")) }
-        : {}),
-      ...(parseListeningScore(formData.get("listeningLows")) !== undefined
-        ? { lows: parseListeningScore(formData.get("listeningLows")) }
-        : {}),
-      ...(parseListeningScore(formData.get("listeningVolume")) !== undefined
-        ? { volume: parseListeningScore(formData.get("listeningVolume")) }
-        : {}),
-      ...(listeningNote ? { note: listeningNote } : {}),
-    };
-    if (Object.keys(listening).length) product.listening = listening;
+    const listening = hasListeningFields
+      ? {
+          ...(listeningAudio ? { audio: listeningAudio } : {}),
+          ...(listeningPublished ? { published: true } : {}),
+          ...(parseListeningScore(formData.get("listeningHighs")) !== undefined
+            ? { highs: parseListeningScore(formData.get("listeningHighs")) }
+            : {}),
+          ...(parseListeningScore(formData.get("listeningMids")) !== undefined
+            ? { mids: parseListeningScore(formData.get("listeningMids")) }
+            : {}),
+          ...(parseListeningScore(formData.get("listeningLows")) !== undefined
+            ? { lows: parseListeningScore(formData.get("listeningLows")) }
+            : {}),
+          ...(parseListeningScore(formData.get("listeningVolume")) !== undefined
+            ? { volume: parseListeningScore(formData.get("listeningVolume")) }
+            : {}),
+          ...(listeningNote ? { note: listeningNote } : {}),
+        }
+      : existing?.listening;
+    if (listening && Object.keys(listening).length) product.listening = listening;
 
     if (flag !== undefined) product.inStock = flag;
     if (stock !== undefined) product.stock = stock;
