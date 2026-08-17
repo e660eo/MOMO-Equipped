@@ -132,7 +132,7 @@ export function CartPageClient() {
     if (center) setMapTarget({ ...center, zoom: 11 });
   }, []);
 
-  const { contacts, trust, payEnabled, paySandbox } = useSiteConfig();
+  const { trust, payEnabled, paySandbox } = useSiteConfig();
   const total = cartTotal(items);
   const freeFrom = trust.freeShippingFrom;
 
@@ -347,11 +347,9 @@ export function CartPageClient() {
     setSending(true);
 
     /*
-      Сначала сохраняем заказ на сервере. WhatsApp-заявка сразу появляется в
+      Сначала сохраняем заказ на сервере. Обычная заявка сразу появляется в
       панели; онлайн-запись остаётся скрытой до подтверждённой оплаты.
-
-      Если обычную WhatsApp-заявку сохранить не удалось, состав всё равно
-      откроется в переписке. Онлайн-платёж без серверной записи не начинаем.
+      Без серверной записи заказ не считаем оформленным.
     */
     const saved = await submitOrder({
       name: name.trim(),
@@ -373,8 +371,12 @@ export function CartPageClient() {
       if (saved.requiresAuth) openAuth("checkout");
       return;
     }
-    if (!pay && !saved.ok && bonusSpent > 0) {
-      setError("Не удалось закрепить бонусы за заказом. Попробуйте ещё раз — баланс не изменился.");
+    if (!pay && !saved.ok) {
+      setError(
+        bonusSpent > 0
+          ? "Не удалось закрепить бонусы за заказом. Попробуйте ещё раз — баланс не изменился."
+          : saved.error,
+      );
       return;
     }
 
@@ -414,30 +416,7 @@ export function CartPageClient() {
         JSON.stringify({ name: name.trim(), phone, address: address.trim() }),
       );
     } catch {}
-    const lines = [
-      orderNumber ? `Заказ №${orderNumber} с сайта MOMO:` : "Заказ с сайта MOMO:",
-      ...items.map(
-        (i) => `• ${i.title} — ${i.qty} шт. × ${formatPrice(i.price)}`,
-      ),
-      ...(promo
-        ? [`Промокод ${promo.code}: −${promo.percent}% (−${formatPrice(discount)})`]
-        : []),
-      ...(bonusSpent > 0 ? [`Бонусы: −${formatPrice(bonusSpent)}`] : []),
-      `Итого: ${formatPrice(goodsPayable)}`,
-      "",
-      `Получатель: ${name.trim()}`,
-      `Телефон: ${phone.trim()}`,
-      `Адрес: ${address.trim()}`,
-      comment.trim() ? `Комментарий: ${comment.trim()}` : "",
-    ].filter(Boolean);
-    const url = `${contacts.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
-    window.open(url, "_blank", "noopener");
-    /*
-      Номер показываем только настоящий, с сервера. Раньше при неудачном
-      сохранении подставлялся выдуманный локальный «MO-…», которого магазин
-      никогда не видел, — покупатель называл менеджеру номер, а тот его не
-      находил. Без номера заказ всё равно уходит в WhatsApp полным составом.
-    */
+    // Обычный заказ уже сохранён на сервере и доступен менеджеру в админке.
     setLastOrderId(orderNumber ?? "");
     setSent(true);
     setConsent(false);
@@ -474,8 +453,8 @@ export function CartPageClient() {
           <div className="space-y-4">
             <p className="text-sm leading-relaxed">
               Заказ {lastOrderId && <b className="font-mono">{lastOrderId}</b>}{" "}
-              сформирован и открыт в WhatsApp — отправьте сообщение, и менеджер
-              подтвердит заказ в течение рабочего дня.
+              принят. Менеджер свяжется с вами и подтвердит заказ в течение
+              рабочего дня.
             </p>
             <p className="font-mono text-[0.68rem] leading-relaxed text-muted-foreground">
               Копия заказа — в{" "}
@@ -984,7 +963,7 @@ export function CartPageClient() {
                   disabled={sending}
                   className="mt-2.5 w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
                 >
-                  Оформить через WhatsApp
+                  Заказать без онлайн-оплаты
                 </button>
                 <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
                   {paySandbox
@@ -1001,11 +980,11 @@ export function CartPageClient() {
                   disabled={sending}
                   className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
                 >
-                  {sending ? "Оформляем заказ…" : "Оформить через WhatsApp"}
+                  {sending ? "Оформляем заказ…" : "Оформить заказ"}
                 </button>
                 <p className="mt-3 font-mono text-[0.66rem] leading-relaxed text-muted-foreground">
-                  Заказ уйдёт менеджеру в WhatsApp: он подтвердит наличие,
-                  назовёт стоимость доставки и пришлёт способы оплаты.
+                  Заказ появится у менеджера: он подтвердит наличие, назовёт
+                  стоимость доставки и свяжется с вами для оплаты.
                 </p>
               </>
             )}

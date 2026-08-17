@@ -3,7 +3,6 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Overlays } from "@/components/overlays";
 import { Toaster } from "@/components/toaster";
-import { WhatsAppFab } from "@/components/whatsapp-fab";
 import { CookieNotice } from "@/components/cookie-notice";
 import { CompareBar } from "@/components/compare-bar";
 import { JsonLd } from "@/components/json-ld";
@@ -72,7 +71,6 @@ export function ShopChrome({ children }: { children: React.ReactNode }) {
         {/* Окно входа — отдельным куском, по требованию */}
         <Overlays />
         <Toaster />
-        <WhatsAppFab />
         <CompareBar />
         <CookieNotice />
       </CustomerProvider>
