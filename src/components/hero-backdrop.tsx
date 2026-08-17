@@ -1,10 +1,6 @@
 import { Strands } from "@/components/ui/strands";
 
-/*
-  Фон первого экрана объединяет ReactBits Strands с дешёвым SVG-fallback.
-  WebGL даёт объёмные нити, похожие на живую осциллограмму, а SVG виден до
-  гидратации и остаётся единственным фоном, если браузер не поддерживает WebGL2.
-*/
+/* Неоновый Strands в исходной эстетике ReactBits + SVG-fallback без WebGL2. */
 
 /**
  * Кривая на два периода: сдвиг ровно на период замыкается без стыка.
@@ -24,45 +20,45 @@ const wavePath = (() => {
   return pts.join(" ");
 })();
 
-/*
-  Три близких слоя дают мягкую глубину без цветового шума. Серые полосы
-  поддерживают металлический характер автозвука, оранжевая — фирменный сигнал.
-*/
 const BANDS = [
-  { y: -22, color: "#d7d3ce", o: 0.52 },
-  { y: 0, color: "#ff5500", o: 0.24 },
-  { y: 22, color: "#aaa59f", o: 0.34 },
+  { y: -36, color: "#6fffe9", o: 0.78 },
+  { y: -12, color: "#fff4a8", o: 0.72 },
+  { y: 14, color: "#ff63b6", o: 0.82 },
+  { y: 38, color: "#6f8cff", o: 0.78 },
 ];
 
 const STRAND_COLORS = [
-  "#121212",
-  "#343434",
-  "#ff5500",
-  "#1d1d1d",
-  "#4a4a4a",
+  "#6fffe9",
+  "#fff4a8",
+  "#ff63b6",
+  "#6f8cff",
+  "#b95cff",
 ];
 
 export function HeroBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <Strands
-        className="hero-strands absolute inset-x-[-18%] top-[10%] h-[50%] sm:inset-x-[-10%] sm:top-[9%] sm:h-[58%]"
+        className="hero-strands absolute inset-0"
         colors={STRAND_COLORS}
-        count={5}
-        speed={0.28}
-        amplitude={0.92}
-        waviness={1.08}
-        thickness={0.38}
-        glow={0.9}
-        taper={3.25}
-        spread={0.56}
-        opacity={0.82}
-        scale={1}
+        count={4}
+        speed={0.46}
+        amplitude={1.2}
+        waviness={1}
+        thickness={0.24}
+        glow={3}
+        taper={3}
+        spread={1}
+        hueShift={0.02}
+        intensity={0.32}
+        saturation={1.42}
+        opacity={1}
+        scale={1.15}
       />
 
       <svg
         aria-hidden="true"
-        className="hero-wave absolute inset-x-0 top-[10%] h-[50%] w-full sm:top-[9%] sm:h-[58%]"
+        className="hero-wave absolute inset-0 h-full w-full"
         viewBox="0 0 1200 400"
         preserveAspectRatio="none"
         fill="none"

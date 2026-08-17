@@ -2,36 +2,27 @@
 
 import { useEffect, useRef, type CSSProperties } from "react";
 
-const DEFAULT_COLORS = ["#151515", "#343434", "#ff5500", "#202020"];
+const MAX_STRANDS = 12;
+const MAX_COLORS = 8;
+const DEFAULT_COLORS = ["#6fffe9", "#fff4a8", "#ff63b6", "#6f8cff", "#b95cff"];
 
 const VERTEX_SHADER = `#version 300 es
-precision highp float;
-
-in vec2 uv;
 in vec2 position;
-out vec2 vUv;
 
 void main() {
-  vUv = uv;
   gl_Position = vec4(position, 0.0, 1.0);
 }
 `;
 
-/*
- * ReactBits Strands, перенастроенный для светлого hero MOMO. В оригинале
- * свечение рассчитано на тёмный фон. Здесь прозрачность считается отдельно
- * от яркости цвета, поэтому графитовые нити действительно остаются чёрными,
- * а не исчезают на белом фоне.
- */
+/* Оригинальная светящаяся модель ReactBits Strands. */
 const FRAGMENT_SHADER = `#version 300 es
 precision highp float;
 
-in vec2 vUv;
-out vec4 fragColor;
-
-uniform vec2 uResolution;
 uniform float uTime;
-uniform float uCount;
+uniform vec2 uResolution;
+uniform vec3 uColors[${MAX_COLORS}];
+uniform int uColorCount;
+uniform int uStrandCount;
 uniform float uSpeed;
 uniform float uAmplitude;
 uniform float uWaviness;
@@ -39,53 +30,81 @@ uniform float uThickness;
 uniform float uGlow;
 uniform float uTaper;
 uniform float uSpread;
+uniform float uHueShift;
+uniform float uIntensity;
 uniform float uOpacity;
 uniform float uScale;
-uniform vec3 uColors[6];
+uniform float uSaturation;
+
+out vec4 fragColor;
+
+const float PI = 3.14159265;
+
+vec3 spectrum(float t) {
+  return 0.5 + 0.5 * cos(2.0 * PI * (t + vec3(0.00, 0.33, 0.67)));
+}
+
+vec3 samplePalette(float t) {
+  t = fract(t);
+  float scaled = t * float(uColorCount);
+  int idx = int(floor(scaled));
+  float blend = fract(scaled);
+  int nextIdx = idx + 1;
+  if (nextIdx >= uColorCount) nextIdx = 0;
+  return mix(uColors[idx], uColors[nextIdx], blend);
+}
+
+vec3 strandColor(float t) {
+  if (uColorCount > 0) return samplePalette(t);
+  return spectrum(t);
+}
 
 void main() {
-  float aspect = uResolution.x / max(uResolution.y, 1.0);
-  vec2 p = (vUv - 0.5) * vec2(aspect, 1.0) / max(uScale, 0.01);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / uResolution.y;
+  uv /= max(uScale, 0.0001);
 
-  vec3 ink = vec3(0.0);
-  float weight = 0.0;
-  float coverage = 0.0;
-  float edgeFade = smoothstep(0.015, 0.15, vUv.x)
-    * smoothstep(0.015, 0.15, 1.0 - vUv.x);
+  float e = 0.06 + uIntensity * 0.94;
+  float env = pow(max(cos(uv.x * PI * 1.3), 0.0), uTaper);
+  vec3 col = vec3(0.0);
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < ${MAX_STRANDS}; i++) {
+    if (i >= uStrandCount) break;
+
     float fi = float(i);
-    if (fi >= uCount) break;
+    float ph = fi * 1.7 * uSpread;
+    float freq = (2.0 + fi * 0.35) * uWaviness;
+    float spd = 1.4 + fi * 1.2;
 
-    float centered = fi - (uCount - 1.0) * 0.5;
-    float phase = fi * 1.73 + uTime * uSpeed;
-    float envelope = exp(-pow(abs(p.x) * uTaper, 2.0));
-    float carrier = sin(p.x * (9.0 + uWaviness * 3.5) + phase);
-    float detail = sin(p.x * (20.0 + uWaviness * 7.0) - phase * 1.27);
-    float micro = sin(p.x * 41.0 + phase * 0.63);
-    float wave = (carrier * 0.105 + detail * 0.042 + micro * 0.012)
-      * uAmplitude * envelope;
-    float lane = centered * uSpread * 0.052;
-    float strandY = lane + wave;
-    float distanceToStrand = abs(p.y - strandY);
-    float width = (0.0045 + uThickness * 0.008)
-      * (0.55 + envelope * 0.65);
-    float strand = 1.0 - smoothstep(width, width * 2.9, distanceToStrand);
-    strand *= edgeFade;
+    float tt = uTime * uSpeed;
+    float w = sin(uv.x * freq + tt * spd + ph) * 0.60
+      + sin(uv.x * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
 
-    float bevel = 1.0 - smoothstep(0.0, width * 1.55, distanceToStrand);
-    vec3 base = uColors[i];
-    vec3 metallic = mix(base, min(vec3(1.0), base + vec3(0.58)), bevel * 0.32);
+    float amp = (0.1 + 0.02 * e) * env * uAmplitude;
+    float y = w * amp;
+    float d = abs(uv.y - y);
+    float thick = (0.001 + 0.05 * e) * (0.35 + env) * uThickness;
+    float normalizedDistance = d / max(thick, 0.0001);
+    float g = 2.2 * exp(-normalizedDistance * normalizedDistance * 1.4)
+      + 0.35 * exp(-normalizedDistance * normalizedDistance * 0.035);
 
-    ink += metallic * strand;
-    weight += strand;
-    coverage += strand * (0.72 + envelope * 0.55);
+    float h = fi / float(uStrandCount) + uv.x * 0.30 + uTime * 0.04 + uHueShift;
+    col += strandColor(h) * g * env;
   }
 
-  vec3 color = weight > 0.001 ? ink / weight : vec3(0.0);
-  float alpha = (1.0 - exp(-coverage * (0.75 + uGlow * 0.55))) * uOpacity;
-  alpha = clamp(alpha, 0.0, 0.94);
-  fragColor = vec4(color, alpha);
+  col *= 0.45 + 0.7 * e;
+  col = 1.0 - exp(-col * uGlow);
+
+  // На широком hero убираем только самый дальний цветной туман, сохраняя
+  // яркое ядро и мягкое свечение непосредственно вокруг каждой ленты.
+  float haloEnergy = max(max(col.r, col.g), col.b);
+  col *= smoothstep(0.07, 0.24, haloEnergy);
+
+  float gray = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  col = max(mix(vec3(gray), col, uSaturation), 0.0);
+
+  float lum = max(max(col.r, col.g), col.b);
+  float alpha = clamp(lum, 0.0, 1.0) * uOpacity;
+  fragColor = vec4(col * uOpacity, alpha);
 }
 `;
 
@@ -99,6 +118,9 @@ export type StrandsProps = {
   glow?: number;
   taper?: number;
   spread?: number;
+  hueShift?: number;
+  intensity?: number;
+  saturation?: number;
   opacity?: number;
   scale?: number;
   className?: string;
@@ -108,13 +130,16 @@ export type StrandsProps = {
 export function Strands({
   colors = DEFAULT_COLORS,
   count = 4,
-  speed = 0.45,
+  speed = 0.5,
   amplitude = 1,
   waviness = 1,
   thickness = 0.7,
   glow = 2.6,
   taper = 3,
   spread = 1,
+  hueShift = 0,
+  intensity = 0.6,
+  saturation = 1.5,
   opacity = 1,
   scale = 1.5,
   className,
@@ -140,12 +165,11 @@ export function Strands({
           antialias: true,
           depth: false,
           dpr: Math.min(window.devicePixelRatio || 1, 1.5),
-          premultipliedAlpha: false,
+          premultipliedAlpha: true,
           webgl: 2,
           powerPreference: "high-performance",
         });
       } catch {
-        // SVG-подложка в HeroBackdrop остаётся видимой как безопасный fallback.
         container.dataset.strandsStatus = "renderer-unavailable";
         return;
       }
@@ -155,17 +179,26 @@ export function Strands({
       canvas.style.width = "100%";
       canvas.style.height = "100%";
       canvas.style.display = "block";
+      canvas.style.backgroundColor = "transparent";
+      gl.clearColor(0, 0, 0, 0);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       container.appendChild(canvas);
 
-      const palette = Array.from({ length: 6 }, (_, index) => {
-        const color = colors[index % Math.max(colors.length, 1)] ?? "#151515";
-        return new Color(color);
-      });
+      const buildPalette = () => {
+        const source = colors.length ? colors : ["#ffffff"];
+        return Array.from({ length: MAX_COLORS }, (_, index) => {
+          const color = new Color(source[index] ?? source[source.length - 1]);
+          return [color.r, color.g, color.b];
+        });
+      };
 
       const uniforms = {
-        uResolution: { value: [1, 1] },
         uTime: { value: 0 },
-        uCount: { value: Math.min(Math.max(count, 1), 6) },
+        uResolution: { value: [1, 1] },
+        uColors: { value: buildPalette() },
+        uColorCount: { value: Math.min(Math.max(colors.length, 1), MAX_COLORS) },
+        uStrandCount: { value: Math.min(Math.max(Math.round(count), 1), MAX_STRANDS) },
         uSpeed: { value: speed },
         uAmplitude: { value: amplitude },
         uWaviness: { value: waviness },
@@ -173,14 +206,18 @@ export function Strands({
         uGlow: { value: glow },
         uTaper: { value: taper },
         uSpread: { value: spread },
+        uHueShift: { value: hueShift },
+        uIntensity: { value: intensity },
         uOpacity: { value: opacity },
         uScale: { value: scale },
-        uColors: { value: palette },
+        uSaturation: { value: saturation },
       };
 
       let program: InstanceType<typeof Program>;
       let mesh: InstanceType<typeof Mesh>;
       try {
+        const geometry = new Triangle(gl);
+        if (geometry.attributes.uv) delete geometry.attributes.uv;
         program = new Program(gl, {
           vertex: VERTEX_SHADER,
           fragment: FRAGMENT_SHADER,
@@ -189,7 +226,8 @@ export function Strands({
           depthTest: false,
           depthWrite: false,
         });
-        mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
+        program.setBlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        mesh = new Mesh(gl, { geometry, program });
       } catch {
         container.dataset.strandsStatus = "shader-unavailable";
         canvas.remove();
@@ -266,7 +304,6 @@ export function Strands({
         gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     }).catch(() => {
-      // Если динамический чанк не загрузился, статичный фон продолжает работать.
       if (!cancelled) container.dataset.strandsStatus = "module-unavailable";
     });
 
@@ -275,14 +312,22 @@ export function Strands({
       dispose();
       delete container.dataset.strandsStatus;
     };
-  }, [amplitude, colors, count, glow, opacity, scale, speed, spread, taper, thickness, waviness]);
+  }, [
+    amplitude,
+    colors,
+    count,
+    glow,
+    hueShift,
+    intensity,
+    opacity,
+    saturation,
+    scale,
+    speed,
+    spread,
+    taper,
+    thickness,
+    waviness,
+  ]);
 
-  return (
-    <div
-      ref={containerRef}
-      aria-hidden="true"
-      className={className}
-      style={style}
-    />
-  );
+  return <div ref={containerRef} aria-hidden="true" className={className} style={style} />;
 }
