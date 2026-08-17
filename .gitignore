@@ -43,6 +43,7 @@ next-env.d.ts
 /data/uploads/
 /data/orders.json
 /data/customers.json
+/data/support-conversations.json
 /data/promos.json
 /data/ozon-oauth.json
 /data/.catalog-update-*

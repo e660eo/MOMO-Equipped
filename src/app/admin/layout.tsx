@@ -4,6 +4,7 @@ import { hasSession } from "@/lib/admin-auth";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { logoutAdmin } from "./actions";
 import { countNewOrders } from "@/lib/orders";
+import { countWaitingSupportConversations } from "@/lib/support-conversations";
 
 export const metadata: Metadata = {
   title: "Панель управления",
@@ -37,7 +38,10 @@ export default async function AdminLayout({
           <Link href="/admin" className="font-display text-sm font-extrabold uppercase tracking-tight">
             MOMO · панель
           </Link>
-          <AdminNav newOrders={countNewOrders()} />
+          <AdminNav
+            newOrders={countNewOrders()}
+            newMessages={countWaitingSupportConversations()}
+          />
           <div className="ml-auto flex items-center gap-4 text-[0.8rem]">
             <Link
               href="/"

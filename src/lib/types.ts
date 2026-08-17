@@ -456,6 +456,40 @@ export interface SupportDocument {
   productSlugs?: string[];
 }
 
+export type SupportChatAuthor = "visitor" | "admin";
+export type SupportConversationStatus = "open" | "closed";
+
+export interface SupportChatMessage {
+  id: string;
+  author: SupportChatAuthor;
+  text: string;
+  createdAt: string;
+}
+
+/**
+ * Диалог поддержки. Содержит персональные данные и живёт только в закрытой
+ * папке данных сервера. Случайный ключ посетителя не сохраняется: по нему
+ * записывается только SHA-256-отпечаток.
+ */
+export interface SupportConversation {
+  id: string;
+  visitorTokenHash: string;
+  customerId?: string;
+  name: string;
+  contact: string;
+  status: SupportConversationStatus;
+  createdAt: string;
+  updatedAt: string;
+  messages: SupportChatMessage[];
+}
+
+/** Без контакта, customerId и отпечатка ключа — безопасно для браузера. */
+export interface PublicSupportConversation {
+  id: string;
+  status: SupportConversationStatus;
+  messages: SupportChatMessage[];
+}
+
 export type IntegrationJobType =
   | "ozon_shipment"
   | "order_mail"

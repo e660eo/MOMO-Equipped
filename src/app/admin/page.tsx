@@ -10,6 +10,7 @@ import { hasOzonTokens, isOzonOAuthConfigured } from "@/lib/ozon-auth";
 import { getAdminAlerts } from "@/lib/admin-alerts";
 import { getIntegrationJobs } from "@/lib/job-queue";
 import { formatPrice } from "@/lib/format";
+import { countWaitingSupportConversations } from "@/lib/support-conversations";
 
 function moscowDay(iso: string): string {
   return new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
@@ -24,6 +25,7 @@ export default async function AdminHomePage() {
   const paidToday = todayOrders.filter((order) => order.payment?.status === "CAPTURED" && !order.payment.sandbox).reduce((sum, order) => sum + (order.payment?.amount ?? 0), 0);
   const average = todayOrders.length ? Math.round(grossToday / todayOrders.length) : 0;
   const lowStock = products.filter((product) => typeof product.stock === "number" && product.stock > 0 && product.stock <= 3).length;
+  const waitingSupport = countWaitingSupportConversations();
   const alerts = getAdminAlerts();
   const jobs = getIntegrationJobs(500);
   const pendingJobs = jobs.filter((job) => job.status === "pending" || job.status === "running").length;
@@ -39,6 +41,7 @@ export default async function AdminHomePage() {
     { label: "Средний чек", value: formatPrice(average), note: "по заказам сегодня", href: "/admin/sales" },
     { label: "Заканчивается", value: String(lowStock), note: "остаток от 1 до 3", href: "/admin/products?availability=low" },
     { label: "Фоновые задачи", value: String(pendingJobs), note: pendingJobs ? "в очереди или выполняются" : "очередь свободна", href: "/admin/settings#integrations" },
+    { label: "Чаты поддержки", value: String(waitingSupport), note: waitingSupport ? "клиенты ждут ответа" : "все обращения обработаны", href: "/admin/messages" },
   ];
 
   return <div>

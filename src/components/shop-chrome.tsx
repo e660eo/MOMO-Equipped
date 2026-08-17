@@ -10,6 +10,7 @@ import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import { YandexMetrica } from "@/components/yandex-metrica";
 import { SiteConfigProvider } from "@/components/site-config-provider";
 import { CustomerProvider } from "@/components/customer-provider";
+import { SupportChatWidget } from "@/components/support-chat-widget";
 import { getSiteConfig } from "@/lib/data";
 import { payConfig } from "@/lib/yandex-pay";
 import Script from "next/script";
@@ -71,6 +72,7 @@ export function ShopChrome({ children }: { children: React.ReactNode }) {
         {/* Окно входа — отдельным куском, по требованию */}
         <Overlays />
         <Toaster />
+        <SupportChatWidget />
         <CompareBar />
         <CookieNotice />
       </CustomerProvider>
