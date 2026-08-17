@@ -5,7 +5,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type ChangeEvent,
 } from "react";
 import Link from "next/link";
 import { productImageUrl } from "@/lib/format";
@@ -21,6 +20,7 @@ import {
   type PhotoResult,
 } from "@/app/admin/products/actions";
 import { ImageCropper } from "@/components/ui/image-cropper";
+import { PhotoDropzone } from "@/components/ui/photo-dropzone";
 import { templateForCategory } from "@/lib/spec-templates";
 
 /*
@@ -31,7 +31,7 @@ import { templateForCategory } from "@/lib/spec-templates";
   уезжает скрытым полем.
 
   Новые файлы держим в состоянии (с превью-URL), а не читаем прямо из input:
-  так их можно редактировать (поворот/обрезка/фон, см. PhotoEditor) и заменять.
+  так их можно редактировать (поворот/обрезка/фон, см. ImageCropper) и заменять.
   Перед отправкой состояние синхронизируется в скрытый input[type=file] через
   DataTransfer — серверный экшен читает файлы оттуда как обычно.
 
@@ -141,9 +141,7 @@ export function ProductForm({
     }
   }
 
-  function onPick(e: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = ""; // позволяем выбрать тот же файл снова
+  function onPick(files: File[]) {
     if (!files.length) return;
     setPhotoErr(null);
     setEditing({ kind: "picked", file: files[0], remaining: files.slice(1) });
@@ -492,11 +490,9 @@ export function ProductForm({
       <fieldset className="mt-8">
         <legend className="text-[0.78rem] font-medium">Фото</legend>
         <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
-          Можно добавить сразу несколько фото — в окне выбора отметьте нужные
-          с зажатым Ctrl. Первое — обложка в каталоге, «На обложку» её меняет.
-          «Ред.» — повернуть, обрезать и убрать фон (сделать белым). У
-           сохранённого товара изменение фото применяется сразу и записывается в
-           журнал. Последнее действие можно отменить ниже. Снимки сжимаются автоматически.
+          Добавьте сразу несколько снимков — каждый по очереди откроется в
+          редакторе. Первое фото станет обложкой; порядок можно изменить ниже.
+          У сохранённого товара изменения применяются сразу и записываются в журнал.
         </p>
 
         {photos.length > 0 && (
@@ -547,13 +543,10 @@ export function ProductForm({
           </div>
         )}
 
-        <input
-          type="file"
-          multiple
-          accept="image/jpeg,image/png,image/webp"
-          onChange={onPick}
+        <PhotoDropzone
+          onFiles={onPick}
+          onError={setPhotoErr}
           disabled={photoBusy}
-          className="mt-3 block w-full text-[0.82rem] file:mr-3 file:rounded-sm file:border-0 file:bg-signal file:px-4 file:py-2 file:text-[0.8rem] file:font-semibold file:text-white disabled:opacity-60"
         />
 
         {editingProduct && uploadPreviews.length > 0 && (
