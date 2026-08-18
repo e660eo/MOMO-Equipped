@@ -513,20 +513,48 @@ html[data-theme-vt="active"]::view-transition-group(root) {
   }
 }
 
-/* ── Статичная подложка Light Tunnel на первом экране ──
-   Остаётся видимой до запуска WebGL и полностью заменяет его на
-   слабых устройствах и в режиме reduced motion. */
-.hero-tunnel-fallback {
-  opacity: 0.42;
+/* ── Статичная подложка Scanner на первом экране ──
+   Тонкие линии дают состояние до запуска WebGL и заменяют анимацию при
+   reduced motion. Цвета переключаются теми же токенами, что и вся страница. */
+.hero-scanner-fallback {
+  --scanner-line: rgba(20, 20, 22, 0.1);
+  --scanner-center: rgba(20, 20, 22, 0.08);
+  opacity: 0.68;
   background:
-    radial-gradient(ellipse 16% 18% at 50% 47%, rgba(255, 85, 0, 0.2), transparent 72%),
-    repeating-conic-gradient(
-      from 2deg at 50% 47%,
-      rgba(35, 33, 31, 0.11) 0deg 0.8deg,
-      transparent 0.8deg 16deg
+    radial-gradient(
+      ellipse 72% 42% at 50% 47%,
+      var(--scanner-center),
+      transparent 72%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 18px,
+      var(--scanner-line) 18px 19px,
+      transparent 19px 31px
     );
-  -webkit-mask-image: radial-gradient(ellipse 68% 72% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.78) 46%, transparent 82%);
-  mask-image: radial-gradient(ellipse 68% 72% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.78) 46%, transparent 82%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 68% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.72) 54%, transparent 86%);
+  mask-image: radial-gradient(ellipse 78% 68% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.72) 54%, transparent 86%);
+}
+:root[data-theme="dark"] .hero-scanner-fallback {
+  --scanner-line: rgba(245, 243, 239, 0.1);
+  --scanner-center: rgba(245, 243, 239, 0.07);
+}
+
+.hero-scanner-scrim {
+  background: radial-gradient(
+    ellipse 54% 50% at 50% 47%,
+    rgba(255, 255, 255, 0.58),
+    rgba(255, 255, 255, 0.18) 58%,
+    transparent 84%
+  );
+}
+:root[data-theme="dark"] .hero-scanner-scrim {
+  background: radial-gradient(
+    ellipse 54% 50% at 50% 47%,
+    rgba(23, 23, 26, 0.74),
+    rgba(23, 23, 26, 0.3) 58%,
+    transparent 84%
+  );
 }
 
 /* ── Осциллограмма-разделитель ── */

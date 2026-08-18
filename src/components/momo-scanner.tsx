@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { Mesh, Program, Renderer, Triangle } from "ogl";
 
 /*
-  React Bits Light Tunnel — adapted for the MOMO hero.
-  https://reactbits.dev/backgrounds/light-tunnel
+  React Bits Scanner — adapted for the MOMO hero.
+  https://reactbits.dev/backgrounds/scanner
 
   MIT + Commons Clause License Condition v1.0
   Copyright (c) 2026 David Haz
@@ -31,10 +31,10 @@ import { Mesh, Program, Renderer, Triangle } from "ogl";
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-  The original purple/rainbow look is intentionally replaced with graphite
-  cables and orange pulses. This component is decorative and has no bearing on
-  the page layout, so a failed or unavailable WebGL2 context simply leaves the
-  static CSS fallback rendered by HeroBackdrop in place.
+  The original chromatic field is deliberately monochrome here. The shader
+  draws black graphite traces in the light theme and pale graphite traces in
+  the dark theme, so the same signal remains legible without becoming a second
+  brand accent beside MOMO orange.
 */
 
 const vertex = `#version 300 es
@@ -49,104 +49,95 @@ precision highp float;
 uniform vec2 iResolution;
 uniform float iTime;
 uniform float uSpeed;
-uniform float uFlowDir;
-uniform float uPulseSpeed;
-uniform float uPulseLength;
-uniform float uPulseBlend;
-uniform float uPulseWidth;
-uniform float uCableCount;
-uniform float uThickness;
-uniform float uRimWidth;
-uniform float uWaviness;
-uniform float uSway;
-uniform float uSize;
-uniform vec2 uCenter;
-uniform vec2 uMouseOffset;
+uniform float uSweepSpeed;
+uniform float uSweepWidth;
+uniform float uSweepFalloff;
+uniform float uScale;
+uniform float uFrequency;
+uniform float uRipple;
+uniform float uBandDensity;
+uniform float uLineSharpness;
 uniform float uGlow;
-uniform float uFadeNear;
-uniform float uFadeFar;
 uniform float uBrightness;
+uniform float uContrast;
+uniform float uSoftness;
+uniform float uVignette;
 uniform float uOpacity;
-uniform vec3 uCableColor;
-uniform vec3 uPulseColor;
-uniform vec3 uTunnelColor;
-uniform float uTunnelOpacity;
+uniform vec3 uColor1;
+uniform vec3 uColor2;
+uniform vec3 uColor3;
 out vec4 fragColor;
 
-void mainImage(out vec4 o, in vec2 fragCoord) {
-  float size = uSize * 2.0;
-  float speedBase = uSpeed * 4.0 * uFlowDir;
-  float waviness = uWaviness * 0.15;
-  float rotationOsc = uSway * 0.5;
-  float baseThick = uThickness * 0.35 + 0.05;
-  float borderWeight = uRimWidth * 0.15 + 0.01;
-  float cablesCount = floor(uCableCount);
+const float TAU = 6.2831853;
 
-  vec2 res = iResolution.xy;
-  vec2 uv = (fragCoord - 0.5 * res) / min(res.y, res.x);
-  uv -= (uCenter + uMouseOffset);
-  uv /= (size + 0.0001);
+float signalField(vec2 p, float t) {
+  float wave = sin(p.x * 1.3 + t * 0.7);
+  wave += sin(p.y * 1.7 - t * 0.52) * 0.8;
+  wave += sin((p.x + p.y) * 0.9 + t * 0.91) * 0.6;
+  wave += sin((p.x - p.y) * 1.53 - t * 0.63) * 0.42;
+  return wave * 0.35;
+}
 
-  float r = length(uv);
-  float angle = atan(uv.y, uv.x);
-  float depth = -log(r + 0.0001);
+vec3 palette(float signal) {
+  signal = pow(clamp(signal, 0.0, 1.0), uContrast);
+  vec3 color = mix(uColor1, uColor2, smoothstep(0.08, 0.6, signal));
+  return mix(color, uColor3, smoothstep(0.68, 1.0, signal));
+}
 
-  float swing = sin(iTime * (uSpeed * 0.5 + 0.1)) * rotationOsc;
-  float waveOffset = sin(depth * 1.2 + iTime * speedBase * 0.25) * waviness;
-
-  float angleNormalized = (angle / 6.2831853) + 0.5;
-  float finalAngle = fract(angleNormalized + waveOffset + swing);
-
-  float cableID = floor(finalAngle * cablesCount);
-  float gvX = fract(finalAngle * cablesCount) - 0.5;
-
-  float rand = fract(sin(cableID * 12.9898) * 43758.5453);
-  float randSpeed = (0.4 + rand * 0.6) * speedBase * uPulseSpeed;
-  float cableThick = baseThick * (0.6 + rand * 0.4);
-
-  float scroll = depth + iTime * randSpeed;
-  float pulseFact = fract(scroll);
-
-  float distToCore = abs(gvX);
-  float wireMask = smoothstep(cableThick, cableThick - 0.05, distToCore);
-  float rimGlow = smoothstep(borderWeight, 0.0, abs(distToCore - cableThick));
-
-  float pulseThick = cableThick * uPulseWidth;
-  float pulseMask = smoothstep(pulseThick, pulseThick - 0.05 * uPulseWidth, distToCore);
-
-  float pulseDist = abs(pulseFact - 0.5);
-  float pulseCore = uPulseLength * (1.0 - uPulseBlend);
-  float pulseLo = min(pulseCore, uPulseLength - max(fwidth(scroll), 0.0001));
-  float dataPulse = 1.0 - smoothstep(pulseLo, uPulseLength, pulseDist);
-
-  float aBody = wireMask * uTunnelOpacity;
-  float aRim = rimGlow;
-  float aPulse = clamp(dataPulse * pulseMask, 0.0, 1.0);
-
-  vec3 fiberCol = uTunnelColor * aBody
-    + uCableColor * aRim * 1.3 * uGlow
-    + uPulseColor * dataPulse * 3.0 * pulseMask;
-
-  float distFade = smoothstep(0.0, uFadeNear, r)
-    * smoothstep(uFadeFar, uFadeFar - 0.9, r);
-  float intensity = clamp(aBody + aRim + aPulse, 0.0, 1.0) * distFade;
-
-  vec3 finalCol = fiberCol * uBrightness;
-  float alpha = clamp(intensity, 0.0, 1.0) * uOpacity;
-  o = vec4(finalCol * alpha, alpha);
+float scanBand(float x, float antiAlias, float sharpness) {
+  float value = mix(0.5, 0.5 + 0.5 * cos(x * TAU), antiAlias);
+  return pow(value, sharpness);
 }
 
 void main() {
-  vec4 color = vec4(0.0);
-  mainImage(color, gl_FragCoord.xy);
-  fragColor = color;
+  vec2 uv = (gl_FragCoord.xy * 2.0 - iResolution.xy) / iResolution.y;
+  vec2 point = uv / max(uScale, 0.001);
+  float time = iTime * uSpeed;
+
+  float signal = signalField(point * uFrequency, time);
+  float coordinate = point.y + signal * uRipple;
+
+  float phase = coordinate / max(uSweepWidth, 0.05) - time * uSweepSpeed;
+  float sweep = pow(
+    0.5 + 0.5 * cos(phase * TAU),
+    max(uSweepFalloff, 0.1)
+  );
+
+  float lineCoordinate = coordinate * uBandDensity;
+  float antiAlias = 1.0 / (1.0 + uSoftness * fwidth(lineCoordinate) * 3.0);
+  antiAlias = clamp(antiAlias, 0.0, 1.0);
+
+  float bodyBase = clamp(0.5 + 0.5 * signal, 0.0, 1.0);
+  float body = bodyBase * bodyBase * uGlow * sweep;
+  float line = clamp(
+    scanBand(lineCoordinate, antiAlias, max(uLineSharpness, 0.1)) * sweep + body,
+    0.0,
+    1.0
+  );
+
+  vec3 color = palette(line);
+  float intensity = line * uBrightness;
+  intensity *= clamp(
+    1.0 - uVignette * smoothstep(0.5, 1.65, length(uv)),
+    0.0,
+    1.0
+  );
+
+  float alpha = clamp(intensity * uOpacity, 0.0, 1.0);
+  fragColor = vec4(clamp(color, 0.0, 1.0) * alpha, alpha);
 }
 `;
 
 type NumericUniform = { value: number };
 type VectorUniform = { value: Float32Array };
 
-export function MomoLightTunnel({ className = "" }: { className?: string }) {
+function setRgb(uniform: VectorUniform, rgb: readonly [number, number, number]) {
+  uniform.value[0] = rgb[0];
+  uniform.value[1] = rgb[1];
+  uniform.value[2] = rgb[2];
+}
+
+export function MomoScanner({ className = "" }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -160,6 +151,7 @@ export function MomoLightTunnel({ className = "" }: { className?: string }) {
     let canvas: HTMLCanvasElement | null = null;
     let resizeObserver: ResizeObserver | null = null;
     let intersectionObserver: IntersectionObserver | null = null;
+    let themeObserver: MutationObserver | null = null;
     let frame = 0;
     let visible = true;
     let pageVisible = !document.hidden;
@@ -187,29 +179,24 @@ export function MomoLightTunnel({ className = "" }: { className?: string }) {
       const uniforms = {
         iTime: { value: 0 },
         iResolution: { value: new Float32Array([1, 1]) },
-        uSpeed: { value: 0.065 },
-        uFlowDir: { value: -1 },
-        uPulseSpeed: { value: 1.55 },
-        uPulseLength: { value: 0.34 },
-        uPulseBlend: { value: 1.2 },
-        uPulseWidth: { value: 0.92 },
-        uCableCount: { value: 16 },
-        uThickness: { value: 0.27 },
-        uRimWidth: { value: 0.12 },
-        uWaviness: { value: 0.2 },
-        uSway: { value: 0.15 },
-        uSize: { value: 1.18 },
-        uCenter: { value: new Float32Array([0, 0.035]) },
-        uMouseOffset: { value: new Float32Array([0, 0]) },
-        uGlow: { value: 0.8 },
-        uFadeNear: { value: 0.34 },
-        uFadeFar: { value: 1.82 },
-        uBrightness: { value: 0.82 },
-        uOpacity: { value: 0.58 },
-        uCableColor: { value: new Float32Array([0.14, 0.135, 0.13]) },
-        uPulseColor: { value: new Float32Array([1, 0.333, 0]) },
-        uTunnelColor: { value: new Float32Array([0.08, 0.075, 0.07]) },
-        uTunnelOpacity: { value: 0.055 },
+        uSpeed: { value: 0.34 },
+        uSweepSpeed: { value: 0.2 },
+        uSweepWidth: { value: 1.9 },
+        uSweepFalloff: { value: 6.8 },
+        uScale: { value: 1.35 },
+        uFrequency: { value: 2.1 },
+        uRipple: { value: 0.44 },
+        uBandDensity: { value: 11.5 },
+        uLineSharpness: { value: 7.2 },
+        uGlow: { value: 0.08 },
+        uBrightness: { value: 0.9 },
+        uContrast: { value: 1.35 },
+        uSoftness: { value: 1.7 },
+        uVignette: { value: 0.66 },
+        uOpacity: { value: 0.6 },
+        uColor1: { value: new Float32Array([0.015, 0.015, 0.018]) },
+        uColor2: { value: new Float32Array([0.09, 0.09, 0.105]) },
+        uColor3: { value: new Float32Array([0.25, 0.25, 0.27]) },
       };
 
       const geometry = new Triangle(gl);
@@ -233,7 +220,28 @@ export function MomoLightTunnel({ className = "" }: { className?: string }) {
 
       const resolution = uniforms.iResolution as VectorUniform;
       const time = uniforms.iTime as NumericUniform;
-      const mouseOffset = uniforms.uMouseOffset as VectorUniform;
+      const opacity = uniforms.uOpacity as NumericUniform;
+      const brightness = uniforms.uBrightness as NumericUniform;
+      const color1 = uniforms.uColor1 as VectorUniform;
+      const color2 = uniforms.uColor2 as VectorUniform;
+      const color3 = uniforms.uColor3 as VectorUniform;
+
+      const syncTheme = () => {
+        const isDark = document.documentElement.dataset.theme === "dark";
+        if (isDark) {
+          setRgb(color1, [0.24, 0.24, 0.26]);
+          setRgb(color2, [0.58, 0.58, 0.61]);
+          setRgb(color3, [0.94, 0.94, 0.96]);
+          opacity.value = 0.38;
+          brightness.value = 0.68;
+        } else {
+          setRgb(color1, [0.015, 0.015, 0.018]);
+          setRgb(color2, [0.09, 0.09, 0.105]);
+          setRgb(color3, [0.25, 0.25, 0.27]);
+          opacity.value = 0.6;
+          brightness.value = 0.9;
+        }
+      };
 
       const resize = () => {
         if (!renderer) return;
@@ -247,29 +255,11 @@ export function MomoLightTunnel({ className = "" }: { className?: string }) {
         renderer.render({ scene: mesh });
       };
 
-      const currentMouse: [number, number] = [0, 0];
-      let targetMouse: [number, number] = [0, 0];
-      const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
-
-      const onPointerMove = (event: PointerEvent) => {
-        if (!hasFinePointer) return;
-        targetMouse = [
-          (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 0.035,
-          (0.5 - event.clientY / Math.max(window.innerHeight, 1)) * 0.035,
-        ];
-      };
-
       const loop = (now: number) => {
         const delta = Math.min((now - previousTime) / 1000, 0.05);
         previousTime = now;
         elapsed += delta;
         time.value = elapsed;
-
-        currentMouse[0] += (targetMouse[0] - currentMouse[0]) * 0.045;
-        currentMouse[1] += (targetMouse[1] - currentMouse[1]) * 0.045;
-        mouseOffset.value[0] = currentMouse[0];
-        mouseOffset.value[1] = currentMouse[1];
-
         renderer?.render({ scene: mesh });
         frame = requestAnimationFrame(loop);
       };
@@ -305,11 +295,16 @@ export function MomoLightTunnel({ className = "" }: { className?: string }) {
         else stop();
       });
       intersectionObserver.observe(container);
+      themeObserver = new MutationObserver(syncTheme);
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
 
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
       document.addEventListener("visibilitychange", onVisibilityChange);
       motionPreference.addEventListener("change", onMotionPreferenceChange);
 
+      syncTheme();
       resize();
       start();
 
@@ -317,7 +312,7 @@ export function MomoLightTunnel({ className = "" }: { className?: string }) {
         stop();
         resizeObserver?.disconnect();
         intersectionObserver?.disconnect();
-        window.removeEventListener("pointermove", onPointerMove);
+        themeObserver?.disconnect();
         document.removeEventListener("visibilitychange", onVisibilityChange);
         motionPreference.removeEventListener("change", onMotionPreferenceChange);
         if (canvas?.parentNode === container) container.removeChild(canvas);

@@ -21,7 +21,7 @@ export function HeroLogo({ className }: { className?: string }) {
         height={985}
         priority
         sizes="(max-width: 768px) 94vw, 660px"
-        className="h-auto w-full"
+        className="dark-logo h-auto w-full"
       />
     </div>
   );

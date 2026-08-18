@@ -92,21 +92,21 @@ export default function Home() {
 
   return (
     <main className="overflow-x-hidden">
-      {/* HERO — графитово-оранжевый Light Tunnel за логотипом */}
+      {/* HERO — монохромное сканирующее поле Scanner за логотипом */}
       <section className="border-b border-border">
-        <div className="relative overflow-hidden bg-white text-zinc-900">
-          {/* фон: прозрачный WebGL-тоннель в палитре MOMO */}
+        <div className="relative overflow-hidden bg-surface text-foreground">
+          {/* фон: прозрачная WebGL-волна, чёрная/графитовая по теме */}
           <HeroBackdrop />
           {/* мягкое высветление за текстом для читаемости */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_52%_48%_at_50%_46%,rgba(255,255,255,0.68),rgba(255,255,255,0.28)_58%,transparent_84%)]" />
+          <div className="hero-scanner-scrim pointer-events-none absolute inset-0" />
 
           <div className="relative z-10 mx-auto max-w-[1100px] px-6 pb-14 pt-10 text-center">
-            <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-neutral-500 before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
+            <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
               Автоакустика · с 2015 года
             </p>
 
             {/* Слоган остаётся единственным заголовком первого экрана. */}
-            <h1 className="mt-4 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-neutral-600">
+            <h1 className="mt-4 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-muted-foreground">
               Звук, который чувствуешь
             </h1>
 
@@ -115,11 +115,11 @@ export default function Home() {
               <HeroLogo className="w-[clamp(260px,52vw,660px)]" />
             </div>
 
-            <div className="mx-auto mt-6 max-w-2xl border-y border-neutral-200/80 py-4">
-              <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-zinc-900 sm:text-lg">
+            <div className="mx-auto mt-6 max-w-2xl border-y border-border py-4">
+              <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-foreground sm:text-lg">
                 Автоакустика MOMO и ZEUS
               </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-neutral-600 sm:text-base">
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground sm:text-base">
                 Сабвуферы, усилители, динамики и готовые системы автозвука.
               </p>
             </div>
@@ -133,7 +133,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/contacts"
-                className="inline-flex rounded-sm border border-neutral-300 bg-white/70 px-7 py-3.5 text-sm font-semibold text-zinc-900 backdrop-blur-sm transition-colors hover:border-signal hover:text-signal"
+                className="inline-flex rounded-sm border border-border bg-surface/70 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-sm transition-colors hover:border-signal hover:text-signal"
               >
                 Подобрать комплект
               </Link>
