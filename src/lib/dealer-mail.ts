@@ -3,7 +3,7 @@ import { sendMailWithRetry } from "./mailer";
 import { SITE_URL } from "./site-url";
 import type { DealerAccount, DealerApplication, DealerLocation, DealerOrder } from "./types";
 
-const shell = (body: string) => `<div style="margin:0;padding:24px 16px;background:#f2f2f3;font-family:Arial,sans-serif;color:#18181b"><div style="max-width:580px;margin:auto;background:#fff;border-radius:14px;overflow:hidden"><div style="padding:18px 28px;background:#111;color:#fff;font-weight:800">MOMO <span style="color:#ff5500">EQUIPPED</span></div><div style="padding:28px">${body}</div></div></div>`;
+const shell = (body: string) => `<div style="margin:0;padding:24px 16px;background:#f2f2f3;font-family:Arial,sans-serif;color:#18181b"><div style="max-width:580px;margin:auto;background:#fff;border-radius:14px;overflow:hidden"><div style="padding:18px 28px;background:#111;color:#fff;font-weight:800">Modern Original <span style="color:#ff5500">Music Organization</span></div><div style="padding:28px">${body}</div></div></div>`;
 
 export async function notifyDealerApplication(application: DealerApplication): Promise<void> {
   const text = `Новая дилерская заявка\n${application.company}\n${application.city}\n${application.contactName}\n${application.phone}\n${application.email}`;

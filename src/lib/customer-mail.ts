@@ -17,11 +17,11 @@ export function welcomeLetter(input: {
 
   return {
     to: [input.email],
-    subject: "Добро пожаловать в MOMO Equipped",
+    subject: "Добро пожаловать в Modern Original Music Organization",
     text: [
       `Здравствуйте, ${input.name}!`,
       "",
-      "Ваш аккаунт в MOMO Equipped создан.",
+      "Ваш аккаунт в Modern Original Music Organization создан.",
       `Логин по email: ${input.email}`,
       `Логин по телефону: ${input.phone}`,
       "",
@@ -33,7 +33,7 @@ export function welcomeLetter(input: {
     ].join("\n"),
     html: `<div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#151515;">
       <p style="font-size:20px;font-weight:700;margin:0 0 16px;">Добро пожаловать, ${name}!</p>
-      <p>Ваш аккаунт в <b>MOMO Equipped</b> создан. Войти можно любым из логинов:</p>
+      <p>Ваш аккаунт в <b>Modern Original Music Organization</b> создан. Войти можно любым из логинов:</p>
       <div style="margin:16px 0;padding:14px 16px;border:1px solid #e7e3de;border-radius:8px;background:#faf9f7;">
         <div><b>Email:</b> ${email}</div>
         <div style="margin-top:6px;"><b>Телефон:</b> ${phone}</div>
@@ -72,12 +72,12 @@ export function emailVerificationLetter(input: {
   return {
     to: [input.email],
     subject: input.welcome
-      ? "Добро пожаловать — подтвердите почту в MOMO Equipped"
-      : "Подтвердите почту — MOMO Equipped",
+      ? "Добро пожаловать — подтвердите почту в Modern Original Music Organization"
+      : "Подтвердите почту — Modern Original Music Organization",
     text: [
       `Здравствуйте, ${input.name}!`,
       "",
-      input.welcome ? "Ваш аккаунт MOMO Equipped создан." : "Вы запросили подтверждение почты.",
+      input.welcome ? "Ваш аккаунт Modern Original Music Organization создан." : "Вы запросили подтверждение почты.",
       "Подтвердите адрес по ссылке (она действует 24 часа):",
       input.verifyLink,
       "",
@@ -86,7 +86,7 @@ export function emailVerificationLetter(input: {
     ].join("\n"),
     html: `<div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#151515;">
       <p style="font-size:20px;font-weight:700;margin:0 0 16px;">${input.welcome ? "Добро пожаловать" : "Подтвердите почту"}, ${name}!</p>
-      <p>${input.welcome ? "Ваш аккаунт <b>MOMO Equipped</b> создан." : "Вы запросили подтверждение адреса."} Нажмите кнопку, чтобы подтвердить, что почта принадлежит вам.</p>
+      <p>${input.welcome ? "Ваш аккаунт <b>Modern Original Music Organization</b> создан." : "Вы запросили подтверждение адреса."} Нажмите кнопку, чтобы подтвердить, что почта принадлежит вам.</p>
       <p style="margin:22px 0;"><a href="${verifyLink}" style="display:inline-block;background:#ff5500;color:#fff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:7px;">Подтвердить почту</a></p>
       <p style="color:#767676;font-size:13px;">Ссылка действует 24 часа. До подтверждения почты онлайн-оплата недоступна. Если это были не вы — не открывайте ссылку.</p>
     </div>`,

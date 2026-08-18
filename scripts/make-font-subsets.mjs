@@ -8,8 +8,8 @@
      странице — и браузер честно тянул 115 КБ Unbounded и 15 КБ Manrope ради
      одного глифа.
 
-  2) Надпись в шапке. «MOMO Equipped» набрана Syne и больше нигде не встречается:
-     34 КБ ради восьми букв.
+  2) Полное название в шапке набрано Syne и больше нигде не встречается:
+     не заставляем браузер скачивать всю гарнитуру ради одной надписи.
 
   Исходники берутся из файлов самой сборки (.next/static/media), поэтому контуры
   глифов те же байт в байт — начертание не меняется.
@@ -62,13 +62,14 @@ const faces = await readFontFaces();
 const JOBS = [
   { family: "Unbounded", pick: "latinExt", text: "₽", out: "ruble-unbounded.woff2" },
   { family: "Manrope", pick: "latinExt", text: "₽", out: "ruble-manrope.woff2" },
-  // И прописные, и строчные: в разметке «MOMO Equipped», капслок наводит CSS,
+  // И прописные, и строчные: капслок наводит CSS,
   // но полагаться на это при вырезании глифов не стоит.
   {
     family: "Syne",
     pick: "latin",
-    text: "MOMO Equipped MOMOEQUIPPED",
+    text: "Modern Original Music Organization MODERN ORIGINAL MUSIC ORGANIZATION",
     out: "wordmark-syne.woff2",
+    fallback: "public/fonts/syne-latin.woff2",
   },
 ];
 
@@ -82,11 +83,11 @@ for (const job of JOBS) {
         ? f.range.includes("U+20AD-20C0")
         : f.range.includes("U+2000-206F") && !f.range.includes("U+20AD-20C0")),
   );
-  if (!face) {
+  if (!face && !job.fallback) {
     console.error(`НЕ НАЙДЕН набор ${job.pick} у ${job.family} — пропускаю`);
     continue;
   }
-  const src = await readFile(path.join(MEDIA, face.file));
+  const src = await readFile(face ? path.join(MEDIA, face.file) : job.fallback);
   const subset = await subsetFont(src, job.text, { targetFormat: "woff2" });
   await writeFile(path.join(OUT, job.out), subset);
   console.log(

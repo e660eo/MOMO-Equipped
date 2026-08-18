@@ -99,10 +99,13 @@ export function SiteHeader() {
       <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-2 px-4 sm:gap-4 sm:px-6">
         <Link
           href="/"
-          aria-label="MOMO Equipped — на главную"
-          className="inline-flex min-h-11 shrink-0 items-center font-wordmark text-base font-extrabold uppercase leading-none tracking-tight sm:text-lg md:text-xl"
+          aria-label="Modern Original Music Organization — на главную"
+          className="inline-flex min-h-11 w-[118px] shrink-0 items-center font-wordmark font-extrabold uppercase leading-[0.95] tracking-[0.04em] sm:w-[150px]"
         >
-          MOMO <span className="font-bold text-signal">Equipped</span>
+          <span className="flex flex-col text-[0.48rem] sm:text-[0.56rem] md:text-[0.58rem]">
+            <span className="whitespace-nowrap">Modern Original</span>
+            <span className="mt-1 whitespace-nowrap text-signal">Music Organization</span>
+          </span>
         </Link>
 
         {/* Кнопка «Каталог» с эффектом specular и мега-меню */}

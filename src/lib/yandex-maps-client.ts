@@ -13,6 +13,23 @@ export interface YandexPlacemark {
   };
 }
 
+export interface YandexGeocodeResult {
+  geoObjects: {
+    get(index: number): YandexGeoObject | null;
+    getLength(): number;
+  };
+}
+
+export interface YandexGeoObject {
+  geometry: {
+    getCoordinates(): [number, number];
+  };
+  properties: {
+    get(name: string): unknown;
+  };
+  getAddressLine?(): string;
+}
+
 export interface YandexMap {
   events: YandexEventManager;
   geoObjects: {
@@ -36,6 +53,10 @@ export interface YandexMap {
 
 export interface YandexMapsApi {
   ready(handler: () => void): void;
+  geocode(
+    request: string,
+    options?: Record<string, unknown>,
+  ): PromiseLike<YandexGeocodeResult>;
   Map: new (
     container: HTMLElement,
     state: Record<string, unknown>,
@@ -49,6 +70,12 @@ export interface YandexMapsApi {
   templateLayoutFactory: {
     createClass(template: string): unknown;
   };
+}
+
+export interface YandexGeocodedAddress {
+  latitude: number;
+  longitude: number;
+  address: string;
 }
 
 declare global {
@@ -113,4 +140,26 @@ export function loadYandexMaps(apiKey: string): Promise<YandexMapsApi> {
   });
 
   return window.__momoYandexMapsPromise;
+}
+
+/** Находит одну наиболее подходящую точку по текстовому адресу. */
+export async function geocodeYandexAddress(
+  apiKey: string,
+  query: string,
+): Promise<YandexGeocodedAddress | null> {
+  const ymaps = await loadYandexMaps(apiKey);
+  const result = await ymaps.geocode(query, { results: 1 });
+  const geoObject = result.geoObjects.get(0);
+  if (!geoObject) return null;
+
+  const [latitude, longitude] = geoObject.geometry.getCoordinates();
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  const propertyAddress = geoObject.properties.get("text");
+  const address =
+    geoObject.getAddressLine?.().trim() ||
+    (typeof propertyAddress === "string" ? propertyAddress.trim() : "") ||
+    query;
+
+  return { latitude, longitude, address };
 }

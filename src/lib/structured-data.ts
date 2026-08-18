@@ -27,7 +27,7 @@ export function organizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "MOMO Equipped",
+    name: "Modern Original Music Organization",
     legalName: requisites.fullName,
     alternateName: requisites.shortName,
     url: BASE,
@@ -59,7 +59,7 @@ export function websiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "MOMO Equipped",
+    name: "Modern Original Music Organization",
     url: BASE,
     inLanguage: "ru-RU",
     potentialAction: {
@@ -88,7 +88,7 @@ export function productSchema(product: Product, category?: Category) {
       d.setFullYear(d.getFullYear() + 1);
       return d.toISOString().slice(0, 10);
     })(),
-    seller: { "@type": "Organization", name: "MOMO Equipped" },
+    seller: { "@type": "Organization", name: "Modern Original Music Organization" },
   };
 
   // Наличие утверждаем только когда оно есть в прайсе. «Под заказ» → BackOrder.
@@ -136,12 +136,12 @@ export function articleSchema(item: NewsItem) {
     articleBody: item.body ? articlePlainText(item.body, 5000) : undefined,
     author: {
       "@type": "Organization",
-      name: "MOMO Equipped",
+      name: "Modern Original Music Organization",
       url: BASE,
     },
     publisher: {
       "@type": "Organization",
-      name: "MOMO Equipped",
+      name: "Modern Original Music Organization",
       logo: { "@type": "ImageObject", url: `${BASE}/logo-3d.png` },
     },
   };

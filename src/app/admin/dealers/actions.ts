@@ -54,6 +54,11 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
     if (!DEALER_PRICE_TIERS.includes(priceTier)) throw new ExpectedError("Выберите ценовой уровень партнёра.");
     if (!DEALER_LOCATION_KINDS.includes(kind)) throw new ExpectedError("Выберите тип дилерской точки.");
     if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) throw new ExpectedError("Скидка должна быть от 0 до 80%.");
+    const latitude = optionalNumber(formData, "latitude");
+    const longitude = optionalNumber(formData, "longitude");
+    if ((latitude === undefined) !== (longitude === undefined)) throw new ExpectedError("Укажите и широту, и долготу — либо оставьте оба поля пустыми.");
+    if (latitude !== undefined && (latitude < -90 || latitude > 90)) throw new ExpectedError("Широта должна быть от −90 до 90.");
+    if (longitude !== undefined && (longitude < -180 || longitude > 180)) throw new ExpectedError("Долгота должна быть от −180 до 180.");
     const result = createDealer({
       name,
       city,
@@ -62,8 +67,8 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
       publicEmail: text(formData, "publicEmail", 160) || undefined,
       website: text(formData, "website", 240) || undefined,
       hours: text(formData, "hours", 160) || undefined,
-      latitude: optionalNumber(formData, "latitude"),
-      longitude: optionalNumber(formData, "longitude"),
+      latitude,
+      longitude,
       kind,
       authorizedInstallation: kind !== "store" && formData.get("authorizedInstallation") === "on",
       contactName,

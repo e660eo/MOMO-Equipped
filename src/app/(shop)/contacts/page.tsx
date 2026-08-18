@@ -106,7 +106,7 @@ export default function ContactsPage() {
         <YandexMap
           query={`Махачкала, проспект Гамидова, 16`}
           className="mt-5"
-          title="MOMO Equipped на карте"
+          title="Modern Original Music Organization на карте"
         />
       </div>
     </main>

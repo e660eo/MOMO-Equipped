@@ -16,7 +16,7 @@ export function HeroLogo({ className }: { className?: string }) {
     <div className={cn("hero-logo-float", className)}>
       <Image
         src="/logo-3d.png"
-        alt="MOMO Equipped"
+        alt="Modern Original Music Organization"
         width={1500}
         height={985}
         priority

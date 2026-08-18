@@ -115,6 +115,10 @@ export default function Home() {
               <HeroLogo className="w-[clamp(230px,42vw,430px)]" />
             </div>
 
+            <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
+              Modern Original Music Organization
+            </p>
+
             <div className="mx-auto mt-2 max-w-2xl border-y border-border py-3">
               <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-foreground sm:text-lg">
                 Автоакустика MOMO и ZEUS

@@ -290,7 +290,7 @@ async function sendResetEmail(
   const hi = name ? `, ${escapeHtml(name)}` : "";
   const letter: Letter = {
     to: [email],
-    subject: "Сброс пароля — MOMO Equipped",
+    subject: "Сброс пароля — Modern Original Music Organization",
     text: [
       `Здравствуйте${name ? ", " + name : ""}!`,
       "",

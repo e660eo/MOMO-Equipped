@@ -58,7 +58,7 @@ export default async function AdminLoginPage({
   return (
     <div className="mx-auto flex min-h-screen max-w-[420px] flex-col justify-center px-5 py-16">
       <p className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-        MOMO Equipped
+        Modern Original Music Organization
       </p>
       <h1 className="mt-3 font-display text-2xl font-extrabold uppercase leading-tight">
         Панель управления

@@ -23,7 +23,7 @@ const steps = [
 */
 const points = [
   {
-    name: "MOMO Equipped — фирменная точка",
+    name: "Modern Original Music Organization — фирменная точка",
     address: siteConfig.contacts.address,
     hours: siteConfig.contacts.hours,
     phone: siteConfig.contacts.phone,

@@ -50,7 +50,7 @@ const esc = escapeHtml;
 /** Тёмная шапка с брендом — общая для писем о заказе и об оплате. */
 function header(): string {
   return `<div style="background:${INK};padding:22px 30px;">
-    <div style="font-size:14px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#ffffff;">MOMO<span style="color:${BRAND};"> EQUIPPED</span></div>
+    <div style="font-size:14px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#ffffff;">Modern Original <span style="color:${BRAND};">Music Organization</span></div>
   </div>`;
 }
 

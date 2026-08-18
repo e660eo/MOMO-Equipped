@@ -76,6 +76,19 @@ for (const dealer of dealers) {
 if (dealerKindsBackfilled) write("dealers.json", dealers);
 
 const migrationState = read("data-migrations.json", {});
+const renameOrganizationKey = "rename-momo-equipped-2026-08-18";
+let dealerLocationsRenamed = 0;
+if (!migrationState[renameOrganizationKey]) {
+  for (const dealer of dealers) {
+    if (String(dealer.name).trim().toLowerCase() !== "momo equipped") continue;
+    dealer.name = "Modern Original Music Organization";
+    dealerLocationsRenamed += 1;
+  }
+  if (dealerLocationsRenamed) write("dealers.json", dealers);
+  migrationState[renameOrganizationKey] = new Date().toISOString();
+  write("data-migrations.json", migrationState);
+}
+
 const hidePlaceholdersKey = "hide-placeholder-dealers-2026-08-14";
 let dealerLocationsHidden = 0;
 if (!migrationState[hidePlaceholdersKey]) {
@@ -152,4 +165,4 @@ function harden(dir) {
 }
 harden(dataDir);
 
-console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/типы ${dealerKindsBackfilled}/скрыто ${dealerLocationsHidden}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
+console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/типы ${dealerKindsBackfilled}/переименовано ${dealerLocationsRenamed}/скрыто ${dealerLocationsHidden}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);

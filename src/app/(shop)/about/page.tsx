@@ -6,7 +6,7 @@ import { siteConfig, getBrands, getProducts } from "@/lib/data";
 export const metadata: Metadata = {
   title: "О компании",
   description:
-    "MOMO Equipped — автозвук из Махачкалы с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
+    "Modern Original Music Organization — автозвук из Махачкалы с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
   alternates: { canonical: "/about" },
 };
 
@@ -45,7 +45,7 @@ export default function AboutPage() {
       <div className="mt-8 grid items-start gap-10 md:grid-cols-[1.4fr_1fr]">
         <div className="space-y-5 text-[1.02rem] leading-relaxed text-muted-foreground">
           <p>
-            MOMO Equipped — производитель автомобильной акустики MOMO и ZEUS
+            Modern Original Music Organization — производитель автомобильной акустики MOMO и ZEUS
             из Махачкалы. Мы занимаемся автозвуком с 2015 года: разрабатываем
             оборудование, собираем комплекты под конкретные машины и бюджеты и
             отвечаем за качество гарантией.
@@ -70,7 +70,7 @@ export default function AboutPage() {
 
         <Image
           src="/logo-3d.png"
-          alt="MOMO Equipped"
+          alt="Modern Original Music Organization"
           width={1500}
           height={985}
           sizes="(max-width: 768px) 80vw, 380px"

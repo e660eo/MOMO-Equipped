@@ -79,7 +79,7 @@ export function SiteFooter() {
           <div>
             <Image
               src="/logo-3d.png"
-              alt="MOMO Equipped"
+              alt="Modern Original Music Organization"
               width={1500}
               height={985}
               sizes="260px"
