@@ -513,35 +513,20 @@ html[data-theme-vt="active"]::view-transition-group(root) {
   }
 }
 
-/* ── Звуковая линия на первом экране ──
-   Рисуется разметкой, без WebGL: см. hero-backdrop.tsx. Движется только
-   transform — ни пересчёта раскладки, ни перерисовки, работа на композиторе. */
-.hero-wave {
-  /* Фон поддерживает логотип, но не конкурирует с ним. */
-  opacity: 0.46;
-}
-/*
-  10.5s — скорость исходного шейдера: он прибавлял к time 0.01 за кадр, а
-  период синуса равен 2π, то есть при 60 к/с волна проходила период за 10.5 с.
-*/
-.hero-wave__track {
-  animation: hero-wave-scroll 10.5s linear infinite;
-  will-change: transform;
-}
-/* Размытие на неподвижном содержимом: считается один раз, дальше — текстура */
-.hero-wave__ink {
-  filter: blur(28px);
-}
-@keyframes hero-wave-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-1200px); }
-}
-/*
-  Гасим именно animation-name: общее правило reduced-motion ниже режет
-  длительность до 0.01ms, из-за чего линия застыла бы в конце периода.
-*/
-@media (prefers-reduced-motion: reduce) {
-  .hero-wave__track { animation-name: none !important; }
+/* ── Статичная подложка Light Tunnel на первом экране ──
+   Остаётся видимой до запуска WebGL и полностью заменяет его на
+   слабых устройствах и в режиме reduced motion. */
+.hero-tunnel-fallback {
+  opacity: 0.42;
+  background:
+    radial-gradient(ellipse 16% 18% at 50% 47%, rgba(255, 85, 0, 0.2), transparent 72%),
+    repeating-conic-gradient(
+      from 2deg at 50% 47%,
+      rgba(35, 33, 31, 0.11) 0deg 0.8deg,
+      transparent 0.8deg 16deg
+    );
+  -webkit-mask-image: radial-gradient(ellipse 68% 72% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.78) 46%, transparent 82%);
+  mask-image: radial-gradient(ellipse 68% 72% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.78) 46%, transparent 82%);
 }
 
 /* ── Осциллограмма-разделитель ── */

@@ -92,13 +92,13 @@ export default function Home() {
 
   return (
     <main className="overflow-x-hidden">
-      {/* HERO — чёрная звуковая линия на белой плашке за логотипом */}
+      {/* HERO — графитово-оранжевый Light Tunnel за логотипом */}
       <section className="border-b border-border">
         <div className="relative overflow-hidden bg-white text-zinc-900">
-          {/* фон: WebGL-шейдер — чёрная звуковая линия на белом */}
+          {/* фон: прозрачный WebGL-тоннель в палитре MOMO */}
           <HeroBackdrop />
           {/* мягкое высветление за текстом для читаемости */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_54%_at_50%_44%,rgba(255,255,255,0.92),rgba(255,255,255,0.45)_58%,transparent_82%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_52%_48%_at_50%_46%,rgba(255,255,255,0.68),rgba(255,255,255,0.28)_58%,transparent_84%)]" />
 
           <div className="relative z-10 mx-auto max-w-[1100px] px-6 pb-14 pt-10 text-center">
             <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-neutral-500 before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
