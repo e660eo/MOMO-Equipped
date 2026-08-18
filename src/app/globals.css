@@ -141,6 +141,59 @@
   outline-offset: 3px;
 }
 
+/* Магазины и установочные центры на карте дилерской сети. Буква дублирует
+   цвет метки: тип точки различим и без цветового восприятия. */
+.momo-yandex-dealer-point {
+  display: block;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.momo-dealer-map-marker {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 9px;
+  box-shadow: 0 10px 24px rgb(20 20 22 / 30%);
+  color: white;
+  transform: rotate(-45deg);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.momo-dealer-map-marker > span {
+  font: 850 11px/1 var(--font-manrope), sans-serif;
+  letter-spacing: -0.05em;
+  transform: rotate(45deg);
+}
+
+.momo-dealer-map-marker.is-store { background: #ff5500; }
+.momo-dealer-map-marker.is-installation { background: #151518; }
+.momo-dealer-map-marker.is-combined {
+  background: linear-gradient(135deg, #ff5500 0 52%, #151518 52% 100%);
+}
+
+.momo-yandex-dealer-point:hover .momo-dealer-map-marker {
+  transform: rotate(-45deg) scale(1.08);
+  box-shadow: 0 13px 30px rgb(20 20 22 / 36%);
+}
+
+.momo-dealer-map-marker.is-selected {
+  box-shadow: 0 0 0 5px rgb(255 85 0 / 25%), 0 14px 32px rgb(20 20 22 / 38%);
+}
+
+.momo-yandex-dealer-point:focus-visible {
+  border-radius: 50%;
+  outline: 3px solid #ff5500;
+  outline-offset: 3px;
+}
+
 /*
   Дизайн-токены MOMO.
   Светлая тема — по умолчанию; тёмная включается атрибутом data-theme="dark"
