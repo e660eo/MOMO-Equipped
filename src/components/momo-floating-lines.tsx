@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { Mesh, Program, Renderer, Triangle } from "ogl";
 
 /*
-  React Bits Scanner — adapted for the MOMO hero.
-  https://reactbits.dev/backgrounds/scanner
+  React Bits Floating Lines — adapted for the MOMO hero.
+  https://reactbits.dev/backgrounds/floating-lines?gradientStart=EAB308
 
   MIT + Commons Clause License Condition v1.0
   Copyright (c) 2026 David Haz
@@ -31,100 +31,114 @@ import { Mesh, Program, Renderer, Triangle } from "ogl";
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-  The original chromatic field is deliberately monochrome here. The shader
-  draws black graphite traces in the light theme and pale graphite traces in
-  the dark theme, so the same signal remains legible without becoming a second
-  brand accent beside MOMO orange.
+  The original Three.js shader is ported to the OGL renderer already used by
+  the storefront. This keeps the same three-wave geometry and pointer bend
+  without adding a second WebGL runtime to the public bundle.
 */
 
-const vertex = `#version 300 es
-in vec2 position;
+const vertex = `
+attribute vec2 position;
 void main() {
   gl_Position = vec4(position, 0.0, 1.0);
 }
 `;
 
-const fragment = `#version 300 es
+const fragment = `
 precision highp float;
+
 uniform vec2 iResolution;
 uniform float iTime;
-uniform float uSpeed;
-uniform float uSweepSpeed;
-uniform float uSweepWidth;
-uniform float uSweepFalloff;
-uniform float uScale;
-uniform float uFrequency;
-uniform float uRipple;
-uniform float uBandDensity;
-uniform float uLineSharpness;
-uniform float uGlow;
-uniform float uBrightness;
-uniform float uContrast;
-uniform float uSoftness;
-uniform float uVignette;
+uniform float uAnimationSpeed;
+uniform float uLineDistance;
+uniform vec2 uMouse;
+uniform float uBendInfluence;
+uniform vec2 uParallaxOffset;
+uniform vec3 uColorStart;
+uniform vec3 uColorMid;
+uniform vec3 uColorEnd;
 uniform float uOpacity;
-uniform vec3 uColor1;
-uniform vec3 uColor2;
-uniform vec3 uColor3;
-out vec4 fragColor;
 
-const float TAU = 6.2831853;
-
-float signalField(vec2 p, float t) {
-  float wave = sin(p.x * 1.3 + t * 0.7);
-  wave += sin(p.y * 1.7 - t * 0.52) * 0.8;
-  wave += sin((p.x + p.y) * 0.9 + t * 0.91) * 0.6;
-  wave += sin((p.x - p.y) * 1.53 - t * 0.63) * 0.42;
-  return wave * 0.35;
+mat2 rotate2d(float angle) {
+  return mat2(cos(angle), sin(angle), -sin(angle), cos(angle));
 }
 
-vec3 palette(float signal) {
-  signal = pow(clamp(signal, 0.0, 1.0), uContrast);
-  vec3 color = mix(uColor1, uColor2, smoothstep(0.08, 0.6, signal));
-  return mix(color, uColor3, smoothstep(0.68, 1.0, signal));
+vec3 lineColor(float t) {
+  if (t < 0.5) {
+    return mix(uColorStart, uColorMid, t * 2.0);
+  }
+  return mix(uColorMid, uColorEnd, (t - 0.5) * 2.0);
 }
 
-float scanBand(float x, float antiAlias, float sharpness) {
-  float value = mix(0.5, 0.5 + 0.5 * cos(x * TAU), antiAlias);
-  return pow(value, sharpness);
+float wave(
+  vec2 uv,
+  float offset,
+  vec2 screenUv,
+  vec2 mouseUv,
+  float strength
+) {
+  float time = iTime * uAnimationSpeed;
+  float amplitude = sin(offset + time * 0.2) * 0.3;
+  float y = sin(uv.x + offset + time * 0.1) * amplitude;
+
+  vec2 delta = screenUv - mouseUv;
+  float influence = exp(-dot(delta, delta) * 8.0);
+  y += (mouseUv.y - screenUv.y) * influence * -2.0 * uBendInfluence;
+
+  float distanceToLine = uv.y - y;
+  return (0.0175 / max(abs(distanceToLine) + 0.01, 0.001) + 0.01) * strength;
 }
 
 void main() {
-  vec2 uv = (gl_FragCoord.xy * 2.0 - iResolution.xy) / iResolution.y;
-  vec2 point = uv / max(uScale, 0.001);
-  float time = iTime * uSpeed;
+  vec2 baseUv = (2.0 * gl_FragCoord.xy - iResolution.xy) / iResolution.y;
+  baseUv.y *= -1.0;
+  baseUv += uParallaxOffset;
 
-  float signal = signalField(point * uFrequency, time);
-  float coordinate = point.y + signal * uRipple;
+  vec2 mouseUv = (2.0 * uMouse - iResolution.xy) / iResolution.y;
+  mouseUv.y *= -1.0;
 
-  float phase = coordinate / max(uSweepWidth, 0.05) - time * uSweepSpeed;
-  float sweep = pow(
-    0.5 + 0.5 * cos(phase * TAU),
-    max(uSweepFalloff, 0.1)
-  );
+  vec3 color = vec3(0.0);
 
-  float lineCoordinate = coordinate * uBandDensity;
-  float antiAlias = 1.0 / (1.0 + uSoftness * fwidth(lineCoordinate) * 3.0);
-  antiAlias = clamp(antiAlias, 0.0, 1.0);
+  for (int i = 0; i < 8; ++i) {
+    float fi = float(i);
+    float t = fi / 7.0;
+    vec3 gradient = lineColor(t);
 
-  float bodyBase = clamp(0.5 + 0.5 * signal, 0.0, 1.0);
-  float body = bodyBase * bodyBase * uGlow * sweep;
-  float line = clamp(
-    scanBand(lineCoordinate, antiAlias, max(uLineSharpness, 0.1)) * sweep + body,
-    0.0,
-    1.0
-  );
+    float bottomAngle = -1.0 * log(length(baseUv) + 1.0);
+    vec2 bottomUv = baseUv * rotate2d(bottomAngle);
+    color += gradient * wave(
+      bottomUv + vec2(uLineDistance * fi + 2.0, -0.7),
+      1.5 + 0.2 * fi,
+      baseUv,
+      mouseUv,
+      0.2
+    );
 
-  vec3 color = palette(line);
-  float intensity = line * uBrightness;
-  intensity *= clamp(
-    1.0 - uVignette * smoothstep(0.5, 1.65, length(uv)),
-    0.0,
-    1.0
-  );
+    float middleAngle = 0.2 * log(length(baseUv) + 1.0);
+    vec2 middleUv = baseUv * rotate2d(middleAngle);
+    color += gradient * wave(
+      middleUv + vec2(uLineDistance * fi + 5.0, 0.0),
+      2.0 + 0.15 * fi,
+      baseUv,
+      mouseUv,
+      1.0
+    );
 
-  float alpha = clamp(intensity * uOpacity, 0.0, 1.0);
-  fragColor = vec4(clamp(color, 0.0, 1.0) * alpha, alpha);
+    float topAngle = -0.4 * log(length(baseUv) + 1.0);
+    vec2 topUv = baseUv * rotate2d(topAngle);
+    topUv.x *= -1.0;
+    color += gradient * wave(
+      topUv + vec2(uLineDistance * fi + 10.0, 0.5),
+      1.0 + 0.2 * fi,
+      baseUv,
+      mouseUv,
+      0.1
+    );
+  }
+
+  color = min(color * 0.5, vec3(1.0));
+  float luminance = max(max(color.r, color.g), color.b);
+  float alpha = clamp(luminance * uOpacity, 0.0, 0.78);
+  gl_FragColor = vec4(color * alpha, alpha);
 }
 `;
 
@@ -137,7 +151,7 @@ function setRgb(uniform: VectorUniform, rgb: readonly [number, number, number]) 
   uniform.value[2] = rgb[2];
 }
 
-export function MomoScanner({ className = "" }: { className?: string }) {
+export function MomoFloatingLines({ className = "" }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -158,9 +172,16 @@ export function MomoScanner({ className = "" }: { className?: string }) {
     let elapsed = 0;
     let previousTime = performance.now();
 
+    const targetMouse = new Float32Array([-1000, -1000]);
+    const currentMouse = new Float32Array([-1000, -1000]);
+    const targetParallax = new Float32Array([0, 0]);
+    const currentParallax = new Float32Array([0, 0]);
+    let targetInfluence = 0;
+    let currentInfluence = 0;
+
     try {
       renderer = new Renderer({
-        webgl: 2,
+        webgl: 1,
         alpha: true,
         premultipliedAlpha: true,
         antialias: false,
@@ -168,35 +189,21 @@ export function MomoScanner({ className = "" }: { className?: string }) {
         powerPreference: "high-performance",
       });
 
-      if (!renderer.isWebgl2) {
-        renderer.gl.getExtension("WEBGL_lose_context")?.loseContext();
-        return;
-      }
-
       const gl = renderer.gl;
       gl.clearColor(0, 0, 0, 0);
 
       const uniforms = {
-        iTime: { value: 0 },
         iResolution: { value: new Float32Array([1, 1]) },
-        uSpeed: { value: 0.34 },
-        uSweepSpeed: { value: 0.2 },
-        uSweepWidth: { value: 1.9 },
-        uSweepFalloff: { value: 6.8 },
-        uScale: { value: 1.35 },
-        uFrequency: { value: 2.1 },
-        uRipple: { value: 0.44 },
-        uBandDensity: { value: 11.5 },
-        uLineSharpness: { value: 7.2 },
-        uGlow: { value: 0.08 },
-        uBrightness: { value: 0.9 },
-        uContrast: { value: 1.35 },
-        uSoftness: { value: 1.7 },
-        uVignette: { value: 0.66 },
-        uOpacity: { value: 0.6 },
-        uColor1: { value: new Float32Array([0.015, 0.015, 0.018]) },
-        uColor2: { value: new Float32Array([0.09, 0.09, 0.105]) },
-        uColor3: { value: new Float32Array([0.25, 0.25, 0.27]) },
+        iTime: { value: 0 },
+        uAnimationSpeed: { value: 0.62 },
+        uLineDistance: { value: 0.08 },
+        uMouse: { value: currentMouse },
+        uBendInfluence: { value: 0 },
+        uParallaxOffset: { value: currentParallax },
+        uColorStart: { value: new Float32Array([0.918, 0.702, 0.031]) },
+        uColorMid: { value: new Float32Array([0.34, 0.34, 0.36]) },
+        uColorEnd: { value: new Float32Array([0.09, 0.09, 0.1]) },
+        uOpacity: { value: 0.72 },
       };
 
       const geometry = new Triangle(gl);
@@ -217,29 +224,28 @@ export function MomoScanner({ className = "" }: { className?: string }) {
       canvas.style.height = "100%";
       canvas.style.display = "block";
       container.appendChild(canvas);
+      container.parentElement?.setAttribute("data-floating-lines-active", "true");
 
       const resolution = uniforms.iResolution as VectorUniform;
       const time = uniforms.iTime as NumericUniform;
+      const influence = uniforms.uBendInfluence as NumericUniform;
       const opacity = uniforms.uOpacity as NumericUniform;
-      const brightness = uniforms.uBrightness as NumericUniform;
-      const color1 = uniforms.uColor1 as VectorUniform;
-      const color2 = uniforms.uColor2 as VectorUniform;
-      const color3 = uniforms.uColor3 as VectorUniform;
+      const colorStart = uniforms.uColorStart as VectorUniform;
+      const colorMid = uniforms.uColorMid as VectorUniform;
+      const colorEnd = uniforms.uColorEnd as VectorUniform;
 
       const syncTheme = () => {
         const isDark = document.documentElement.dataset.theme === "dark";
         if (isDark) {
-          setRgb(color1, [0.24, 0.24, 0.26]);
-          setRgb(color2, [0.58, 0.58, 0.61]);
-          setRgb(color3, [0.94, 0.94, 0.96]);
-          opacity.value = 0.38;
-          brightness.value = 0.68;
+          setRgb(colorStart, [0.918, 0.702, 0.031]);
+          setRgb(colorMid, [0.435, 0.435, 0.435]);
+          setRgb(colorEnd, [0.416, 0.416, 0.416]);
+          opacity.value = 0.72;
         } else {
-          setRgb(color1, [0.015, 0.015, 0.018]);
-          setRgb(color2, [0.09, 0.09, 0.105]);
-          setRgb(color3, [0.25, 0.25, 0.27]);
-          opacity.value = 0.6;
-          brightness.value = 0.9;
+          setRgb(colorStart, [0.72, 0.53, 0.0]);
+          setRgb(colorMid, [0.34, 0.34, 0.36]);
+          setRgb(colorEnd, [0.09, 0.09, 0.1]);
+          opacity.value = 0.72;
         }
       };
 
@@ -255,11 +261,52 @@ export function MomoScanner({ className = "" }: { className?: string }) {
         renderer.render({ scene: mesh });
       };
 
+      const handlePointerMove = (event: PointerEvent) => {
+        if (!renderer) return;
+        const rect = container.getBoundingClientRect();
+        const inside =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+
+        if (!inside) {
+          targetInfluence = 0;
+          targetParallax[0] = 0;
+          targetParallax[1] = 0;
+          return;
+        }
+
+        const dpr = renderer.dpr;
+        const x = (event.clientX - rect.left) * dpr;
+        const y = (rect.height - (event.clientY - rect.top)) * dpr;
+        targetMouse[0] = x;
+        targetMouse[1] = y;
+        targetInfluence = 1;
+        targetParallax[0] = ((event.clientX - rect.left) / rect.width - 0.5) * 0.12;
+        targetParallax[1] = -((event.clientY - rect.top) / rect.height - 0.5) * 0.12;
+      };
+
+      const handlePointerLeave = () => {
+        targetInfluence = 0;
+        targetParallax[0] = 0;
+        targetParallax[1] = 0;
+      };
+
       const loop = (now: number) => {
         const delta = Math.min((now - previousTime) / 1000, 0.05);
         previousTime = now;
         elapsed += delta;
         time.value = elapsed;
+
+        const damping = 0.055;
+        currentMouse[0] += (targetMouse[0] - currentMouse[0]) * damping;
+        currentMouse[1] += (targetMouse[1] - currentMouse[1]) * damping;
+        currentParallax[0] += (targetParallax[0] - currentParallax[0]) * damping;
+        currentParallax[1] += (targetParallax[1] - currentParallax[1]) * damping;
+        currentInfluence += (targetInfluence - currentInfluence) * damping;
+        influence.value = currentInfluence;
+
         renderer?.render({ scene: mesh });
         frame = requestAnimationFrame(loop);
       };
@@ -301,6 +348,8 @@ export function MomoScanner({ className = "" }: { className?: string }) {
         attributeFilter: ["data-theme"],
       });
 
+      window.addEventListener("pointermove", handlePointerMove, { passive: true });
+      window.addEventListener("pointerout", handlePointerLeave);
       document.addEventListener("visibilitychange", onVisibilityChange);
       motionPreference.addEventListener("change", onMotionPreferenceChange);
 
@@ -313,12 +362,16 @@ export function MomoScanner({ className = "" }: { className?: string }) {
         resizeObserver?.disconnect();
         intersectionObserver?.disconnect();
         themeObserver?.disconnect();
+        window.removeEventListener("pointermove", handlePointerMove);
+        window.removeEventListener("pointerout", handlePointerLeave);
         document.removeEventListener("visibilitychange", onVisibilityChange);
         motionPreference.removeEventListener("change", onMotionPreferenceChange);
+        container.parentElement?.removeAttribute("data-floating-lines-active");
         if (canvas?.parentNode === container) container.removeChild(canvas);
         gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     } catch {
+      container.parentElement?.removeAttribute("data-floating-lines-active");
       if (canvas?.parentNode === container) container.removeChild(canvas);
       renderer?.gl.getExtension("WEBGL_lose_context")?.loseContext();
       return;

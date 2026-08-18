@@ -513,47 +513,63 @@ html[data-theme-vt="active"]::view-transition-group(root) {
   }
 }
 
-/* ── Статичная подложка Scanner на первом экране ──
-   Тонкие линии дают состояние до запуска WebGL и заменяют анимацию при
-   reduced motion. Цвета переключаются теми же токенами, что и вся страница. */
-.hero-scanner-fallback {
-  --scanner-line: rgba(20, 20, 22, 0.1);
-  --scanner-center: rgba(20, 20, 22, 0.08);
-  opacity: 0.68;
+/* ── Статичная подложка Floating Lines на первом экране ──
+   Несколько диагональных нитей повторяют направление WebGL-волн до запуска
+   canvas и при reduced motion. Золото — из выбранного пресета React Bits. */
+.hero-floating-lines-fallback {
+  opacity: 0.5;
+  transition: opacity 300ms ease;
   background:
-    radial-gradient(
-      ellipse 72% 42% at 50% 47%,
-      var(--scanner-center),
-      transparent 72%
+    linear-gradient(
+      26deg,
+      transparent 40%,
+      rgba(184, 137, 0, 0.2) 41%,
+      transparent 42.2%
     ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0 18px,
-      var(--scanner-line) 18px 19px,
-      transparent 19px 31px
+    linear-gradient(
+      23deg,
+      transparent 44%,
+      rgba(184, 137, 0, 0.12) 45%,
+      transparent 46.1%
+    ),
+    linear-gradient(
+      -19deg,
+      transparent 51%,
+      rgba(31, 31, 34, 0.14) 52%,
+      transparent 53.3%
+    ),
+    linear-gradient(
+      -22deg,
+      transparent 56%,
+      rgba(92, 92, 96, 0.12) 57%,
+      transparent 58.2%
     );
-  -webkit-mask-image: radial-gradient(ellipse 78% 68% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.72) 54%, transparent 86%);
-  mask-image: radial-gradient(ellipse 78% 68% at 50% 47%, #000 0%, rgba(0, 0, 0, 0.72) 54%, transparent 86%);
+  -webkit-mask-image: radial-gradient(ellipse 82% 74% at 50% 50%, #000 10%, rgba(0, 0, 0, 0.72) 60%, transparent 90%);
+  mask-image: radial-gradient(ellipse 82% 74% at 50% 50%, #000 10%, rgba(0, 0, 0, 0.72) 60%, transparent 90%);
 }
-:root[data-theme="dark"] .hero-scanner-fallback {
-  --scanner-line: rgba(245, 243, 239, 0.1);
-  --scanner-center: rgba(245, 243, 239, 0.07);
+:root[data-theme="dark"] .hero-floating-lines-fallback {
+  opacity: 0.64;
+  filter: brightness(1.35);
+}
+[data-floating-lines-active="true"] .hero-floating-lines-fallback,
+:root[data-theme="dark"] [data-floating-lines-active="true"] .hero-floating-lines-fallback {
+  opacity: 0;
 }
 
-.hero-scanner-scrim {
+.hero-floating-lines-scrim {
   background: radial-gradient(
-    ellipse 54% 50% at 50% 47%,
-    rgba(255, 255, 255, 0.58),
-    rgba(255, 255, 255, 0.18) 58%,
-    transparent 84%
+    ellipse 48% 58% at 50% 50%,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.12) 62%,
+    transparent 88%
   );
 }
-:root[data-theme="dark"] .hero-scanner-scrim {
+:root[data-theme="dark"] .hero-floating-lines-scrim {
   background: radial-gradient(
-    ellipse 54% 50% at 50% 47%,
-    rgba(23, 23, 26, 0.74),
-    rgba(23, 23, 26, 0.3) 58%,
-    transparent 84%
+    ellipse 48% 58% at 50% 50%,
+    rgba(23, 23, 26, 0.62),
+    rgba(23, 23, 26, 0.18) 62%,
+    transparent 88%
   );
 }
 

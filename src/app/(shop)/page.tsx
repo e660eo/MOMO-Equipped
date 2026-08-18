@@ -92,30 +92,30 @@ export default function Home() {
 
   return (
     <main className="overflow-x-hidden">
-      {/* HERO — монохромное сканирующее поле Scanner за логотипом */}
+      {/* HERO — интерактивные Floating Lines за логотипом */}
       <section className="border-b border-border">
         <div className="relative overflow-hidden bg-surface text-foreground">
-          {/* фон: прозрачная WebGL-волна, чёрная/графитовая по теме */}
+          {/* фон: золотисто-графитовые WebGL-линии, адаптированные под обе темы */}
           <HeroBackdrop />
           {/* мягкое высветление за текстом для читаемости */}
-          <div className="hero-scanner-scrim pointer-events-none absolute inset-0" />
+          <div className="hero-floating-lines-scrim pointer-events-none absolute inset-0" />
 
-          <div className="relative z-10 mx-auto max-w-[1100px] px-6 pb-14 pt-10 text-center">
+          <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-8 pt-6 text-center sm:px-6 sm:pb-9">
             <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
               Автоакустика · с 2015 года
             </p>
 
             {/* Слоган остаётся единственным заголовком первого экрана. */}
-            <h1 className="mt-4 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-muted-foreground">
+            <h1 className="mt-3 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-muted-foreground">
               Звук, который чувствуешь
             </h1>
 
             {/* Логотип остаётся самым крупным объектом первого экрана. */}
-            <div className="mt-5 flex items-center justify-center">
-              <HeroLogo className="w-[clamp(260px,52vw,660px)]" />
+            <div className="mt-2 flex items-center justify-center">
+              <HeroLogo className="w-[clamp(230px,42vw,430px)]" />
             </div>
 
-            <div className="mx-auto mt-6 max-w-2xl border-y border-border py-4">
+            <div className="mx-auto mt-2 max-w-2xl border-y border-border py-3">
               <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-foreground sm:text-lg">
                 Автоакустика MOMO и ZEUS
               </p>
@@ -124,7 +124,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="mt-9 flex flex-wrap justify-center gap-4">
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
               <Link
                 href="/catalog"
                 className="inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_28px_rgba(255,85,0,0.35)]"
