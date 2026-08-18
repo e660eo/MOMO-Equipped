@@ -55,6 +55,32 @@ export function setDealerLocationProfile(
   return updated;
 }
 
+/**
+ * Полностью удаляет дилерскую точку и все связанные с ней кабинеты.
+ * Заказы намеренно остаются в отдельном журнале: удаление контрагента не
+ * должно стирать историю уже оформленных отгрузок.
+ */
+export function deleteDealer(id: string): {
+  dealer: DealerLocation;
+  removedAccounts: DealerAccount[];
+} | undefined {
+  assertWritable();
+  const dealer = getDealerLocation(id);
+  if (!dealer) return undefined;
+
+  const removedAccounts = getDealerAccounts().filter(
+    (account) => account.dealerId === id,
+  );
+  updateJson<DealerAccount[]>(ACCOUNTS, (all) =>
+    all.filter((account) => account.dealerId !== id),
+  );
+  updateJson<DealerLocation[]>(DEALERS, (all) =>
+    all.filter((location) => location.id !== id),
+  );
+
+  return { dealer, removedAccounts };
+}
+
 export function getDealerAccounts(): DealerAccount[] {
   return readJson<DealerAccount[]>(ACCOUNTS);
 }

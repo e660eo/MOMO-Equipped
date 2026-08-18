@@ -7,6 +7,7 @@ import { DEALER_LOCATION_KINDS, DEALER_LOCATION_KIND_LABELS } from "@/lib/dealer
 import { sendDealerInvite, sendDealerPasswordReset } from "@/lib/dealer-mail";
 import {
   createDealer,
+  deleteDealer,
   findDealerAccount,
   getDealerLocation,
   issueDealerInvite,
@@ -143,6 +144,33 @@ export async function setDealerLocationVisibility(formData: FormData): Promise<v
   });
   revalidatePath("/admin/dealers");
   revalidatePath("/dealers");
+}
+
+export async function deleteDealerAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  if (!id) return;
+
+  const result = deleteDealer(id);
+  if (!result) return;
+
+  audit({
+    entity: "dealer",
+    entityId: id,
+    action: "dealer_deleted",
+    summary: `Удалён дилер ${result.dealer.name}; удалено кабинетов: ${result.removedAccounts.length}; история заказов сохранена`,
+    before: {
+      dealer: result.dealer,
+      accounts: result.removedAccounts.map((account) => ({
+        ...account,
+        passwordHash: "[hidden]",
+        inviteHash: account.inviteHash ? "[hidden]" : undefined,
+      })),
+    },
+  });
+  revalidatePath("/admin/dealers");
+  revalidatePath("/dealers");
+  revalidatePath("/dealer");
 }
 
 export async function setDealerLocationProfileAction(formData: FormData): Promise<void> {
