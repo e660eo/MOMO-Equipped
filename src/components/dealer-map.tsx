@@ -48,6 +48,27 @@ function escapeHtml(value: string): string {
   );
 }
 
+function dealerBalloonBody(dealer: DealerLocation): string {
+  const address = `${escapeHtml(dealer.city)}, ${escapeHtml(dealer.address)}`;
+  const phone = dealer.phone.trim();
+  const phoneHref = phone.replace(/[^+\d]/g, "");
+  const email = dealer.email?.trim() ?? "";
+  const contacts = [
+    phone && phoneHref
+      ? `<a href="tel:${phoneHref}"><span>Телефон</span>${escapeHtml(phone)}</a>`
+      : "",
+    email
+      ? `<a href="mailto:${encodeURIComponent(email)}"><span>Почта</span>${escapeHtml(email)}</a>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
+
+  return `<div class="momo-dealer-balloon"><p>${address}</p>${
+    contacts ? `<div class="momo-dealer-balloon__contacts">${contacts}</div>` : ""
+  }</div>`;
+}
+
 function dealerSignature(dealers: DealerWithCoordinates[]): string {
   return dealers
     .map((dealer) => `${dealer.id}:${dealer.latitude}:${dealer.longitude}`)
@@ -158,7 +179,7 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
         {
           hintContent: `${dealer.name} — ${DEALER_LOCATION_KIND_LABELS[kind]}`,
           balloonContentHeader: escapeHtml(dealer.name),
-          balloonContentBody: `${escapeHtml(dealer.city)}, ${escapeHtml(dealer.address)}`,
+          balloonContentBody: dealerBalloonBody(dealer),
           balloonContentFooter: escapeHtml(DEALER_LOCATION_KIND_LABELS[kind]),
         },
         {

@@ -194,6 +194,33 @@
   outline-offset: 3px;
 }
 
+.momo-dealer-balloon p { margin: 0; }
+.momo-dealer-balloon__contacts {
+  display: grid;
+  gap: 4px;
+  margin-top: 9px;
+}
+.momo-dealer-balloon__contacts a {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 8px;
+  color: #c94400;
+  font-weight: 750;
+  text-decoration: none;
+}
+.momo-dealer-balloon__contacts a span {
+  min-width: 58px;
+  color: #6e6e73;
+  font-size: 11px;
+  font-weight: 600;
+}
+.momo-dealer-balloon__contacts a:hover,
+.momo-dealer-balloon__contacts a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /*
   Дизайн-токены MOMO.
   Светлая тема — по умолчанию; тёмная включается атрибутом data-theme="dark"
