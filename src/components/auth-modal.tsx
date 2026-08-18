@@ -12,6 +12,7 @@ import { ConsentCheckbox } from "./consent-checkbox";
 import { attemptAdminLogin } from "@/app/admin-entry";
 import { signIn, signUp, requestPasswordReset } from "@/app/customer-actions";
 import { notifyCustomerSessionChanged } from "./customer-provider";
+import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
 
 // text-base на узком экране: при шрифте меньше 16px Safari на iPhone
 // приближает страницу при фокусе в поле и обратно уже не отдаляет.
@@ -161,6 +162,9 @@ export function AuthModal() {
     setError("");
     setRgPass("");
     setRgPassConfirm("");
+    // Автоцель Метрики видит сам submit, даже если сервер отказал. Эта цель
+    // означает именно созданный аккаунт и не содержит персональных данных.
+    reachMetrikaGoal(METRIKA_GOALS.registrationSuccess);
     pushToast({
       title: `Добро пожаловать, ${rgName.trim().split(/\s+/)[0]}!`,
       description: "Аккаунт создан. Подтвердите почту по ссылке из письма.",

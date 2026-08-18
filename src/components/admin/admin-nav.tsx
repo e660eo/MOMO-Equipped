@@ -13,6 +13,7 @@ const LINKS = [
   { href: "/admin/listening-stand", label: "Стенд" },
   { href: "/admin/messages", label: "Чаты" },
   { href: "/admin/support", label: "Материалы" },
+  { href: "/admin/banners", label: "Баннеры" },
   { href: "/admin/news", label: "Новости" },
   { href: "/admin/bundles", label: "Сборки" },
   { href: "/admin/promos", label: "Промокоды" },

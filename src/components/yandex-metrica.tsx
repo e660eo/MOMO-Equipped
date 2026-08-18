@@ -3,15 +3,7 @@
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
-
-// Номер счётчика Яндекс.Метрики — выдан владельцем магазина.
-const YM_ID = 110907002;
-
-declare global {
-  interface Window {
-    ym?: (id: number, action: string, ...rest: unknown[]) => void;
-  }
-}
+import { YANDEX_METRIKA_ID } from "@/lib/metrika";
 
 /*
   init засчитывает первый просмотр сам. Дальше сайт работает как SPA: переходы
@@ -37,7 +29,7 @@ function MetrikaRouteTracker() {
     }
     const qs = searchParams.toString();
     const url = location.origin + pathname + (qs ? `?${qs}` : "");
-    window.ym?.(YM_ID, "hit", url);
+    window.ym?.(YANDEX_METRIKA_ID, "hit", url);
   }, [pathname, searchParams]);
 
   return null;
@@ -68,7 +60,7 @@ export function YandexMetrica() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`https://mc.yandex.ru/watch/${YM_ID}`}
+            src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`}
             style={{ position: "absolute", left: "-9999px" }}
             alt=""
           />

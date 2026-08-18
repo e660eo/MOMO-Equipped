@@ -1,7 +1,7 @@
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getAuditLog } from "@/lib/audit-log";
 
-const ENTITY_LABELS = { product: "Товар", order: "Заказ", promo: "Промокод", customer: "Клиент", settings: "Настройки", integration: "Интеграция", dealer: "Дилер", support: "Поддержка" } as const;
+const ENTITY_LABELS = { product: "Товар", order: "Заказ", promo: "Промокод", customer: "Клиент", settings: "Настройки", integration: "Интеграция", dealer: "Дилер", support: "Поддержка", banner: "Баннер" } as const;
 
 export default async function AuditPage() {
   await requireAdminPage();

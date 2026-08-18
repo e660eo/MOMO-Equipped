@@ -24,7 +24,7 @@ export function ConfirmButton({
         if (!window.confirm(question)) e.preventDefault();
       }}
       className={cn(
-        "text-muted-foreground transition-colors",
+        "inline-flex min-h-11 items-center text-muted-foreground transition-colors",
         tone === "danger"
           ? "hover:text-[var(--signal-text)]"
           : "hover:text-signal",

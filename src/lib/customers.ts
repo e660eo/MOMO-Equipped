@@ -21,6 +21,26 @@ import { getBonusSummary, removeCustomerBonusLedger } from "./bonus-ledger";
 
 const FILE = "customers.json";
 
+function auditCustomerLifecycle(input: {
+  customerId: string;
+  action: "customer_registered" | "customer_deleted";
+  summary: string;
+}): void {
+  try {
+    audit({
+      entity: "customer",
+      entityId: input.customerId,
+      action: input.action,
+      summary: input.summary,
+      actor: "Покупатель",
+    });
+  } catch (error) {
+    // Журнал не должен ломать уже выполненную регистрацию или законное
+    // удаление данных. Причина остаётся в серверном логе для диагностики.
+    console.error("customer lifecycle audit:", error);
+  }
+}
+
 export function getCustomers(): Customer[] {
   try {
     return readJson<Customer[]>(FILE);
@@ -87,6 +107,11 @@ export function registerCustomer(input: {
   };
 
   updateJson<Customer[]>(FILE, (all) => [...all, customer]);
+  auditCustomerLifecycle({
+    customerId: customer.id,
+    action: "customer_registered",
+    summary: "Создан аккаунт покупателя",
+  });
   return { ok: true, customer: toPublic(customer) };
 }
 
@@ -158,6 +183,11 @@ export function deleteCustomer(id: string): void {
   assertWritable();
   updateJson<Customer[]>(FILE, (all) => all.filter((c) => c.id !== id));
   removeCustomerBonusLedger(id);
+  auditCustomerLifecycle({
+    customerId: id,
+    action: "customer_deleted",
+    summary: "Покупатель удалил аккаунт и персональные данные",
+  });
 }
 
 /**
@@ -226,7 +256,8 @@ export function markCustomerEmailVerified(id: string): boolean {
     entity: "customer",
     entityId: id,
     action: "email_verified",
-    summary: `Подтверждён email клиента ${customer.email}`,
+    summary: "Подтверждён email покупателя",
+    actor: "Покупатель",
   });
   return true;
 }

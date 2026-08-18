@@ -1,0 +1,71 @@
+[
+  {
+    "id": "momo-power-lab",
+    "name": "Моноблоки MOMO",
+    "media": "momo-bd-1500-1-cutout.png",
+    "mediaType": "image",
+    "originalName": "momo-bd-1500-1-cutout.png",
+    "alt": "Моноблок MOMO BD-1500.1",
+    "eyebrow": "Новинки · уже на складе",
+    "heading": "Новый уровень усиления",
+    "description": "Компактный FR-500 и мощный BD-1500.1 — два моноблока MOMO для систем с разным запасом мощности.",
+    "theme": "dark",
+    "mediaFit": "contain",
+    "mediaAlign": "right",
+    "action": {
+      "kind": "button",
+      "href": "/catalog/usiliteli-monobloki",
+      "label": "Смотреть моноблоки"
+    },
+    "active": true,
+    "order": 10,
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "updatedAt": "2026-08-18T00:00:00.000Z"
+  },
+  {
+    "id": "momo-achilles-12",
+    "name": "MOMO ACHILLES 12",
+    "media": "momo-achilles-12-cutout.png",
+    "mediaType": "image",
+    "originalName": "momo-achilles-12-cutout.png",
+    "alt": "Сабвуфер MOMO ACHILLES 12",
+    "eyebrow": "Флагманский сабвуфер",
+    "heading": "Бас без компромиссов",
+    "description": "MOMO ACHILLES 12 — сабвуфер для системы, в которой низкие частоты должны ощущаться физически.",
+    "theme": "light",
+    "mediaFit": "contain",
+    "mediaAlign": "right",
+    "action": {
+      "kind": "button",
+      "href": "/product/sabvufer-avtomobilnyy-achilles-12-dyuymov-902295",
+      "label": "Открыть ACHILLES 12"
+    },
+    "active": true,
+    "order": 20,
+    "createdAt": "2026-08-18T00:00:01.000Z",
+    "updatedAt": "2026-08-18T00:00:01.000Z"
+  },
+  {
+    "id": "zeus-fr-2-1100",
+    "name": "ZEUS FR-2.1100",
+    "media": "zeus-fr-2-1100-cutout.png",
+    "mediaType": "image",
+    "originalName": "zeus-fr-2-1100-cutout.png",
+    "alt": "Усилитель ZEUS FR-2.1100",
+    "eyebrow": "Усилители ZEUS",
+    "heading": "Мощность под контролем",
+    "description": "ZEUS FR-2.1100 — усилитель для уверенной и стабильной работы автомобильной аудиосистемы.",
+    "theme": "signal",
+    "mediaFit": "contain",
+    "mediaAlign": "right",
+    "action": {
+      "kind": "button",
+      "href": "/product/usilitel-avtomobilnyy-zeus-fr-2-1100-421465",
+      "label": "Открыть FR-2.1100"
+    },
+    "active": true,
+    "order": 30,
+    "createdAt": "2026-08-18T00:00:02.000Z",
+    "updatedAt": "2026-08-18T00:00:02.000Z"
+  }
+]

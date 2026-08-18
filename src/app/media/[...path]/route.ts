@@ -26,13 +26,15 @@ const TYPES: Record<string, string> = {
   ".wav": "audio/wav",
   ".ogg": "audio/ogg",
   ".m4a": "audio/mp4",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
   ".pdf": "application/pdf",
   ".zip": "application/zip",
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
-const AUDIO_EXTENSIONS = new Set([".mp3", ".wav", ".ogg", ".m4a"]);
+const RANGE_EXTENSIONS = new Set([".mp3", ".wav", ".ogg", ".m4a", ".mp4", ".webm"]);
 
 function requestedRange(header: string | null, size: number): { start: number; end: number } | null {
   if (!header) return null;
@@ -88,7 +90,7 @@ export async function GET(
   if (!targetFile) return new Response("Not found", { status: 404 });
 
   const size = (await fs.promises.stat(targetFile)).size;
-  const rangeHeader = AUDIO_EXTENSIONS.has(extension) ? req.headers.get("range") : null;
+  const rangeHeader = RANGE_EXTENSIONS.has(extension) ? req.headers.get("range") : null;
   const range = requestedRange(rangeHeader, size);
   if (rangeHeader && !range) {
     return new Response(null, {
@@ -114,7 +116,7 @@ export async function GET(
       "Content-Type": type,
       "Content-Length": String(length),
       "Cache-Control": "public, max-age=31536000, immutable",
-      ...(AUDIO_EXTENSIONS.has(extension) ? { "Accept-Ranges": "bytes" } : {}),
+      ...(RANGE_EXTENSIONS.has(extension) ? { "Accept-Ranges": "bytes" } : {}),
       ...(range ? { "Content-Range": `bytes ${start}-${end}/${size}` } : {}),
     },
   });

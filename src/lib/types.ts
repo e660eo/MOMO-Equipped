@@ -121,6 +121,47 @@ export interface NewsItem {
   body?: string;
 }
 
+/* ------------------------------ Баннеры -------------------------------- */
+
+export type BannerMediaType = "image" | "video";
+export type BannerTheme = "dark" | "light" | "signal";
+export type BannerMediaFit = "cover" | "contain";
+export type BannerMediaAlign = "left" | "center" | "right";
+export type BannerActionKind = "none" | "banner" | "button";
+
+/**
+ * Рекламный слайд на главной. Медиа лежит в постоянной папке uploads,
+ * а сама запись — в banners.json, поэтому редакторские правки переживают
+ * сборку и выкат новой версии сайта.
+ */
+export interface SiteBanner {
+  id: string;
+  /** Служебное название: видно в панели, но не обязательно на баннере. */
+  name: string;
+  media: string;
+  mediaType: BannerMediaType;
+  originalName?: string;
+  /** Описание изображения или видео для доступности. */
+  alt?: string;
+  eyebrow?: string;
+  heading?: string;
+  description?: string;
+  theme: BannerTheme;
+  mediaFit: BannerMediaFit;
+  mediaAlign: BannerMediaAlign;
+  action: {
+    kind: BannerActionKind;
+    href?: string;
+    label?: string;
+    newTab?: boolean;
+  };
+  active: boolean;
+  /** Меньшее число выводится раньше. */
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /**
  * Покупатель с аккаунтом на сайте. Живёт в папке данных: внутри
  * персональные данные, поэтому файл не хранится в репозитории.
@@ -333,7 +374,7 @@ export interface Order {
   history?: OrderHistoryEntry[];
 }
 
-export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration" | "dealer" | "support";
+export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration" | "dealer" | "support" | "banner";
 
 export interface AuditLogEntry {
   id: string;

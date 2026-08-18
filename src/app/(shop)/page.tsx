@@ -28,6 +28,7 @@ import { ProductCard } from "@/components/product-card";
 import { WaveDivider } from "@/components/wave-divider";
 import { SectionHead } from "@/components/section-head";
 import { Reveal } from "@/components/reveal";
+import { getActiveBanners } from "@/lib/banners";
 
 export const metadata: Metadata = {
   title: { absolute: "Автоакустика MOMO и ZEUS — официальный каталог" },
@@ -87,6 +88,7 @@ export default function Home() {
   const { trust } = siteConfig;
   const categoryBySlug = Object.fromEntries(categories.map((c) => [c.slug, c]));
   const bundles = getBundles();
+  const banners = getActiveBanners();
 
   return (
     <main className="overflow-x-hidden">
@@ -161,12 +163,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PRODUCT BANNERS — широкая редакционная карусель, как у профильного магазина, но с продукцией MOMO и ZEUS */}
-      <section id="promo" className="pb-5 pt-8 sm:pt-10">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-          <BannerCarousel />
-        </div>
-      </section>
+      {/* Управляемая из панели карусель. Если все баннеры выключены,
+          секция исчезает целиком и не оставляет пустой отступ. */}
+      {banners.length > 0 && (
+        <section id="promo" className="pb-5 pt-8 sm:pt-10">
+          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+            <BannerCarousel banners={banners} />
+          </div>
+        </section>
+      )}
 
       {/* CATALOG — редакторская bento-сетка категорий */}
       <section className="py-20">
