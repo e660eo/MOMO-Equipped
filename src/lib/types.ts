@@ -420,6 +420,7 @@ export interface DeletedProduct {
 
 /** Публичная карточка официального дилера. Закрытых цен и данных входа здесь нет. */
 export type DealerLocationKind = "store" | "installation" | "store_install";
+export type DealerOfficialStatus = "dealer" | "representative";
 
 export interface DealerLocation {
   id: string;
@@ -434,6 +435,8 @@ export interface DealerLocation {
   longitude?: number;
   /** Магазин, установочный центр или совмещённая точка. */
   kind?: DealerLocationKind;
+  /** Роль партнёра в сети: официальный дилер или официальный представитель. */
+  officialStatus?: DealerOfficialStatus;
   /** Точка выполняет авторизованную установку с расширенной гарантией. */
   authorizedInstallation?: boolean;
   /** Точка опубликована в разделе «Купить рядом». */

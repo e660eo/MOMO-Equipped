@@ -72,6 +72,7 @@ describe("dealer editing", () => {
       latitude: 55.796127,
       longitude: 49.106405,
       kind: "store_install",
+      officialStatus: "representative",
       authorizedInstallation: true,
     });
 
@@ -83,6 +84,7 @@ describe("dealer editing", () => {
       active: true,
       website: "https://dealer.example.com",
       kind: "store_install",
+      officialStatus: "representative",
       authorizedInstallation: true,
     });
     expect(getDealerLocation("dealer-edit")?.email).toBeUndefined();

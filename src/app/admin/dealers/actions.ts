@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
 import { audit } from "@/lib/audit-log";
-import { DEALER_LOCATION_KINDS, DEALER_LOCATION_KIND_LABELS } from "@/lib/dealer-location";
+import {
+  DEALER_LOCATION_KINDS,
+  DEALER_LOCATION_KIND_LABELS,
+  DEALER_OFFICIAL_STATUSES,
+} from "@/lib/dealer-location";
 import { sendDealerInvite, sendDealerPasswordReset } from "@/lib/dealer-mail";
 import {
   createDealer,
@@ -24,7 +28,13 @@ import {
 import { ExpectedError, messageFor } from "@/lib/errors";
 import { SITE_URL } from "@/lib/site-url";
 import { DEALER_PRICE_TIERS, DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
-import type { DealerApplicationStatus, DealerLocationKind, DealerOrderStatus, DealerPriceTier } from "@/lib/types";
+import type {
+  DealerApplicationStatus,
+  DealerLocationKind,
+  DealerOfficialStatus,
+  DealerOrderStatus,
+  DealerPriceTier,
+} from "@/lib/types";
 
 export type CreateDealerState = { error?: string; ok?: boolean; inviteUrl?: string; mailSent?: boolean };
 export type UpdateDealerState = { error?: string; ok?: boolean };
@@ -52,11 +62,13 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
     const loginEmail = text(formData, "loginEmail", 160).toLowerCase();
     const priceTier = text(formData, "priceTier", 20) as DealerPriceTier;
     const kind = text(formData, "kind", 30) as DealerLocationKind;
+    const officialStatus = text(formData, "officialStatus", 30) as DealerOfficialStatus;
     const discountPercent = Number(text(formData, "discountPercent", 10));
     if (!name || !city || !address || !phone || !contactName || !loginEmail) throw new ExpectedError("Заполните название, город, адрес, телефон, контакт и email входа.");
     if (!/^\S+@\S+\.\S+$/.test(loginEmail)) throw new ExpectedError("Проверьте email для входа.");
     if (!DEALER_PRICE_TIERS.includes(priceTier)) throw new ExpectedError("Выберите ценовой уровень партнёра.");
     if (!DEALER_LOCATION_KINDS.includes(kind)) throw new ExpectedError("Выберите тип дилерской точки.");
+    if (!DEALER_OFFICIAL_STATUSES.includes(officialStatus)) throw new ExpectedError("Выберите статус партнёра.");
     if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) throw new ExpectedError("Скидка должна быть от 0 до 80%.");
     const latitude = optionalNumber(formData, "latitude");
     const longitude = optionalNumber(formData, "longitude");
@@ -74,6 +86,7 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
       latitude,
       longitude,
       kind,
+      officialStatus,
       authorizedInstallation: kind !== "store" && formData.get("authorizedInstallation") === "on",
       contactName,
       loginEmail,
@@ -101,7 +114,7 @@ export async function updateDealerAdmin(
   try {
     const id = text(formData, "id", 80);
     const before = getDealerLocation(id);
-    if (!before) throw new ExpectedError("Дилерская точка не найдена.");
+    if (!before) throw new ExpectedError("Партнёрская точка не найдена.");
 
     const name = text(formData, "name");
     const city = text(formData, "city", 120);
@@ -111,6 +124,7 @@ export async function updateDealerAdmin(
     const website = text(formData, "website", 240);
     const hours = text(formData, "hours", 160);
     const kind = text(formData, "kind", 30) as DealerLocationKind;
+    const officialStatus = text(formData, "officialStatus", 30) as DealerOfficialStatus;
     if (!name || !city || !address || !phone) {
       throw new ExpectedError("Заполните название, город, адрес и телефон.");
     }
@@ -127,6 +141,9 @@ export async function updateDealerAdmin(
     }
     if (!DEALER_LOCATION_KINDS.includes(kind)) {
       throw new ExpectedError("Выберите тип дилерской точки.");
+    }
+    if (!DEALER_OFFICIAL_STATUSES.includes(officialStatus)) {
+      throw new ExpectedError("Выберите статус партнёра.");
     }
 
     const latitude = optionalNumber(formData, "latitude");
@@ -180,9 +197,10 @@ export async function updateDealerAdmin(
       latitude,
       longitude,
       kind,
+      officialStatus,
       authorizedInstallation,
     });
-    if (!after) throw new ExpectedError("Не удалось сохранить дилерскую точку.");
+    if (!after) throw new ExpectedError("Не удалось сохранить партнёрскую точку.");
 
     audit({
       entity: "dealer",

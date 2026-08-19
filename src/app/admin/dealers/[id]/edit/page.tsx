@@ -35,7 +35,7 @@ export default async function AdminDealerEditPage({
         </span>
         <div>
           <p className="text-xs font-bold uppercase tracking-[.15em] text-signal">
-            Дилерская точка
+            Партнёрская точка
           </p>
           <h1 className="mt-1 font-display text-2xl font-extrabold uppercase sm:text-3xl">
             Изменить данные

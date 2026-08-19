@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
   dealerLocationKind,
+  dealerOfficialStatus,
   DEALER_LOCATION_KIND_LABELS,
+  DEALER_OFFICIAL_STATUS_LABELS,
 } from "@/lib/dealer-location";
 import type { DealerLocation, DealerLocationKind } from "@/lib/types";
 import {
@@ -169,6 +171,8 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
 
     for (const dealer of locatedDealers) {
       const kind = dealerLocationKind(dealer);
+      const officialStatus = dealerOfficialStatus(dealer);
+      const officialLabel = DEALER_OFFICIAL_STATUS_LABELS[officialStatus];
       const marker = KIND_MARKERS[kind];
       const selected = dealer.id === selectedDealerId;
       const pointLayout = ymaps.templateLayoutFactory.createClass(
@@ -177,10 +181,10 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
       const placemark = new ymaps.Placemark(
         [dealer.latitude, dealer.longitude],
         {
-          hintContent: `${dealer.name} — ${DEALER_LOCATION_KIND_LABELS[kind]}`,
+          hintContent: `${dealer.name} — ${officialLabel}`,
           balloonContentHeader: escapeHtml(dealer.name),
           balloonContentBody: dealerBalloonBody(dealer),
-          balloonContentFooter: escapeHtml(DEALER_LOCATION_KIND_LABELS[kind]),
+          balloonContentFooter: escapeHtml(`${officialLabel} · ${DEALER_LOCATION_KIND_LABELS[kind]}`),
         },
         {
           iconLayout: pointLayout,
@@ -240,7 +244,7 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
         ref={containerRef}
         className="h-full w-full"
         role="region"
-        aria-label={`Карта дилерской сети MOMO. Количество точек: ${pointsWithCoordinates}`}
+        aria-label={`Карта партнёрской сети MOMO. Количество точек: ${pointsWithCoordinates}`}
       />
       {!shouldLoad && pointsWithCoordinates > 0 && !mapError && (
         <div className="absolute inset-0 z-10 grid place-items-center bg-surface/90 p-6 text-center">
@@ -252,7 +256,7 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
           <div>
             <p className="font-display text-base font-bold">На карте нет точек</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Измените фильтры, чтобы снова показать дилеров.
+              Измените фильтры, чтобы снова показать партнёров.
             </p>
           </div>
         </div>

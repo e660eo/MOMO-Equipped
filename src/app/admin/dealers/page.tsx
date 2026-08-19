@@ -4,7 +4,12 @@ import { DealerCreateForm, type DealerCreateInitial } from "@/components/admin/d
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireSession } from "@/lib/admin-auth";
 import { b2bPriceCounts, DEALER_PRICE_TIER_LABELS, getB2BPriceBook } from "@/lib/b2b-prices";
-import { dealerLocationKind, DEALER_LOCATION_KIND_LABELS } from "@/lib/dealer-location";
+import {
+  dealerLocationKind,
+  dealerOfficialStatus,
+  DEALER_LOCATION_KIND_LABELS,
+  DEALER_OFFICIAL_STATUS_LABELS,
+} from "@/lib/dealer-location";
 import { formatPrice } from "@/lib/format";
 import { getSiteConfig } from "@/lib/data";
 import { getDealerAccounts, getDealerApplications, getDealerLocation, getDealerLocations, getDealerOrders } from "@/lib/dealers";
@@ -36,7 +41,7 @@ export default async function AdminDealersPage({ searchParams }: { searchParams:
       <div className="flex items-center gap-3">
         <Building2 className="text-signal" size={21} />
         <div>
-          <h2 className="font-display text-lg font-extrabold uppercase">Дилерские точки</h2>
+          <h2 className="font-display text-lg font-extrabold uppercase">Партнёрские точки</h2>
           <p className="text-xs text-muted-foreground">
             Всего: {locations.length} · опубликовано: {locations.filter((item) => item.active).length} · скрыто: {locations.filter((item) => !item.active).length}
           </p>
@@ -55,7 +60,8 @@ export default async function AdminDealersPage({ searchParams }: { searchParams:
                 <div className="min-w-0">
                   <h3 className="font-bold">{location.name}</h3>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">{location.city}, {location.address}</p>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-signal">{DEALER_LOCATION_KIND_LABELS[kind]}</p>
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-signal">{DEALER_OFFICIAL_STATUS_LABELS[dealerOfficialStatus(location)]}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{DEALER_LOCATION_KIND_LABELS[kind]}</p>
                 </div>
                 <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${location.active ? "bg-emerald-50 text-emerald-700" : "bg-black/5 text-muted-foreground"}`}>
                   {location.active ? "Опубликована" : "Скрыта"}

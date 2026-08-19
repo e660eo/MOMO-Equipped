@@ -8,6 +8,7 @@ import type {
   DealerApplicationStatus,
   DealerLocation,
   DealerLocationKind,
+  DealerOfficialStatus,
   DealerOrder,
   DealerOrderStatus,
   DealerPriceTier,
@@ -67,6 +68,7 @@ export type DealerLocationDetailsPatch = Pick<
   | "latitude"
   | "longitude"
   | "kind"
+  | "officialStatus"
   | "authorizedInstallation"
 >;
 
@@ -266,6 +268,7 @@ export function createDealer(input: {
   latitude?: number;
   longitude?: number;
   kind: DealerLocationKind;
+  officialStatus: DealerOfficialStatus;
   authorizedInstallation?: boolean;
   contactName: string;
   loginEmail: string;
@@ -289,6 +292,7 @@ export function createDealer(input: {
     ...(Number.isFinite(input.latitude) ? { latitude: input.latitude } : {}),
     ...(Number.isFinite(input.longitude) ? { longitude: input.longitude } : {}),
     kind: input.kind,
+    officialStatus: input.officialStatus,
     ...(input.authorizedInstallation ? { authorizedInstallation: true } : {}),
     active: true,
     createdAt: now,

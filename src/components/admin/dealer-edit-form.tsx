@@ -18,7 +18,7 @@ import {
   dealerGeocodeQuery,
   formatDealerCoordinate,
 } from "@/lib/dealer-geocoding";
-import { dealerLocationKind } from "@/lib/dealer-location";
+import { dealerLocationKind, dealerOfficialStatus } from "@/lib/dealer-location";
 import type { DealerAccount, DealerLocation } from "@/lib/types";
 import { geocodeYandexAddress } from "@/lib/yandex-maps-client";
 
@@ -202,6 +202,13 @@ export function DealerEditForm({
         <label className="grid gap-1 text-xs text-muted-foreground">
           Режим работы
           <input className={input} name="hours" defaultValue={dealer.hours} placeholder="Пн–Пт: 9:00–18:00" />
+        </label>
+        <label className="grid gap-1 text-xs text-muted-foreground">
+          Статус партнёра
+          <select className={input} name="officialStatus" defaultValue={dealerOfficialStatus(dealer)} required>
+            <option value="dealer">Официальный дилер</option>
+            <option value="representative">Официальный представитель</option>
+          </select>
         </label>
         <label className="grid gap-1 text-xs text-muted-foreground">
           Тип точки

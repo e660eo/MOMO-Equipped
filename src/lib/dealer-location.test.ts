@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { dealerLocationKind, dealerSupportsInstallation, dealerSupportsSales } from "./dealer-location";
+import {
+  dealerLocationKind,
+  dealerOfficialStatus,
+  dealerSupportsInstallation,
+  dealerSupportsSales,
+} from "./dealer-location";
 import type { DealerLocation } from "./types";
 
 const base: DealerLocation = {
@@ -30,5 +35,15 @@ describe("dealer location kind", () => {
     const dealer = { ...base, kind: "installation" as const };
     expect(dealerSupportsSales(dealer)).toBe(false);
     expect(dealerSupportsInstallation(dealer)).toBe(true);
+  });
+});
+
+describe("official partner status", () => {
+  it("keeps legacy points as official dealers", () => {
+    expect(dealerOfficialStatus(base)).toBe("dealer");
+  });
+
+  it("distinguishes official representatives", () => {
+    expect(dealerOfficialStatus({ ...base, officialStatus: "representative" })).toBe("representative");
   });
 });

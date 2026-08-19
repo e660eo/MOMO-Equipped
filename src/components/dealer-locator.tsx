@@ -14,7 +14,9 @@ import {
 import { DealerMap } from "@/components/dealer-map";
 import {
   DEALER_LOCATION_KIND_LABELS,
+  DEALER_OFFICIAL_STATUS_LABELS,
   dealerLocationKind,
+  dealerOfficialStatus,
   dealerSupportsInstallation,
   dealerSupportsSales,
 } from "@/lib/dealer-location";
@@ -259,6 +261,7 @@ export function DealerLocator({ dealers }: { dealers: DealerLocation[] }) {
         <div className="mt-7 grid gap-4 md:grid-cols-2">
           {shown.map((dealer) => {
             const kind = dealerLocationKind(dealer);
+            const officialStatus = dealerOfficialStatus(dealer);
             const selected = dealer.id === selectedDealerId;
             return (
               <article
@@ -274,7 +277,7 @@ export function DealerLocator({ dealers }: { dealers: DealerLocation[] }) {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-signal">
-                      Официальный дилер
+                      {DEALER_OFFICIAL_STATUS_LABELS[officialStatus]}
                     </p>
                     <p className="mt-1 text-xs font-semibold text-muted-foreground">
                       {DEALER_LOCATION_KIND_LABELS[kind]}
@@ -284,7 +287,7 @@ export function DealerLocator({ dealers }: { dealers: DealerLocation[] }) {
                   <BadgeCheck
                     size={22}
                     className="shrink-0 text-signal"
-                    aria-label="Официальная точка"
+                    aria-label={DEALER_OFFICIAL_STATUS_LABELS[officialStatus]}
                   />
                 </div>
                 <ul className="mt-5 space-y-3 text-sm">
