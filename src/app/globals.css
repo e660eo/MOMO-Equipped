@@ -512,80 +512,64 @@ html[data-theme-vt="active"]::view-transition-group(root) {
   }
 }
 
-/* ── Спектральная звуковая волна первого экрана ──
-   SVG виден сразу и анимируется только transform/opacity. Четыре ленты
-   проходят за логотипом, поэтому цвет остаётся фоном, а не спорит с брендом. */
-.hero-spectrum-haze {
+/* ── Статичная подложка Floating Lines на первом экране ──
+   Несколько диагональных нитей повторяют направление WebGL-волн до запуска
+   canvas и при reduced motion. Золото — из выбранного пресета React Bits. */
+.hero-floating-lines-fallback {
+  opacity: 0.5;
+  transition: opacity 300ms ease;
   background:
-    radial-gradient(ellipse 62% 66% at 50% 48%, rgba(255, 255, 255, 0.72), transparent 72%),
-    radial-gradient(ellipse 38% 46% at 13% 46%, rgba(53, 216, 238, 0.09), transparent 72%),
-    radial-gradient(ellipse 38% 46% at 87% 47%, rgba(239, 76, 172, 0.08), transparent 72%);
+    linear-gradient(
+      26deg,
+      transparent 40%,
+      rgba(184, 137, 0, 0.2) 41%,
+      transparent 42.2%
+    ),
+    linear-gradient(
+      23deg,
+      transparent 44%,
+      rgba(184, 137, 0, 0.12) 45%,
+      transparent 46.1%
+    ),
+    linear-gradient(
+      -19deg,
+      transparent 51%,
+      rgba(31, 31, 34, 0.14) 52%,
+      transparent 53.3%
+    ),
+    linear-gradient(
+      -22deg,
+      transparent 56%,
+      rgba(92, 92, 96, 0.12) 57%,
+      transparent 58.2%
+    );
+  -webkit-mask-image: radial-gradient(ellipse 82% 74% at 50% 50%, #000 10%, rgba(0, 0, 0, 0.72) 60%, transparent 90%);
+  mask-image: radial-gradient(ellipse 82% 74% at 50% 50%, #000 10%, rgba(0, 0, 0, 0.72) 60%, transparent 90%);
 }
-.hero-spectrum-wave {
-  opacity: 0.72;
-  transform: scale(1.05);
+:root[data-theme="dark"] .hero-floating-lines-fallback {
+  opacity: 0.64;
+  filter: brightness(1.35);
 }
-.hero-spectrum-wave__glow,
-.hero-spectrum-wave__lines {
-  transform-box: fill-box;
-  transform-origin: center;
-  will-change: transform, opacity;
+[data-floating-lines-active="true"] .hero-floating-lines-fallback,
+:root[data-theme="dark"] [data-floating-lines-active="true"] .hero-floating-lines-fallback {
+  opacity: 0;
 }
-.hero-spectrum-wave__glow {
-  opacity: 0.42;
-  animation: hero-spectrum-breathe 8s ease-in-out infinite alternate;
-}
-.hero-spectrum-wave__lines {
-  opacity: 0.58;
-  animation: hero-spectrum-drift 10s ease-in-out infinite alternate;
-}
-.hero-spectrum-scrim {
+
+.hero-floating-lines-scrim {
   background: radial-gradient(
-    ellipse 39% 60% at 50% 51%,
-    color-mix(in srgb, var(--surface) 90%, transparent),
-    color-mix(in srgb, var(--surface) 46%, transparent) 58%,
-    transparent 82%
+    ellipse 48% 58% at 50% 50%,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.12) 62%,
+    transparent 88%
   );
 }
-@keyframes hero-spectrum-breathe {
-  0% { transform: translate3d(-8px, -5px, 0) scaleY(0.96); opacity: 0.34; }
-  100% { transform: translate3d(8px, 7px, 0) scaleY(1.05); opacity: 0.5; }
-}
-@keyframes hero-spectrum-drift {
-  0% { transform: translate3d(-10px, 3px, 0) scaleX(1.01); }
-  100% { transform: translate3d(10px, -5px, 0) scaleX(0.99); }
-}
-:root[data-theme="dark"] .hero-spectrum-haze {
-  background:
-    radial-gradient(ellipse 60% 66% at 50% 48%, rgba(23, 23, 26, 0.68), transparent 72%),
-    radial-gradient(ellipse 38% 46% at 13% 46%, rgba(53, 216, 238, 0.12), transparent 72%),
-    radial-gradient(ellipse 38% 46% at 87% 47%, rgba(239, 76, 172, 0.11), transparent 72%);
-}
-:root[data-theme="dark"] .hero-spectrum-wave {
-  opacity: 0.88;
-  filter: saturate(1.12) brightness(1.08);
-}
-@media (max-width: 639px) {
-  .hero-spectrum-wave {
-    width: 150%;
-    max-width: none;
-    left: -25%;
-    opacity: 0.62;
-  }
-  .hero-spectrum-scrim {
-    background: radial-gradient(
-      ellipse 56% 61% at 50% 52%,
-      color-mix(in srgb, var(--surface) 92%, transparent),
-      color-mix(in srgb, var(--surface) 54%, transparent) 62%,
-      transparent 88%
-    );
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-spectrum-wave__glow,
-  .hero-spectrum-wave__lines {
-    animation-name: none !important;
-  }
+:root[data-theme="dark"] .hero-floating-lines-scrim {
+  background: radial-gradient(
+    ellipse 48% 58% at 50% 50%,
+    rgba(23, 23, 26, 0.62),
+    rgba(23, 23, 26, 0.18) 62%,
+    transparent 88%
+  );
 }
 
 /* ── Осциллограмма-разделитель ── */
