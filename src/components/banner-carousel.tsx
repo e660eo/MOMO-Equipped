@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Pause, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { bannerAspectRatio, bannerLayout } from "@/lib/banner-layout";
 import { safeHref } from "@/lib/sanitize";
 import type { BannerMediaAlign, SiteBanner } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -129,39 +130,45 @@ function BannerSlide({
 }) {
   const theme = themes[banner.theme];
   const src = `/media/${banner.media}`;
-  const hasCopy = Boolean(banner.eyebrow || banner.heading || banner.description);
+  const artwork = bannerLayout(banner) === "artwork";
+  const artworkRatio = bannerAspectRatio(banner);
+  const hasCopy = !artwork && Boolean(banner.eyebrow || banner.heading || banner.description);
   const href = banner.action.href ? safeHref(banner.action.href) : "#";
   const externalProps = banner.action.newTab
     ? { target: "_blank" as const, rel: "noopener noreferrer" }
     : {};
-  const contentOnRight = banner.mediaFit === "contain" && banner.mediaAlign === "left";
+  const contentOnRight = !artwork && banner.mediaFit === "contain" && banner.mediaAlign === "left";
 
   return (
     <article
       className={cn(
-        "relative min-h-[560px] w-full shrink-0 snap-start overflow-hidden sm:min-h-[440px] lg:aspect-[7/2] lg:min-h-[360px]",
+        "relative w-full shrink-0 snap-start overflow-hidden",
+        artwork
+          ? "aspect-[16/7] min-h-[180px] sm:min-h-0"
+          : "min-h-[560px] sm:min-h-[440px] lg:aspect-[7/2] lg:min-h-[360px]",
         theme.article,
       )}
+      style={artwork && artworkRatio ? { aspectRatio: artworkRatio } : undefined}
       aria-label={`${index + 1} из ${total}: ${banner.name}`}
     >
-      <div aria-hidden className={cn("absolute inset-0 [background-size:48px_48px]", theme.grid)} />
+      {!artwork && <div aria-hidden className={cn("absolute inset-0 [background-size:48px_48px]", theme.grid)} />}
 
-      <div className={mediaWrapper(banner.mediaFit, banner.mediaAlign)}>
+      <div className={artwork ? "absolute inset-0" : mediaWrapper(banner.mediaFit, banner.mediaAlign)}>
         {banner.mediaType === "image" ? (
           <Image
             src={src}
             alt={banner.alt ?? ""}
             fill
-            sizes={banner.mediaFit === "cover" ? "(max-width: 1200px) 100vw, 1200px" : "(max-width: 639px) 100vw, 58vw"}
-            className={cn(banner.mediaFit === "cover" ? "object-cover" : "object-contain", objectPosition(banner.mediaAlign))}
+            sizes={artwork || banner.mediaFit === "cover" ? "(max-width: 1200px) 100vw, 1200px" : "(max-width: 639px) 100vw, 58vw"}
+            className={cn(artwork || banner.mediaFit === "contain" ? "object-contain" : "object-cover", objectPosition(banner.mediaAlign))}
           />
         ) : (
           <VideoBannerMedia
             src={src}
             label={banner.alt || banner.name}
             active={active}
-            fit={banner.mediaFit}
-            align={banner.mediaAlign}
+            fit={artwork ? "contain" : banner.mediaFit}
+            align={artwork ? "center" : banner.mediaAlign}
           />
         )}
       </div>

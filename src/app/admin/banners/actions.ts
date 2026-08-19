@@ -5,7 +5,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
 import { audit } from "@/lib/audit-log";
-import { deleteBannerMedia, saveBannerMedia } from "@/lib/banner-media";
+import {
+  deleteBannerMedia,
+  getBannerImageDimensions,
+  saveBannerMedia,
+} from "@/lib/banner-media";
 import {
   getBanners,
   normalizeBannerHref,
@@ -16,6 +20,7 @@ import { ExpectedError, isRedirect, messageFor } from "@/lib/errors";
 import { assertWritable } from "@/lib/store";
 import type {
   BannerActionKind,
+  BannerLayout,
   BannerMediaAlign,
   BannerMediaFit,
   BannerTheme,
@@ -23,6 +28,7 @@ import type {
 } from "@/lib/types";
 
 const THEMES = new Set<BannerTheme>(["dark", "light", "signal"]);
+const LAYOUTS = new Set<BannerLayout>(["content", "artwork"]);
 const FITS = new Set<BannerMediaFit>(["cover", "contain"]);
 const ALIGNS = new Set<BannerMediaAlign>(["left", "center", "right"]);
 const ACTIONS = new Set<BannerActionKind>(["none", "banner", "button"]);
@@ -61,10 +67,12 @@ export async function saveBannerAction(
     if (description.length > 600) throw new ExpectedError("Описание длиннее 600 знаков.");
 
     const theme = field(formData, "theme", 20) as BannerTheme;
+    const layout = field(formData, "layout", 20) as BannerLayout;
     const mediaFit = field(formData, "mediaFit", 20) as BannerMediaFit;
     const mediaAlign = field(formData, "mediaAlign", 20) as BannerMediaAlign;
     const actionKind = field(formData, "actionKind", 20) as BannerActionKind;
     if (!THEMES.has(theme)) throw new ExpectedError("Выберите оформление баннера.");
+    if (!LAYOUTS.has(layout)) throw new ExpectedError("Выберите вид баннера.");
     if (!FITS.has(mediaFit)) throw new ExpectedError("Выберите заполнение фото или видео.");
     if (!ALIGNS.has(mediaAlign)) throw new ExpectedError("Выберите положение медиа.");
     if (!ACTIONS.has(actionKind)) throw new ExpectedError("Выберите действие при нажатии.");
@@ -95,15 +103,27 @@ export async function saveBannerAction(
     }
     if (!existing && !uploaded) throw new ExpectedError("Прикрепите фото или видео.");
 
+    const media = uploaded?.file ?? existing!.media;
+    const mediaType = uploaded?.type ?? existing!.mediaType;
+    let mediaWidth = uploaded ? uploaded.width : existing?.mediaWidth;
+    let mediaHeight = uploaded ? uploaded.height : existing?.mediaHeight;
+    if (mediaType === "image" && (!mediaWidth || !mediaHeight)) {
+      const dimensions = await getBannerImageDimensions(media);
+      mediaWidth = dimensions?.width;
+      mediaHeight = dimensions?.height;
+    }
+
     const now = new Date().toISOString();
     const next: SiteBanner = {
       id: existing?.id ?? crypto.randomUUID(),
       name,
-      media: uploaded?.file ?? existing!.media,
-      mediaType: uploaded?.type ?? existing!.mediaType,
+      media,
+      mediaType,
+      layout,
       ...(uploaded?.originalName || existing?.originalName
         ? { originalName: uploaded?.originalName ?? existing?.originalName }
         : {}),
+      ...(mediaWidth && mediaHeight ? { mediaWidth, mediaHeight } : {}),
       ...(alt ? { alt } : {}),
       ...(eyebrow ? { eyebrow } : {}),
       ...(heading ? { heading } : {}),

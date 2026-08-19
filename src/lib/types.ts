@@ -125,6 +125,7 @@ export interface NewsItem {
 
 export type BannerMediaType = "image" | "video";
 export type BannerTheme = "dark" | "light" | "signal";
+export type BannerLayout = "content" | "artwork";
 export type BannerMediaFit = "cover" | "contain";
 export type BannerMediaAlign = "left" | "center" | "right";
 export type BannerActionKind = "none" | "banner" | "button";
@@ -140,7 +141,12 @@ export interface SiteBanner {
   name: string;
   media: string;
   mediaType: BannerMediaType;
+  /** Готовый макет целиком либо композиция из медиа и текста сайта. */
+  layout?: BannerLayout;
   originalName?: string;
+  /** Реальный размер изображения нужен, чтобы готовый макет не обрезался. */
+  mediaWidth?: number;
+  mediaHeight?: number;
   /** Описание изображения или видео для доступности. */
   alt?: string;
   eyebrow?: string;

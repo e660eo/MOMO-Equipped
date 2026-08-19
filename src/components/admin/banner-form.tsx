@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useActionState, useEffect, useState } from "react";
 import { saveBannerAction, type BannerActionState } from "@/app/admin/banners/actions";
-import type { BannerActionKind, SiteBanner } from "@/lib/types";
+import { bannerAspectRatio, bannerLayout } from "@/lib/banner-layout";
+import type { BannerActionKind, BannerLayout, SiteBanner } from "@/lib/types";
 
 const field =
   "mt-1.5 min-h-11 w-full rounded-sm border border-input bg-bg px-3 py-2.5 text-sm outline-none transition-colors focus:border-signal focus-visible:ring-2 focus-visible:ring-signal/25";
@@ -11,7 +12,13 @@ const label = "block text-[0.78rem] font-medium";
 const HELP = "mt-1.5 text-[0.73rem] leading-relaxed text-muted-foreground";
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"]);
 
-type Preview = { url: string; type: "image" | "video"; name: string };
+type Preview = {
+  url: string;
+  type: "image" | "video";
+  name: string;
+  width?: number;
+  height?: number;
+};
 
 function isValidLink(value: string): boolean {
   return (value.startsWith("/") && !value.startsWith("//")) || value.startsWith("https://");
@@ -24,6 +31,9 @@ export function BannerForm({ banner }: { banner?: SiteBanner }) {
   );
   const [actionKind, setActionKind] = useState<BannerActionKind>(
     banner?.action.kind ?? "button",
+  );
+  const [layout, setLayout] = useState<BannerLayout>(
+    banner ? bannerLayout(banner) : "content",
   );
   const [preview, setPreview] = useState<Preview | null>(null);
   const [fileError, setFileError] = useState("");
@@ -52,21 +62,72 @@ export function BannerForm({ banner }: { banner?: SiteBanner }) {
       setFileError(`${isVideo ? "Видео" : "Фото"} больше ${isVideo ? 50 : 20} МБ.`);
       return;
     }
-    setPreview({
+    const nextPreview: Preview = {
       url: URL.createObjectURL(file),
       type: isVideo ? "video" : "image",
       name: file.name,
-    });
+    };
+    setPreview(nextPreview);
+
+    if (!isVideo) {
+      const image = new window.Image();
+      image.onload = () => {
+        setPreview((current) => current?.url === nextPreview.url
+          ? { ...current, width: image.naturalWidth, height: image.naturalHeight }
+          : current);
+      };
+      image.src = nextPreview.url;
+    }
   }
 
   const mediaUrl = preview?.url ?? (banner ? `/media/${banner.media}` : "");
   const mediaType = preview?.type ?? banner?.mediaType;
+  const previewRatio = preview?.width && preview?.height
+    ? preview.width / preview.height
+    : undefined;
+  const artworkRatio = previewRatio ?? (banner ? bannerAspectRatio(banner) : undefined);
 
   return (
     <form action={formAction} encType="multipart/form-data" className="grid gap-5">
       {banner && <input type="hidden" name="id" value={banner.id} />}
 
-      <div className="relative aspect-[16/7] min-h-[210px] overflow-hidden rounded-lg border border-border bg-[#111214]">
+      <fieldset className="rounded-lg border border-border bg-bg p-4">
+        <legend className="px-1 text-[0.78rem] font-medium">Вид баннера</legend>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {([[
+            "content",
+            "Собрать на сайте",
+            "Фото, заголовок и кнопка размещаются отдельно.",
+          ], [
+            "artwork",
+            "Готовый дизайн",
+            "Макет показывается целиком и без повторного текста.",
+          ]] as const).map(([value, title, description]) => (
+            <label
+              key={value}
+              className="flex min-h-[72px] cursor-pointer items-start gap-3 rounded-sm border border-border px-3 py-3 has-[:checked]:border-signal has-[:checked]:bg-signal/5"
+            >
+              <input
+                className="mt-1"
+                type="radio"
+                name="layout"
+                value={value}
+                checked={layout === value}
+                onChange={() => setLayout(value)}
+              />
+              <span>
+                <span className="block text-sm font-semibold">{title}</span>
+                <span className="mt-0.5 block text-[0.73rem] leading-relaxed text-muted-foreground">{description}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div
+        className="relative aspect-[16/7] min-h-[210px] overflow-hidden rounded-lg border border-border bg-[#111214]"
+        style={layout === "artwork" && artworkRatio ? { aspectRatio: artworkRatio } : undefined}
+      >
         {mediaUrl && mediaType === "image" && (
           <Image
             src={mediaUrl}
@@ -86,6 +147,12 @@ export function BannerForm({ banner }: { banner?: SiteBanner }) {
           </div>
         )}
       </div>
+
+      {layout === "artwork" && (
+        <p className="rounded-lg border border-signal/30 bg-signal/5 px-4 py-3 text-[0.78rem] leading-relaxed">
+          Готовый макет займёт всю ширину баннера и сохранит свои пропорции. Текст из блока ниже на сайте не появится. Для перехода по клику выберите «Весь баннер — ссылка».
+        </p>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className={`${label} md:col-span-2`} htmlFor={`${prefix}-name`}>
@@ -107,7 +174,9 @@ export function BannerForm({ banner }: { banner?: SiteBanner }) {
             className="mt-1.5 block min-h-11 w-full text-sm file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-sm file:border-0 file:bg-signal file:px-4 file:font-semibold file:text-white"
           />
           <span id={`${prefix}-media-help`} className={HELP}>
-            JPG, PNG или WEBP до 20 МБ; MP4 или WEBM до 50 МБ. Для широкого баннера лучше 1920×720 или больше.
+            JPG, PNG или WEBP до 20 МБ; MP4 или WEBM до 50 МБ. {layout === "artwork"
+              ? "Готовый макет можно загрузить в собственном широком размере; рекомендуем 1920×720 или больше."
+              : "Для широкого баннера лучше 1920×720 или больше."}
           </span>
           {fileError && <span id={`${prefix}-media-error`} className="mt-1.5 block text-[0.76rem] text-[var(--signal-text)]">{fileError}</span>}
         </label>
@@ -133,26 +202,37 @@ export function BannerForm({ banner }: { banner?: SiteBanner }) {
           <span className={HELP}>Меньшее число показывается раньше.</span>
         </label>
 
-        <label className={label} htmlFor={`${prefix}-fit`}>
-          Как разместить файл
-          <select id={`${prefix}-fit`} name="mediaFit" defaultValue={banner?.mediaFit ?? "cover"} className={field}>
-            <option value="cover">На весь баннер с обрезкой</option>
-            <option value="contain">Целиком без обрезки</option>
-          </select>
-        </label>
+        {layout === "content" ? (
+          <>
+            <label className={label} htmlFor={`${prefix}-fit`}>
+              Как разместить файл
+              <select id={`${prefix}-fit`} name="mediaFit" defaultValue={banner?.mediaFit ?? "cover"} className={field}>
+                <option value="cover">На весь баннер с обрезкой</option>
+                <option value="contain">Целиком без обрезки</option>
+              </select>
+            </label>
 
-        <label className={label} htmlFor={`${prefix}-align`}>
-          Положение файла
-          <select id={`${prefix}-align`} name="mediaAlign" defaultValue={banner?.mediaAlign ?? "center"} className={field}>
-            <option value="left">Слева</option>
-            <option value="center">По центру</option>
-            <option value="right">Справа</option>
-          </select>
-        </label>
+            <label className={label} htmlFor={`${prefix}-align`}>
+              Положение файла
+              <select id={`${prefix}-align`} name="mediaAlign" defaultValue={banner?.mediaAlign ?? "center"} className={field}>
+                <option value="left">Слева</option>
+                <option value="center">По центру</option>
+                <option value="right">Справа</option>
+              </select>
+            </label>
+          </>
+        ) : (
+          <>
+            <input type="hidden" name="mediaFit" value={banner?.mediaFit ?? "contain"} />
+            <input type="hidden" name="mediaAlign" value={banner?.mediaAlign ?? "center"} />
+          </>
+        )}
       </div>
 
-      <details className="rounded-lg border border-border bg-bg p-4" open={Boolean(banner?.heading || banner?.description)}>
-        <summary className="cursor-pointer font-display text-sm font-bold uppercase">Текст поверх баннера</summary>
+      <details className="rounded-lg border border-border bg-bg p-4" open={layout === "content" && Boolean(banner?.heading || banner?.description)}>
+        <summary className="cursor-pointer font-display text-sm font-bold uppercase">
+          Текст поверх баннера {layout === "artwork" && <span className="text-muted-foreground">· скрыт для готового дизайна</span>}
+        </summary>
         <div className="mt-4 grid gap-4">
           <label className={label} htmlFor={`${prefix}-eyebrow`}>
             Небольшая надпись сверху

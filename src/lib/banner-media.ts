@@ -18,6 +18,21 @@ export interface SavedBannerMedia {
   file: string;
   type: BannerMediaType;
   originalName: string;
+  width?: number;
+  height?: number;
+}
+
+export async function getBannerImageDimensions(
+  name: string,
+): Promise<{ width: number; height: number } | undefined> {
+  if (!/^[a-z0-9._-]+\.(avif|jpe?g|png|webp)$/i.test(name)) return undefined;
+  try {
+    const metadata = await sharp(path.join(uploadsDir(), name)).metadata();
+    if (!metadata.width || !metadata.height) return undefined;
+    return { width: metadata.width, height: metadata.height };
+  } catch {
+    return undefined;
+  }
 }
 
 function looksLikeMp4(input: Buffer): boolean {
@@ -53,19 +68,30 @@ export async function saveBannerMedia(file: File): Promise<SavedBannerMedia> {
 
   if (isImage) {
     let output: Buffer;
+    let width: number;
+    let height: number;
     try {
-      output = await sharp(input)
+      const result = await sharp(input)
         .rotate()
         .resize(2400, 1600, { fit: "inside", withoutEnlargement: true })
         .webp({ quality: 88 })
-        .toBuffer();
+        .toBuffer({ resolveWithObject: true });
+      output = result.data;
+      width = result.info.width;
+      height = result.info.height;
     } catch {
       throw new ExpectedError("Не получилось обработать файл — похоже, это не фото.");
     }
     const name = `banner-${crypto.randomUUID()}.webp`;
     await fs.promises.mkdir(dir, { recursive: true });
     await fs.promises.writeFile(path.join(dir, name), output);
-    return { file: name, type: "image", originalName: file.name.slice(0, 200) };
+    return {
+      file: name,
+      type: "image",
+      originalName: file.name.slice(0, 200),
+      width,
+      height,
+    };
   }
 
   if (

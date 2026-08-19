@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { BannerForm } from "@/components/admin/banner-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireAdminPage } from "@/lib/admin-auth";
+import { bannerLayout } from "@/lib/banner-layout";
 import { getBanners } from "@/lib/banners";
 import type { SiteBanner } from "@/lib/types";
 import { deleteBannerAction } from "./actions";
@@ -71,6 +72,9 @@ export default async function AdminBannersPage({
                     </span>
                     <span className="rounded-full border border-border px-2 py-0.5 text-[0.68rem] text-muted-foreground">
                       {banner.mediaType === "video" ? "видео" : "фото"}
+                    </span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[0.68rem] text-muted-foreground">
+                      {bannerLayout(banner) === "artwork" ? "готовый дизайн" : "собран на сайте"}
                     </span>
                   </div>
                   <p className="mt-1 text-[0.75rem] text-muted-foreground">
