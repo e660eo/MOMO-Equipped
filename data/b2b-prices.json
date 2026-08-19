@@ -1,0 +1,422 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-13T21:00:00.000Z",
+  "sources": {
+    "dealer": "Дил.прайс МОМО 14.08.2026.xlsx"
+  },
+  "prices": {
+    "dinamiki-estradnye-25sm-momo-he-1000-709600": {
+      "dealer": 2375
+    },
+    "dinamiki-estradnye-13sm-v-mashinu-mr-130-056376": {
+      "dealer": 999
+    },
+    "kolonki-estradnye-130mm-dlya-avtomobilya-he-130-053896": {
+      "dealer": 1368
+    },
+    "dinamiki-estradnye-v-mashinu-16sm-he-610-096126": {
+      "dealer": 1526
+    },
+    "kolonki-avtomobilnye-estradnye-165mm-momo-he-612-783658": {
+      "dealer": 2050
+    },
+    "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173": {
+      "dealer": 2290
+    },
+    "dinamiki-momo-estradnye-avtomobilnye-16sm-he-715-403655": {
+      "dealer": 2690
+    },
+    "estradnye-kolonki-20sm-v-mashinu-he-810-916179": {
+      "dealer": 2180
+    },
+    "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149": {
+      "dealer": 2890
+    },
+    "dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399": {
+      "dealer": 1050
+    },
+    "dinamiki-rupornye-100mm-avtomobilnye-he-290-017173": {
+      "dealer": 961
+    },
+    "dinamiki-rupornye-100mm-avtomobilnye-he-290-tovar-ucenennyy-707836": {
+      "dealer": 961
+    },
+    "kolonki-rupora-10sm-v-mashinu-he-400-009725": {
+      "dealer": 2199
+    },
+    "dinamiki-koaksialnye-zeus-ac-165-517978": {
+      "dealer": 761.02
+    },
+    "dinamiki-avtomobilnye-momo-us-310-v3-811784": {
+      "dealer": 2059
+    },
+    "kolonki-koaksialnye-shirokopolosnye-16sm-us-310-677887": {
+      "dealer": 2059
+    },
+    "kolonki-avtomobilnye-koaksialnye-165mm-zeus-us-650-754789": {
+      "dealer": 1690
+    },
+    "dinamiki-koaksialnye-ovaly-sbs-690-648108": {
+      "dealer": 1445
+    },
+    "dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461": {
+      "dealer": 926.82
+    },
+    "dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938": {
+      "dealer": 654.73
+    },
+    "kolonki-koaksialnye-ovalnye-v-mashinu-us-690-650235": {
+      "dealer": 2476.41
+    },
+    "dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265": {
+      "dealer": 1680
+    },
+    "sabvufer-avtomobilnyy-ts-10-600-10-dyuymov-182054": {
+      "dealer": 3578
+    },
+    "sabvufer-avtomobilnyy-ub-10-250-10-dyuymov-328303": {
+      "dealer": 2550
+    },
+    "sabvufer-avtomobilnyy-ts-15-1100-15-dyuymov-064255": {
+      "dealer": 6652
+    },
+    "sabvufer-avtomobilnyy-achilles-12-dyuymov-902295": {
+      "dealer": 11900
+    },
+    "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648": {
+      "dealer": 4119
+    },
+    "sabvufer-avtomobilnyy-ub-12-350-12-dyuymov-041105": {
+      "dealer": 2651.91
+    },
+    "sabvufer-avtomobilnyy-b-12-400-12-dyuymov-064850": {
+      "dealer": 3280
+    },
+    "sabvufer-avtomobilnyy-b-12-450-12-dyuymov-839456": {
+      "dealer": 3280
+    },
+    "monoblok-avtomobilnyy-d-1000-356531": {
+      "dealer": 5582
+    },
+    "monoblok-avtomobilnyy-d-500-147152": {
+      "dealer": 3190
+    },
+    "monoblok-avtomobilnyy-fr-500-138116": {
+      "dealer": 2490
+    },
+    "monoblok-avtomobilnyy-fr-500-tovar-ucenennyy-421166": {
+      "dealer": 2490
+    },
+    "monoblok-avtomobilnyy-bm-1-1500-655537": {
+      "dealer": 5674
+    },
+    "monoblok-avtomobilnyy-zeus-m-1-1200-653712": {
+      "dealer": 4591
+    },
+    "monoblok-avtomobilnyy-m-1000-533001": {
+      "dealer": 4353
+    },
+    "monoblok-avtomobilnyy-m-1-800-361333": {
+      "dealer": 3900
+    },
+    "monoblok-avtomobilnyy-zeus-m-600-611614": {
+      "dealer": 3555
+    },
+    "monoblok-bd-1500-1": {
+      "dealer": 5740
+    },
+    "monoblok-avtomobilnyy-dlya-sabvufera-bd-2000-1-046476": {
+      "dealer": 6700
+    },
+    "monoblok-avtomobilnyy-momo-bd-3000-1-640730": {
+      "dealer": 7770
+    },
+    "monoblok-avtomobilnyy-bd-5000-1-803288": {
+      "dealer": 11800
+    },
+    "plata-na-avtomobilnyy-usilitel-momo-fr-2-1800-593767": {
+      "dealer": 10195.07
+    },
+    "usilitel-avtomobilnyy-fr-2-1800-802013": {
+      "dealer": 12900
+    },
+    "usilitel-avtomobilnyy-fr-2-1800-tovar-ucenennyy-697979": {
+      "dealer": 12900
+    },
+    "plata-na-avtomobilnyy-usilitel-zeus-fr-2-1100-603954": {
+      "dealer": 7381
+    },
+    "usilitel-avtomobilnyy-zeus-fr-2-1100-421465": {
+      "dealer": 9975
+    },
+    "usilitel-avtomobilnyy-ab-2-60-617369": {
+      "dealer": 1849
+    },
+    "usilitel-avtomobilnyy-ab-4-120-159023": {
+      "dealer": 4290
+    },
+    "plata-na-avtomobilnyy-usilitel-zeus-ab-4-100-610915": {
+      "dealer": 2400
+    },
+    "usilitel-avtomobilnyy-zeus-ab-4-100-588525": {
+      "dealer": 3050
+    },
+    "usilitel-avtomobilnyy-momo-a-4-80-150092": {
+      "dealer": 3190
+    },
+    "usilitel-avtomobilnyy-ab-4-60-882001": {
+      "dealer": 2160
+    },
+    "usilitel-avtomobilnyy-d-4-400-288535": {
+      "dealer": 6190
+    },
+    "usilitel-avtomobilnyy-fr-2-500-479742": {
+      "dealer": 7370
+    },
+    "usilitel-avtomobilnyy-p-4-75-147050": {
+      "dealer": 2890
+    },
+    "plata-na-avtomobilnyy-monoblok-zeus-m-1-1100-593342": {
+      "dealer": 2468
+    },
+    "avtomagnitola-android-10-2-16gb-wi-fi-gps-bt-806438": {
+      "dealer": 3599.48
+    },
+    "avtomagnitola-android-10-2-32gb-005959": {
+      "dealer": 3811.34
+    },
+    "avtomagnitola-android-10-2-32gb-4g-329610": {
+      "dealer": 5954.26
+    },
+    "avtomagnitola-android-9-2-32gb-4g-702453": {
+      "dealer": 5017.23
+    },
+    "avtomagnitola-deh-4850-097139": {
+      "dealer": 756.76
+    },
+    "avtomagnitola-zeus-android-10-2-32gb-4g-310212": {
+      "dealer": 6673.59
+    },
+    "avtomagnitola-zeus-android-7-4-64gb-4g-169671": {
+      "dealer": 7393.7
+    },
+    "avtomagnitola-zeus-android-9-1-16gb-703833": {
+      "dealer": 3538.18
+    },
+    "avtomagnitola-zeus-android-9-2-32gb-4g-668166": {
+      "dealer": 6291.9
+    },
+    "avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040": {
+      "dealer": 8750
+    },
+    "avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302": {
+      "dealer": 7000
+    },
+    "avtomagnitola-zeus-z-1bt-472657": {
+      "dealer": 544
+    },
+    "kamera-zadnego-vida-hd-na-nozhke-279071": {
+      "dealer": 557.42
+    },
+    "hid-ksenonovaya-lampa-h4-3000-3200lm-5000-6000k-23000vt-zeus-857896": {
+      "dealer": 1864.04
+    },
+    "super-led-f2-lh23-h7-svetodiodnye-lampy-v-fary-3200-lm-3500k-024972": {
+      "dealer": 755.82
+    },
+    "svetodiodnaya-led-lampa-c6-h1-6000k-471819": {
+      "dealer": 855.97
+    },
+    "kabel-cilovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-15m-otre-768223": {
+      "dealer": 2863.8
+    },
+    "kabel-cilovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-25m-otre-768300": {
+      "dealer": 4773
+    },
+    "kabel-cilovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-5m-otrez-768786": {
+      "dealer": 954.6
+    },
+    "kabel-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-50m-346494": {
+      "dealer": 25996
+    },
+    "kabel-silovoy-pc-8ga-cu-med-3-2h8-4mm2-50m-637756": {
+      "dealer": 9277
+    },
+    "kabel-silovoy-otreznoy-pc-4ga-tc-luzhenaya-med-5h21mm2-25m-816971": {
+      "dealer": 12998
+    },
+    "kabel-akusticheskiy-15ga-cu-med-357042": {
+      "dealer": 8151
+    },
+    "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-100m-967715": {
+      "dealer": 9416
+    },
+    "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-15m-194340": {
+      "dealer": 1412.4
+    },
+    "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-25m-otreznoy-223669": {
+      "dealer": 2354
+    },
+    "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-50m-otreznoy-188276": {
+      "dealer": 4708
+    },
+    "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-5m-otreznoy-236646": {
+      "dealer": 470.8
+    },
+    "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-100m-054144": {
+      "dealer": 9651
+    },
+    "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-25m-ot-479537": {
+      "dealer": 2412.75
+    },
+    "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-50m-ot-523905": {
+      "dealer": 4825.5
+    },
+    "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-5m-otr-473784": {
+      "dealer": 482.55
+    },
+    "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-15m-ot-494098": {
+      "dealer": 1447.65
+    },
+    "kabel-akusticheskiy-sc-15ga-cca-omednennyy-alyuminiy-100m-mo-517393": {
+      "dealer": 1850
+    },
+    "kabel-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76mm2-100m-659118": {
+      "dealer": 8359
+    },
+    "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-100m-085321": {
+      "dealer": 4825
+    },
+    "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-25m-otreznoy-961236": {
+      "dealer": 1206.25
+    },
+    "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-50m-otreznoy-960946": {
+      "dealer": 2412.5
+    },
+    "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-100m-781430": {
+      "dealer": 4929
+    },
+    "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-25m-ot-879619": {
+      "dealer": 1232.25
+    },
+    "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-50m-ot-879257": {
+      "dealer": 2464.5
+    },
+    "kabel-akusticheskiy-sc-17ga-ssa-omednennyy-alyuminiy-2x1kv-m-859170": {
+      "dealer": 1456
+    },
+    "kabel-otreznoy-silovoy-pc-4ga-cu-med-5h21mm2-15m-358656": {
+      "dealer": 7600.5
+    },
+    "kabel-otreznoy-silovoy-pc-4ga-cu-med-5h21mm2-5m-485680": {
+      "dealer": 2533.5
+    },
+    "kabel-otreznoy-akusticheskiy-15ga-cu-med-15m-978111": {
+      "dealer": 1222.65
+    },
+    "kabel-otreznoy-akusticheskiy-15ga-cu-med-25m-976400": {
+      "dealer": 2037.75
+    },
+    "kabel-otreznoy-akusticheskiy-15ga-cu-med-50m-979355": {
+      "dealer": 4075.5
+    },
+    "kabel-otreznoy-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76-799211": {
+      "dealer": 1253.85
+    },
+    "kabel-otreznoy-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76-798524": {
+      "dealer": 2089.75
+    },
+    "kabel-otreznoy-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76-800368": {
+      "dealer": 4179.5
+    },
+    "kabel-otreznoy-silovoy-pc-4ga-cu-chistaya-med-25m-635403": {
+      "dealer": 12667.5
+    },
+    "kabel-otreznoy-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-15m-900102": {
+      "dealer": 7798.8
+    },
+    "kabel-otreznoy-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-5m-211249": {
+      "dealer": 2599.6
+    },
+    "kabel-otreznoy-silovoy-pc-8ga-cu-med-3-2h8-4mm2-25m-605412": {
+      "dealer": 4638.5
+    },
+    "kabel-otreznoy-silovoy-pc-8ga-cu-med-3-2h8-4mm2-5m-631833": {
+      "dealer": 927.7
+    },
+    "kabel-silovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-50m-638414": {
+      "dealer": 9546
+    },
+    "rca-2-1-kabel-5m-med-123754": {
+      "dealer": 242
+    },
+    "y-razvetvitel-rca-1-papa-2-mama-dlya-usilitelya-i-avtozvuka-053083": {
+      "dealer": 85
+    },
+    "y-razvetvitel-rca-2-papa-1-mama-dlya-usilitelya-i-avtozvuka-047707": {
+      "dealer": 85
+    },
+    "distribyutor-pitaniya-db-4-105833": {
+      "dealer": 264.54
+    },
+    "zamok-centralnyy-dlya-avtomobilya-car-nk-860-001624": {
+      "dealer": 787.94
+    },
+    "zaschitnye-alyuminievye-setki-gril-dlya-avtoakustiki-16-sm-k-638821": {
+      "dealer": 880
+    },
+    "zaschitnye-alyuminievye-setki-gril-dlya-avtoakustiki-20-sm-k-975921": {
+      "dealer": 980
+    },
+    "zaschitnye-setki-gril-dlya-avtoakustiki-20-sm-komplekt-2-sht-142558": {
+      "dealer": 440
+    },
+    "setka-zaschitnaya-dlya-avtoakustiki-gril-20-sm-alyuminiy-2-s-650490": {
+      "dealer": 980
+    },
+    "klemma-akkumulyatora-897178": {
+      "dealer": 150
+    },
+    "klemma-akkumulyatora-dlya-avtomobilya-656147": {
+      "dealer": 150
+    },
+    "komplekt-akusticheskih-kabeley-kit-m-042-304350": {
+      "dealer": 1361.42
+    },
+    "kondensator-plenochnyy-d-pischalok-3-3mkf-250v-2-sht-kompl-286616": {
+      "dealer": 147
+    },
+    "litiy-ionnyy-akkumulyator-model-icr-18650-2500ma-h-3-7v-189990": {
+      "dealer": 152.11
+    },
+    "obzhimnaya-klemma-0-ga-962354": {
+      "dealer": 460
+    },
+    "predohranitel-kolba-anl1-200a-416015": {
+      "dealer": 196
+    },
+    "predohranitel-kolba-anl2-200a-442213": {
+      "dealer": 331
+    },
+    "predohranitel-kolba-mini-anl-100-a-825930": {
+      "dealer": 130
+    },
+    "predohranitel-kolba-mini-anl-150-a-362803": {
+      "dealer": 169
+    },
+    "ustanovochnyy-komplekt-dlya-2-h-kanalnogo-avtomobilnogo-usil-259457": {
+      "dealer": 792.67
+    },
+    "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-777635": {
+      "dealer": 1718.55
+    },
+    "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-r-264408": {
+      "dealer": 1401.1
+    },
+    "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-8ga-5-m-272891": {
+      "dealer": 1078.93
+    }
+  }
+}
+
+

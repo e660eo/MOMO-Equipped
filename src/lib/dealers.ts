@@ -100,7 +100,9 @@ export function dealerPriceFor(
   priceBook: B2BPriceBook = getB2BPriceBook(),
 ): number {
   const override = account.priceOverrides?.[product.slug];
-  if (Number.isSafeInteger(override) && Number(override) > 0) return Number(override);
+  if (Number.isFinite(override) && Number(override) > 0) {
+    return Math.round(Number(override) * 100) / 100;
+  }
   const priceFromBook = b2bPriceForSlug(product.slug, account.priceTier ?? "dealer", priceBook);
   if (priceFromBook !== undefined) return priceFromBook;
   return Math.max(1, Math.round(product.price * (100 - account.discountPercent) / 100));

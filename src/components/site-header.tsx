@@ -2,11 +2,11 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { User, ShoppingCart, Menu } from "lucide-react";
 import { useCart, cartCount } from "@/lib/cart-store";
 import { useAccount } from "@/lib/account-store";
-import { useCustomer } from "@/components/customer-provider";
+import { useCustomer, useDealer } from "@/components/customer-provider";
+import { accountDestination } from "@/lib/viewer-session";
 import { ThemeToggle } from "./theme-toggle";
 import { CatalogMenu } from "./catalog-menu";
 import { HeaderExtras, CityPicker } from "./header-extras";
@@ -63,7 +63,6 @@ function MenuRow({
 }
 
 export function SiteHeader() {
-  const router = useRouter();
   const items = useCart((s) => s.items);
   /*
     Вошёл покупатель или нет — знает сервер по подписанной куке, и только он.
@@ -72,17 +71,24 @@ export function SiteHeader() {
     трогают, поэтому сразу после регистрации кнопка снова предлагала войти.
   */
   const customer = useCustomer();
-  const authed = customer !== null;
+  const dealer = useDealer();
+  const accountHref = accountDestination(customer, dealer);
   const openAuth = useAccount((s) => s.openModal);
   const [menuOpen, setMenuOpen] = useState(false);
   const count = cartCount(items);
 
-  // Вошедшего ведём в кабинет, остальным открываем вход
-  function accountAction() {
-    setMenuOpen(false);
-    if (authed) router.push("/profile");
-    else openAuth();
-  }
+  const accountName = dealer?.contactName || customer?.name || "";
+  const firstName = accountName.trim().split(/\s+/)[0] || "Аккаунт";
+  const accountAriaLabel = dealer
+    ? `Кабинет дилера — ${dealer.company}, ${dealer.contactName}`
+    : customer
+      ? `Личный кабинет — ${customer.name}`
+      : "Войти в личный кабинет";
+  const mobileNavItems = mobileNav.map((item) =>
+    item.href === "/dealer/login" && dealer
+      ? { ...item, href: "/dealer", label: "Мой дилерский кабинет" }
+      : item,
+  );
 
   // Ссылка стабильна — иначе поиск перерисовывался бы вслед за шапкой
   const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -124,19 +130,48 @@ export function SiteHeader() {
           <span className="hidden sm:block">
             <ThemeToggle />
           </span>
-          <button
-            onClick={accountAction}
-            className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition duration-150 hover:border-signal hover:text-signal active:scale-90"
-            aria-label="Личный кабинет"
-          >
-            <User size={16} />
-            {authed && (
-              <span
-                aria-hidden
-                className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-signal"
-              />
-            )}
-          </button>
+          {accountHref ? (
+            <Link
+              href={accountHref}
+              className="tap-44 group relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-signal/45 text-foreground transition duration-150 hover:border-signal hover:text-signal active:scale-[.97] min-[440px]:h-10 min-[440px]:w-auto min-[440px]:max-w-[145px] min-[440px]:justify-start min-[440px]:gap-2.5 min-[440px]:rounded-xl min-[440px]:px-3 md:h-9 md:w-9 md:max-w-none md:justify-center md:gap-0 md:rounded-full md:px-0 xl:h-10 xl:w-auto xl:max-w-[155px] xl:justify-start xl:gap-2.5 xl:rounded-xl xl:px-3"
+              aria-label={accountAriaLabel}
+              title={accountAriaLabel}
+            >
+              <span className="relative shrink-0">
+                <User size={16} aria-hidden />
+                <span
+                  aria-hidden
+                  className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-signal ring-2 ring-bg"
+                />
+              </span>
+              <span className="hidden min-w-0 flex-col items-start leading-none min-[440px]:flex md:hidden xl:flex">
+                <span className="whitespace-nowrap text-[0.56rem] font-bold uppercase tracking-[0.13em] text-signal">
+                  {dealer ? (
+                    <>
+                      <span className="xl:hidden">Дилер · вошёл</span>
+                      <span className="hidden xl:inline">Вы вошли · дилер</span>
+                    </>
+                  ) : "Вы вошли"}
+                </span>
+                <span className="mt-1 max-w-[112px] truncate text-xs font-semibold text-foreground group-hover:text-signal">
+                  {firstName}
+                </span>
+              </span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                openAuth();
+              }}
+              className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition duration-150 hover:border-signal hover:text-signal active:scale-90"
+              aria-label={accountAriaLabel}
+              title={accountAriaLabel}
+            >
+              <User size={16} aria-hidden />
+            </button>
+          )}
           <Link
             href="/cart"
             className={cn(
@@ -223,7 +258,7 @@ export function SiteHeader() {
             </MenuRow>
             {/* Пункты меню — не меньше 44px в высоту, это область нажатия пальцем */}
             <nav className="flex flex-col">
-              {mobileNav.map((n, i) => (
+              {mobileNavItems.map((n, i) => (
                 <MenuRow key={n.href} index={i + 2} open={menuOpen}>
                   <Link
                     href={n.href}
@@ -246,7 +281,7 @@ export function SiteHeader() {
                   </Link>
                 </MenuRow>
               ))}
-              <MenuRow index={mobileNav.length + 2} open={menuOpen}>
+              <MenuRow index={mobileNavItems.length + 2} open={menuOpen}>
                 <ThemeToggle variant="row" className="border-0 sm:hidden" />
               </MenuRow>
             </nav>

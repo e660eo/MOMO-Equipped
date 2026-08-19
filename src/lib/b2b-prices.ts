@@ -45,12 +45,14 @@ export function b2bPriceForSlug(
   book: B2BPriceBook = getB2BPriceBook(),
 ): number | undefined {
   const value = book.prices[slug]?.[tier];
-  return Number.isSafeInteger(value) && Number(value) > 0 ? Number(value) : undefined;
+  return Number.isFinite(value) && Number(value) > 0
+    ? Math.round(Number(value) * 100) / 100
+    : undefined;
 }
 
 export function b2bPriceCounts(book: B2BPriceBook = getB2BPriceBook()): Record<DealerPriceTier, number> {
   return DEALER_PRICE_TIERS.reduce((counts, tier) => {
-    counts[tier] = Object.values(book.prices).filter((prices) => Number.isSafeInteger(prices[tier]) && Number(prices[tier]) > 0).length;
+    counts[tier] = Object.values(book.prices).filter((prices) => Number.isFinite(prices[tier]) && Number(prices[tier]) > 0).length;
     return counts;
   }, { dealer: 0, dagestan: 0, wholesale: 0 });
 }

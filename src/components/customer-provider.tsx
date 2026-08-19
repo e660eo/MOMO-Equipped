@@ -2,14 +2,21 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { PublicCustomer } from "@/lib/types";
+import type { PublicDealerSession } from "@/lib/viewer-session";
 
 /*
-  Текущий покупатель для клиентских компонентов — шапки, модалки входа,
-  корзины. Загружается через закрытый API после гидратации, чтобы персональная
-  cookie не переводила всю публичную витрину в динамический рендеринг.
+  Текущий покупатель или дилер для клиентских компонентов — шапки, модалки
+  входа, корзины. Загружается через закрытый API после гидратации, чтобы
+  персональная cookie не переводила публичную витрину в динамический рендеринг.
 */
 
-const CustomerContext = createContext<PublicCustomer | null>(null);
+interface ViewerSession {
+  customer: PublicCustomer | null;
+  dealer: PublicDealerSession | null;
+}
+
+const EMPTY_SESSION: ViewerSession = { customer: null, dealer: null };
+const CustomerContext = createContext<ViewerSession>(EMPTY_SESSION);
 const CUSTOMER_CHANGED = "momo:customer-changed";
 
 export function notifyCustomerSessionChanged(): void {
@@ -21,7 +28,7 @@ export function CustomerProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [customer, setCustomer] = useState<PublicCustomer | null>(null);
+  const [session, setSession] = useState<ViewerSession>(EMPTY_SESSION);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -30,12 +37,12 @@ export function CustomerProvider({
         credentials: "same-origin",
         signal,
       });
-      if (!response.ok) return setCustomer(null);
-      const body = (await response.json()) as { customer: PublicCustomer | null };
-      setCustomer(body.customer);
+      if (!response.ok) return setSession(EMPTY_SESSION);
+      const body = (await response.json()) as ViewerSession;
+      setSession({ customer: body.customer ?? null, dealer: body.dealer ?? null });
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setCustomer(null);
+        setSession(EMPTY_SESSION);
       }
     }
   }, []);
@@ -52,11 +59,16 @@ export function CustomerProvider({
   }, [refresh]);
 
   return (
-    <CustomerContext.Provider value={customer}>{children}</CustomerContext.Provider>
+    <CustomerContext.Provider value={session}>{children}</CustomerContext.Provider>
   );
 }
 
 /** Вошедший покупатель или null. */
 export function useCustomer(): PublicCustomer | null {
-  return useContext(CustomerContext);
+  return useContext(CustomerContext).customer;
+}
+
+/** Вошедший дилер или null. Пароль и email в браузер не передаются. */
+export function useDealer(): PublicDealerSession | null {
+  return useContext(CustomerContext).dealer;
 }

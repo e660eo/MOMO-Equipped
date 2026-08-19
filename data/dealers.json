@@ -41,5 +41,15 @@
     "kind": "store",
     "active": true,
     "createdAt": "2026-08-14T00:00:00.000Z"
+  },
+  {
+    "id": "trial-dealer-momo",
+    "name": "Пробный дилер MOMO",
+    "city": "Махачкала",
+    "address": "Учебный кабинет — не публикуется",
+    "phone": "+7 967 408 3111",
+    "kind": "store",
+    "active": false,
+    "createdAt": "2026-08-19T11:10:00.000Z"
   }
 ]

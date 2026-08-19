@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "trial-dealer-account",
+    "dealerId": "trial-dealer-momo",
+    "contactName": "Пробный дилер",
+    "email": "demo-dealer@momo-eq.ru",
+    "passwordHash": "scrypt:3b885a85a48e1d5ff85ba71c3a4ebc52:2223f8207256cda065353b3682daad99984a6c7e8228cb2180d9c94b1b21171bb71faac599f2a1ccdbc31bb00bd4d1d34fab40b9924ba79ec3676e6ce8945b82",
+    "priceTier": "dealer",
+    "discountPercent": 0,
+    "createdAt": "2026-08-19T11:10:00.000Z",
+    "activatedAt": "2026-08-19T11:10:00.000Z"
+  }
+]

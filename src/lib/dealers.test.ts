@@ -41,6 +41,14 @@ describe("dealerPriceFor", () => {
     expect(dealerPriceFor(product, { ...account, priceTier: "wholesale" }, priceBook)).toBe(6501);
   });
 
+  it("preserves kopecks from the private price book", () => {
+    const bookWithKopecks: B2BPriceBook = {
+      ...priceBook,
+      prices: { "bd-1500-1": { dealer: 6001.35 } },
+    };
+    expect(dealerPriceFor(product, account, bookWithKopecks)).toBe(6001.35);
+  });
+
   it("uses a per-product override before the common discount", () => {
     expect(dealerPriceFor(product, { ...account, priceOverrides: { "bd-1500-1": 7000 } }, priceBook)).toBe(7000);
   });

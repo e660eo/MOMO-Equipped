@@ -66,6 +66,39 @@ for (const seedDealer of seedDealers) {
 }
 if (dealerLocationsAdded) write("dealers.json", dealers);
 
+// Закрытые кабинеты тоже имеют seed-записи, но существующие пароли и условия
+// никогда не перезаписываем. Так пробный доступ можно добавить выкладкой, не
+// затронув дилеров, которых уже создали через панель на рабочем сервере.
+const seedDealerAccountsFile = path.join(root, "data", "dealer-accounts.json");
+const seedDealerAccounts = JSON.parse(fs.readFileSync(seedDealerAccountsFile, "utf8"));
+const dealerAccounts = read("dealer-accounts.json");
+let dealerAccountsAdded = 0;
+for (const seedAccount of seedDealerAccounts) {
+  const email = String(seedAccount.email).trim().toLowerCase();
+  if (dealerAccounts.some((account) =>
+    account.id === seedAccount.id || String(account.email).trim().toLowerCase() === email
+  )) continue;
+  dealerAccounts.push(seedAccount);
+  dealerAccountsAdded += 1;
+}
+if (dealerAccountsAdded) write("dealer-accounts.json", dealerAccounts);
+
+// Дилерские цены не входят в публичную сборку и читаются только сервером из
+// MOMO_DATA_DIR. Репозиторий приватный, поэтому файл служит версионным seed:
+// более свежий рабочий прайс не откатываем, отсутствующий — устанавливаем.
+const seedPriceBookFile = path.join(root, "data", "b2b-prices.json");
+let dealerPriceBookUpdated = 0;
+if (fs.existsSync(seedPriceBookFile)) {
+  const seedPriceBook = JSON.parse(fs.readFileSync(seedPriceBookFile, "utf8"));
+  const livePriceBook = read("b2b-prices.json", null);
+  const seedTime = Date.parse(seedPriceBook.updatedAt ?? "") || 0;
+  const liveTime = Date.parse(livePriceBook?.updatedAt ?? "") || 0;
+  if (!livePriceBook || seedTime > liveTime) {
+    write("b2b-prices.json", seedPriceBook);
+    dealerPriceBookUpdated = 1;
+  }
+}
+
 const dealerKinds = new Set(["store", "installation", "store_install"]);
 let dealerKindsBackfilled = 0;
 for (const dealer of dealers) {
@@ -165,4 +198,4 @@ function harden(dir) {
 }
 harden(dataDir);
 
-console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/типы ${dealerKindsBackfilled}/переименовано ${dealerLocationsRenamed}/скрыто ${dealerLocationsHidden}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
+console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/кабинеты +${dealerAccountsAdded}/типы ${dealerKindsBackfilled}/переименовано ${dealerLocationsRenamed}/скрыто ${dealerLocationsHidden}, прайс ${dealerPriceBookUpdated}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
