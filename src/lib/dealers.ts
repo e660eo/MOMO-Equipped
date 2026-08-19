@@ -55,6 +55,36 @@ export function setDealerLocationProfile(
   return updated;
 }
 
+export type DealerLocationDetailsPatch = Pick<
+  DealerLocation,
+  | "name"
+  | "city"
+  | "address"
+  | "phone"
+  | "email"
+  | "website"
+  | "hours"
+  | "latitude"
+  | "longitude"
+  | "kind"
+  | "authorizedInstallation"
+>;
+
+/** Обновляет все данные публичной дилерской точки, не затрагивая её id и статус публикации. */
+export function updateDealerLocationDetails(
+  id: string,
+  patch: DealerLocationDetailsPatch,
+): DealerLocation | undefined {
+  assertWritable();
+  let updated: DealerLocation | undefined;
+  updateJson<DealerLocation[]>(DEALERS, (all) => all.map((dealer) => {
+    if (dealer.id !== id) return dealer;
+    updated = { ...dealer, ...patch };
+    return updated;
+  }));
+  return updated;
+}
+
 /**
  * Полностью удаляет дилерскую точку и все связанные с ней кабинеты.
  * Заказы намеренно остаются в отдельном журнале: удаление контрагента не
@@ -92,6 +122,26 @@ export function findDealerAccount(id: string): DealerAccount | undefined {
 export function findDealerAccountByEmail(email: string): DealerAccount | undefined {
   const key = email.trim().toLowerCase();
   return getDealerAccounts().find((account) => account.email.toLowerCase() === key);
+}
+
+export function updateDealerAccountProfile(
+  id: string,
+  patch: Pick<DealerAccount, "contactName" | "email" | "priceTier" | "discountPercent">,
+): DealerAccount | undefined {
+  assertWritable();
+  const normalizedEmail = patch.email.trim().toLowerCase();
+  const duplicate = getDealerAccounts().find(
+    (account) => account.id !== id && account.email.toLowerCase() === normalizedEmail,
+  );
+  if (duplicate) throw new Error("ACCOUNT_EXISTS");
+
+  let updated: DealerAccount | undefined;
+  updateJson<DealerAccount[]>(ACCOUNTS, (all) => all.map((account) => {
+    if (account.id !== id) return account;
+    updated = { ...account, ...patch, email: normalizedEmail };
+    return updated;
+  }));
+  return updated;
 }
 
 export function dealerPriceFor(

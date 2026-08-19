@@ -9,12 +9,15 @@ import {
   createDealer,
   deleteDealer,
   findDealerAccount,
+  getDealerAccounts,
   getDealerLocation,
   issueDealerInvite,
   recordDealerAccessMail,
   setDealerLocationActive,
   setDealerLocationProfile,
+  updateDealerAccountProfile,
   updateDealerApplication,
+  updateDealerLocationDetails,
   updateDealerOrderStatus,
   updateDealerTerms,
 } from "@/lib/dealers";
@@ -24,6 +27,7 @@ import { DEALER_PRICE_TIERS, DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
 import type { DealerApplicationStatus, DealerLocationKind, DealerOrderStatus, DealerPriceTier } from "@/lib/types";
 
 export type CreateDealerState = { error?: string; ok?: boolean; inviteUrl?: string; mailSent?: boolean };
+export type UpdateDealerState = { error?: string; ok?: boolean };
 
 function text(formData: FormData, key: string, max = 200): string {
   return String(formData.get(key) ?? "").trim().slice(0, max);
@@ -86,6 +90,124 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
   } catch (error) {
     if (error instanceof Error && error.message === "ACCOUNT_EXISTS") return { error: "Дилер с таким email уже существует." };
     return { error: messageFor(error, "Не удалось создать дилера.", "createDealerAdmin") };
+  }
+}
+
+export async function updateDealerAdmin(
+  _state: UpdateDealerState,
+  formData: FormData,
+): Promise<UpdateDealerState> {
+  await requireSession();
+  try {
+    const id = text(formData, "id", 80);
+    const before = getDealerLocation(id);
+    if (!before) throw new ExpectedError("Дилерская точка не найдена.");
+
+    const name = text(formData, "name");
+    const city = text(formData, "city", 120);
+    const address = text(formData, "address", 240);
+    const phone = text(formData, "phone", 40);
+    const publicEmail = text(formData, "publicEmail", 160).toLowerCase();
+    const website = text(formData, "website", 240);
+    const hours = text(formData, "hours", 160);
+    const kind = text(formData, "kind", 30) as DealerLocationKind;
+    if (!name || !city || !address || !phone) {
+      throw new ExpectedError("Заполните название, город, адрес и телефон.");
+    }
+    if (publicEmail && !/^\S+@\S+\.\S+$/.test(publicEmail)) {
+      throw new ExpectedError("Проверьте публичный email.");
+    }
+    if (website) {
+      try {
+        const parsedWebsite = new URL(website);
+        if (!['http:', 'https:'].includes(parsedWebsite.protocol)) throw new Error();
+      } catch {
+        throw new ExpectedError("Адрес сайта должен начинаться с http:// или https://.");
+      }
+    }
+    if (!DEALER_LOCATION_KINDS.includes(kind)) {
+      throw new ExpectedError("Выберите тип дилерской точки.");
+    }
+
+    const latitude = optionalNumber(formData, "latitude");
+    const longitude = optionalNumber(formData, "longitude");
+    if ((latitude === undefined) !== (longitude === undefined)) {
+      throw new ExpectedError("Укажите и широту, и долготу — либо оставьте оба поля пустыми.");
+    }
+    if (latitude !== undefined && (latitude < -90 || latitude > 90)) {
+      throw new ExpectedError("Широта должна быть от −90 до 90.");
+    }
+    if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
+      throw new ExpectedError("Долгота должна быть от −180 до 180.");
+    }
+
+    const account = getDealerAccounts().find((item) => item.dealerId === id);
+    let updatedAccount = account;
+    if (account) {
+      const contactName = text(formData, "contactName", 120);
+      const loginEmail = text(formData, "loginEmail", 160).toLowerCase();
+      const priceTier = text(formData, "priceTier", 20) as DealerPriceTier;
+      const discountPercent = Number(text(formData, "discountPercent", 10));
+      if (!contactName || !loginEmail) {
+        throw new ExpectedError("Заполните контактное лицо и email для входа.");
+      }
+      if (!/^\S+@\S+\.\S+$/.test(loginEmail)) {
+        throw new ExpectedError("Проверьте email для входа.");
+      }
+      if (!DEALER_PRICE_TIERS.includes(priceTier)) {
+        throw new ExpectedError("Выберите ценовой уровень партнёра.");
+      }
+      if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 80) {
+        throw new ExpectedError("Скидка должна быть от 0 до 80%.");
+      }
+      updatedAccount = updateDealerAccountProfile(account.id, {
+        contactName,
+        email: loginEmail,
+        priceTier,
+        discountPercent,
+      });
+    }
+
+    const authorizedInstallation = kind !== "store" && formData.get("authorizedInstallation") === "on";
+    const after = updateDealerLocationDetails(id, {
+      name,
+      city,
+      address,
+      phone,
+      email: publicEmail || undefined,
+      website: website || undefined,
+      hours: hours || undefined,
+      latitude,
+      longitude,
+      kind,
+      authorizedInstallation,
+    });
+    if (!after) throw new ExpectedError("Не удалось сохранить дилерскую точку.");
+
+    audit({
+      entity: "dealer",
+      entityId: id,
+      action: "dealer_updated",
+      summary: `Обновлены данные дилера ${after.name}`,
+      before: {
+        dealer: before,
+        account: account ? { contactName: account.contactName, email: account.email, priceTier: account.priceTier, discountPercent: account.discountPercent } : undefined,
+      },
+      after: {
+        dealer: after,
+        account: updatedAccount ? { contactName: updatedAccount.contactName, email: updatedAccount.email, priceTier: updatedAccount.priceTier, discountPercent: updatedAccount.discountPercent } : undefined,
+      },
+    });
+    revalidatePath("/admin/dealers");
+    revalidatePath(`/admin/dealers/${id}/edit`);
+    revalidatePath("/dealers");
+    revalidatePath("/dealer");
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof Error && error.message === "ACCOUNT_EXISTS") {
+      return { error: "Дилер с таким email для входа уже существует." };
+    }
+    return { error: messageFor(error, "Не удалось обновить дилера.", "updateDealerAdmin") };
   }
 }
 

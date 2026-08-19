@@ -100,31 +100,20 @@ export default function Home() {
           {/* мягкое высветление за текстом для читаемости */}
           <div className="hero-floating-lines-scrim pointer-events-none absolute inset-0" />
 
-          <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-8 pt-6 text-center sm:px-6 sm:pb-9">
-            <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
-              Автоакустика · с 2015 года
-            </p>
-
+          <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-8 pt-8 text-center sm:px-6 sm:pb-9 sm:pt-9">
             {/* Слоган остаётся единственным заголовком первого экрана. */}
-            <h1 className="mt-3 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-muted-foreground">
+            <h1 className="font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-muted-foreground">
               Звук, который чувствуешь
             </h1>
 
             {/* Логотип остаётся самым крупным объектом первого экрана. */}
             <div className="mt-2 flex items-center justify-center">
-              <HeroLogo className="w-[clamp(230px,42vw,430px)]" />
+              <HeroLogo className="w-[clamp(250px,46vw,480px)]" />
             </div>
-
-            <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
-              Modern Original Music Organization
-            </p>
 
             <div className="mx-auto mt-2 max-w-2xl border-y border-border py-3">
               <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-foreground sm:text-lg">
                 Автоакустика MOMO и ZEUS
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Сабвуферы, усилители, динамики и готовые системы автозвука.
               </p>
             </div>
 
