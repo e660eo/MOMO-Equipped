@@ -8,8 +8,8 @@
      странице — и браузер честно тянул 115 КБ Unbounded и 15 КБ Manrope ради
      одного глифа.
 
-  2) Полное название в шапке набрано Syne и больше нигде не встречается:
-     не заставляем браузер скачивать всю гарнитуру ради одной надписи.
+  2) Знак MOMO в шапке набран Syne и больше нигде не встречается:
+     не заставляем браузер скачивать всю гарнитуру ради четырёх букв.
 
   Исходники берутся из файлов самой сборки (.next/static/media), поэтому контуры
   глифов те же байт в байт — начертание не меняется.
@@ -62,12 +62,10 @@ const faces = await readFontFaces();
 const JOBS = [
   { family: "Unbounded", pick: "latinExt", text: "₽", out: "ruble-unbounded.woff2" },
   { family: "Manrope", pick: "latinExt", text: "₽", out: "ruble-manrope.woff2" },
-  // И прописные, и строчные: капслок наводит CSS,
-  // но полагаться на это при вырезании глифов не стоит.
   {
     family: "Syne",
     pick: "latin",
-    text: "Modern Original Music Organization MODERN ORIGINAL MUSIC ORGANIZATION",
+    text: "MOMO",
     out: "wordmark-syne.woff2",
     fallback: "public/fonts/syne-latin.woff2",
   },

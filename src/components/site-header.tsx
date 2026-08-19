@@ -100,12 +100,9 @@ export function SiteHeader() {
         <Link
           href="/"
           aria-label="Modern Original Music Organization — на главную"
-          className="inline-flex min-h-11 w-[118px] shrink-0 items-center font-wordmark font-extrabold uppercase leading-[0.95] tracking-[0.04em] sm:w-[150px]"
+          className="inline-flex min-h-11 shrink-0 items-center font-wordmark text-xl font-extrabold uppercase leading-none tracking-[-0.04em] sm:text-2xl"
         >
-          <span className="flex flex-col text-[0.48rem] sm:text-[0.56rem] md:text-[0.58rem]">
-            <span className="whitespace-nowrap">Modern Original</span>
-            <span className="mt-1 whitespace-nowrap text-signal">Music Organization</span>
-          </span>
+          MOMO<span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-signal" aria-hidden />
         </Link>
 
         {/* Кнопка «Каталог» с эффектом specular и мега-меню */}
