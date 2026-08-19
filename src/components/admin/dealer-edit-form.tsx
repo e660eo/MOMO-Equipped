@@ -18,8 +18,15 @@ import {
   dealerGeocodeQuery,
   formatDealerCoordinate,
 } from "@/lib/dealer-geocoding";
-import { dealerLocationKind, dealerOfficialStatus } from "@/lib/dealer-location";
-import type { DealerAccount, DealerLocation } from "@/lib/types";
+import {
+  DEALER_OFFICIAL_STATUS_LABELS,
+  dealerLocationKind,
+  dealerOfficialStatus,
+} from "@/lib/dealer-location";
+import type {
+  DealerAccount,
+  DealerLocation,
+} from "@/lib/types";
 import { geocodeYandexAddress } from "@/lib/yandex-maps-client";
 
 type GeocodeState =
@@ -205,7 +212,13 @@ export function DealerEditForm({
         </label>
         <label className="grid gap-1 text-xs text-muted-foreground">
           Статус партнёра
-          <select className={input} name="officialStatus" defaultValue={dealerOfficialStatus(dealer)} required>
+          <select
+            key={state.officialStatus ?? dealerOfficialStatus(dealer)}
+            className={input}
+            name="officialStatus"
+            defaultValue={state.officialStatus ?? dealerOfficialStatus(dealer)}
+            required
+          >
             <option value="dealer">Официальный дилер</option>
             <option value="representative">Официальный представитель</option>
           </select>
@@ -312,7 +325,7 @@ export function DealerEditForm({
       {state.ok && (
         <p className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700" role="status">
           <CheckCircle2 size={17} aria-hidden />
-          Изменения сохранены и опубликованы на сайте.
+          Статус «{DEALER_OFFICIAL_STATUS_LABELS[state.officialStatus ?? dealerOfficialStatus(dealer)]}» сохранён и опубликован на сайте.
         </p>
       )}
 

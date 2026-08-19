@@ -37,7 +37,11 @@ import type {
 } from "@/lib/types";
 
 export type CreateDealerState = { error?: string; ok?: boolean; inviteUrl?: string; mailSent?: boolean };
-export type UpdateDealerState = { error?: string; ok?: boolean };
+export type UpdateDealerState = {
+  error?: string;
+  ok?: boolean;
+  officialStatus?: DealerOfficialStatus;
+};
 
 function text(formData: FormData, key: string, max = 200): string {
   return String(formData.get(key) ?? "").trim().slice(0, max);
@@ -220,7 +224,7 @@ export async function updateDealerAdmin(
     revalidatePath(`/admin/dealers/${id}/edit`);
     revalidatePath("/dealers");
     revalidatePath("/dealer");
-    return { ok: true };
+    return { ok: true, officialStatus };
   } catch (error) {
     if (error instanceof Error && error.message === "ACCOUNT_EXISTS") {
       return { error: "Дилер с таким email для входа уже существует." };
