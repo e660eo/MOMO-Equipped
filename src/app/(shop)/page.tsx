@@ -92,52 +92,45 @@ export default function Home() {
 
   return (
     <main className="overflow-x-hidden">
-      {/* HERO — интерактивные Floating Lines за логотипом */}
+      {/* HERO — цветная звуковая волна за 3D-логотипом MOMO */}
       <section className="border-b border-border">
         <div className="relative overflow-hidden bg-surface text-foreground">
-          {/* фон: золотисто-графитовые WebGL-линии, адаптированные под обе темы */}
           <HeroBackdrop />
-          {/* мягкое высветление за текстом для читаемости */}
-          <div className="hero-floating-lines-scrim pointer-events-none absolute inset-0" />
+          <div className="hero-spectrum-scrim pointer-events-none absolute inset-0" />
 
-          <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-8 pt-6 text-center sm:px-6 sm:pb-9">
-            <p className="inline-flex items-center gap-3 font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-['']">
-              Автоакустика · с 2015 года
+          <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-9 pt-7 text-center sm:px-6 sm:pb-11 sm:pt-9">
+            <p className="inline-flex items-center gap-3 font-mono text-[0.68rem] uppercase tracking-[0.22em] text-muted-foreground before:h-px before:w-7 before:bg-signal before:content-[''] after:h-px after:w-7 after:bg-signal after:content-[''] sm:text-xs">
+              Автозвук · с 2015 года
             </p>
 
-            {/* Слоган остаётся единственным заголовком первого экрана. */}
-            <h1 className="mt-3 font-display text-[clamp(1.1rem,2.6vw,1.6rem)] font-semibold uppercase tracking-wide text-muted-foreground">
-              Звук, который чувствуешь
+            <h1 className="mx-auto mt-3 max-w-[760px] text-balance font-display text-[clamp(2rem,5vw,3.75rem)] font-extrabold uppercase leading-[0.94] tracking-[-0.035em] text-foreground">
+              Звук, который<br className="hidden sm:block" />{" "}
+              <span className="text-signal">чувствуешь.</span>
             </h1>
 
-            {/* Логотип остаётся самым крупным объектом первого экрана. */}
-            <div className="mt-2 flex items-center justify-center">
-              <HeroLogo className="w-[clamp(230px,42vw,430px)]" />
+            <div className="relative mt-1 flex items-center justify-center sm:-mt-1">
+              <HeroLogo className="w-[clamp(280px,36vw,520px)]" />
             </div>
 
-            <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
-              Modern Original Music Organization
-            </p>
-
-            <div className="mx-auto mt-2 max-w-2xl border-y border-border py-3">
-              <p className="font-display text-base font-semibold uppercase tracking-[0.08em] text-foreground sm:text-lg">
+            <div className="mx-auto -mt-2 max-w-2xl border-y border-border/80 py-3 sm:-mt-3 sm:py-3.5">
+              <p className="font-display text-base font-bold uppercase tracking-[0.08em] text-foreground sm:text-lg">
                 Автоакустика MOMO и ZEUS
               </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-base">
                 Сабвуферы, усилители, динамики и готовые системы автозвука.
               </p>
             </div>
 
-            <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <div className="mt-5 flex flex-wrap justify-center gap-3 sm:mt-6">
               <Link
                 href="/catalog"
-                className="inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_28px_rgba(255,85,0,0.35)]"
+                className="inline-flex min-h-12 items-center justify-center rounded-sm bg-signal px-7 py-3 text-sm font-semibold text-white transition-[background-color,box-shadow,transform] hover:bg-[#ff6a1f] hover:shadow-[0_6px_28px_rgba(255,85,0,0.35)] active:translate-y-px"
               >
                 Смотреть каталог
               </Link>
               <Link
                 href="/contacts"
-                className="inline-flex rounded-sm border border-border bg-surface/70 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-sm transition-colors hover:border-signal hover:text-signal"
+                className="inline-flex min-h-12 items-center justify-center rounded-sm border border-border bg-surface/75 px-7 py-3 text-sm font-semibold text-foreground backdrop-blur-sm transition-[border-color,color,transform] hover:border-signal hover:text-signal active:translate-y-px"
               >
                 Подобрать комплект
               </Link>

@@ -218,10 +218,13 @@ export function SiteHeader() {
             <MenuRow index={0} open={menuOpen}>
               <HeaderSearch variant="mobile" onNavigate={closeMenu} />
             </MenuRow>
+            <MenuRow index={1} open={menuOpen}>
+              <CityPicker variant="mobile" onChoose={closeMenu} />
+            </MenuRow>
             {/* Пункты меню — не меньше 44px в высоту, это область нажатия пальцем */}
             <nav className="flex flex-col">
               {mobileNav.map((n, i) => (
-                <MenuRow key={n.href} index={i + 1} open={menuOpen}>
+                <MenuRow key={n.href} index={i + 2} open={menuOpen}>
                   <Link
                     href={n.href}
                     onClick={closeMenu}
@@ -243,7 +246,7 @@ export function SiteHeader() {
                   </Link>
                 </MenuRow>
               ))}
-              <MenuRow index={mobileNav.length + 1} open={menuOpen}>
+              <MenuRow index={mobileNav.length + 2} open={menuOpen}>
                 <ThemeToggle variant="row" className="border-0 sm:hidden" />
               </MenuRow>
             </nav>

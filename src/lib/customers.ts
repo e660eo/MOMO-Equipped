@@ -5,6 +5,7 @@ import type { Customer, PublicCustomer } from "./types";
 import { audit } from "./audit-log";
 import { phoneKey } from "./phone";
 import { getBonusSummary, removeCustomerBonusLedger } from "./bonus-ledger";
+import { deleteCustomerProductReviews } from "./product-reviews";
 
 /*
   Покупатели с аккаунтом на сайте.
@@ -179,15 +180,17 @@ export function updateCustomer(
  * другом основании — гарантия и бухгалтерский учёт. Связь с аккаунтом при
  * этом рвётся, так что «все заказы этого клиента» больше не собрать.
  */
-export function deleteCustomer(id: string): void {
+export function deleteCustomer(id: string): string[] {
   assertWritable();
   updateJson<Customer[]>(FILE, (all) => all.filter((c) => c.id !== id));
   removeCustomerBonusLedger(id);
+  const affectedReviewSlugs = deleteCustomerProductReviews(id);
   auditCustomerLifecycle({
     customerId: id,
     action: "customer_deleted",
     summary: "Покупатель удалил аккаунт и персональные данные",
   });
+  return affectedReviewSlugs;
 }
 
 /**

@@ -1,12 +1,20 @@
 "use client";
 
+export interface YandexMapEvent {
+  get(name: string): unknown;
+}
+
 export interface YandexEventManager {
-  add(type: string, handler: () => void): void;
-  remove(type: string, handler: () => void): void;
+  add(type: string, handler: (event: YandexMapEvent) => void): void;
+  remove(type: string, handler: (event: YandexMapEvent) => void): void;
 }
 
 export interface YandexPlacemark {
   events: YandexEventManager;
+  geometry: {
+    getCoordinates(): [number, number];
+    setCoordinates(coordinates: [number, number]): void;
+  };
   balloon?: {
     open(): void;
     close(): void;

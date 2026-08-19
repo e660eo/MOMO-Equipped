@@ -194,6 +194,28 @@ export type PublicCustomer = Omit<Customer, "passwordHash" | "admin"> & {
   bonusExpiresAt?: string;
 };
 
+/**
+ * Отзыв на товар. customerId нужен только серверу для проверки одной записи
+ * от одного покупателя и никогда не передаётся в публичные компоненты.
+ */
+export interface ProductReview {
+  id: string;
+  productSlug: string;
+  /** Название фиксируется на момент публикации, чтобы отзыв не стал безымянным после удаления товара. */
+  productTitle: string;
+  customerId: string;
+  /** Публичное имя уже сокращено до «Имя Ф.», контактов здесь нет. */
+  author: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  text: string;
+  /** Имя обработанного WEBP в постоянной папке uploads. */
+  photo?: string;
+  createdAt: string;
+}
+
+/** Отзыв, безопасный для публичной карточки товара. */
+export type PublicProductReview = Omit<ProductReview, "customerId">;
+
 export type BonusTransactionType =
   | "admin_credit"
   | "admin_debit"
@@ -374,7 +396,7 @@ export interface Order {
   history?: OrderHistoryEntry[];
 }
 
-export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration" | "dealer" | "support" | "banner";
+export type AuditEntity = "product" | "order" | "promo" | "customer" | "settings" | "integration" | "dealer" | "support" | "banner" | "review";
 
 export interface AuditLogEntry {
   id: string;

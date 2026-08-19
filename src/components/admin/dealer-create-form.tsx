@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, LocateFixed, LoaderCircle, MailCheck, MailWarning } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, LocateFixed, LoaderCircle, MailCheck, MailWarning, MapPinned } from "lucide-react";
 import { createDealerAdmin, type CreateDealerState } from "@/app/admin/dealers/actions";
+import { DealerMapPicker } from "@/components/admin/dealer-map-picker";
 import { dealerGeocodeQuery, formatDealerCoordinate } from "@/lib/dealer-geocoding";
 import { geocodeYandexAddress } from "@/lib/yandex-maps-client";
 
@@ -12,6 +13,7 @@ type GeocodeState =
   | { type: "idle" }
   | { type: "loading" }
   | { type: "success"; address: string }
+  | { type: "map" }
   | { type: "error"; message: string };
 
 export function DealerCreateForm({
@@ -27,8 +29,9 @@ export function DealerCreateForm({
   const [address, setAddress] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const [geocodeState, setGeocodeState] = useState<GeocodeState>({ type: "idle" });
-  const coordinateSourceRef = useRef<"empty" | "auto" | "manual">("empty");
+  const coordinateSourceRef = useRef<"empty" | "auto" | "manual" | "map">("empty");
   const lastRequestedQueryRef = useRef("");
   const requestIdRef = useRef(0);
   const input = "h-11 rounded-lg border border-border bg-white px-3 text-sm outline-none focus:border-signal";
@@ -47,7 +50,7 @@ export function DealerCreateForm({
   const findCoordinates = useCallback(async (force = false) => {
     const query = dealerGeocodeQuery(city, address);
     if (!query || address.trim().length < 5) return;
-    if (!force && coordinateSourceRef.current === "manual") return;
+    if (!force && (coordinateSourceRef.current === "manual" || coordinateSourceRef.current === "map")) return;
     if (!force && lastRequestedQueryRef.current === query) return;
     if (!yandexMapsApiKey) {
       setGeocodeState({ type: "error", message: "В настройках сайта не указан ключ Яндекс Карт. Координаты можно ввести вручную." });
@@ -63,7 +66,7 @@ export function DealerCreateForm({
       const result = await geocodeYandexAddress(yandexMapsApiKey, query);
       if (requestId !== requestIdRef.current) return;
       if (!result) {
-        setGeocodeState({ type: "error", message: "Адрес не найден. Уточните улицу и номер дома или введите координаты вручную." });
+        setGeocodeState({ type: "error", message: "Адрес не найден. Уточните его или выберите точку на карте." });
         return;
       }
       setLatitude(formatDealerCoordinate(result.latitude));
@@ -74,14 +77,14 @@ export function DealerCreateForm({
       if (requestId !== requestIdRef.current) return;
       setGeocodeState({
         type: "error",
-        message: error instanceof Error ? error.message : "Не удалось определить координаты. Введите их вручную.",
+        message: error instanceof Error ? error.message : "Не удалось определить координаты. Выберите точку на карте.",
       });
     }
   }, [address, city, yandexMapsApiKey]);
 
   useEffect(() => {
     const query = dealerGeocodeQuery(city, address);
-    if (!query || address.trim().length < 5 || coordinateSourceRef.current === "manual") return;
+    if (!query || address.trim().length < 5 || coordinateSourceRef.current === "manual" || coordinateSourceRef.current === "map") return;
     const timer = window.setTimeout(() => void findCoordinates(), 800);
     return () => window.clearTimeout(timer);
   }, [address, city, findCoordinates]);
@@ -93,6 +96,16 @@ export function DealerCreateForm({
     setGeocodeState({ type: "idle" });
     if (field === "latitude") setLatitude(value);
     else setLongitude(value);
+  };
+
+  const setMapCoordinates = (coordinates: { latitude: number; longitude: number }) => {
+    requestIdRef.current += 1;
+    setLatitude(formatDealerCoordinate(coordinates.latitude));
+    setLongitude(formatDealerCoordinate(coordinates.longitude));
+    coordinateSourceRef.current = "map";
+    lastRequestedQueryRef.current = "";
+    setGeocodeState({ type: "map" });
+    setMapPickerOpen(false);
   };
 
   return <form action={action} className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -113,13 +126,19 @@ export function DealerCreateForm({
         {geocodeState.type === "loading" ? <LoaderCircle className="animate-spin" size={16} /> : <LocateFixed size={16} />}
         {geocodeState.type === "loading" ? "Ищем адрес…" : "Найти по адресу"}
       </button>
+      <button type="button" onClick={() => setMapPickerOpen(true)} className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 text-xs font-bold transition-colors hover:border-signal hover:text-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal">
+        <MapPinned size={16} aria-hidden />
+        Выбрать на карте
+      </button>
       <div className="min-w-0 flex-1 text-xs leading-5 text-muted-foreground">
-        {geocodeState.type === "idle" && <p>Координаты найдутся автоматически по городу и адресу. Их можно исправить вручную.</p>}
+        {geocodeState.type === "idle" && <p>Найдите координаты по адресу или выберите точку на карте.</p>}
         {geocodeState.type === "loading" && <p>Проверяем адрес в Яндекс Картах…</p>}
         {geocodeState.type === "success" && <p className="flex items-start gap-1.5 text-emerald-700"><CheckCircle2 className="mt-0.5 shrink-0" size={15} /><span>Найдено: {geocodeState.address}</span></p>}
+        {geocodeState.type === "map" && <p className="flex items-start gap-1.5 text-emerald-700"><CheckCircle2 className="mt-0.5 shrink-0" size={15} /><span>Точка выбрана на карте.</span></p>}
         {geocodeState.type === "error" && <p className="flex items-start gap-1.5 text-red-700"><AlertCircle className="mt-0.5 shrink-0" size={15} /><span>{geocodeState.message}</span></p>}
       </div>
     </div>
+    {mapPickerOpen && <DealerMapPicker apiKey={yandexMapsApiKey} city={city} address={address} initialLatitude={latitude} initialLongitude={longitude} onClose={() => setMapPickerOpen(false)} onSelect={setMapCoordinates} />}
     <label className="grid gap-1 text-xs text-muted-foreground">Ценовой уровень<select className={input} name="priceTier" defaultValue="dealer" required><option value="dealer">Дилерский прайс</option><option value="dagestan">Дагестанский прайс</option><option value="wholesale">Оптовый прайс</option></select></label>
     <label className="grid gap-1 text-xs text-muted-foreground">Резервная скидка от РРЦ, %<input className={input} type="number" min="0" max="80" step="0.1" name="discountPercent" defaultValue="0" required /><span className="text-[10px] leading-4">Применится только к товарам, которых нет в выбранном прайсе.</span></label>
     <label className="grid gap-1 text-xs text-muted-foreground">Тип точки<select className={input} name="kind" defaultValue="store" required><option value="store">Магазин</option><option value="installation">Установочный центр</option><option value="store_install">Магазин / Установочный центр</option></select></label>

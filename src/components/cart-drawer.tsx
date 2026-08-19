@@ -28,6 +28,14 @@ import {
   searchPickupPlace,
   selectOzonPickup,
 } from "@/app/order-actions";
+import {
+  CITY_CENTER_STORAGE_KEY,
+  CITY_CHANGE_EVENT,
+  CITY_STORAGE_KEY,
+  parseStoredCityCenter,
+  popularCityCenter,
+  type CityCenter,
+} from "@/lib/city-selection";
 import type { PublicPlaceResult } from "@/lib/place-search";
 import type {
   OzonDeliverySelection,
@@ -64,16 +72,6 @@ const inputCls =
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
-const cityCenters: Record<string, Omit<MapTarget, "zoom">> = {
-  "Махачкала": { lat: 42.9849, long: 47.5047 },
-  "Москва": { lat: 55.7558, long: 37.6176 },
-  "Санкт-Петербург": { lat: 59.9343, long: 30.3351 },
-  "Краснодар": { lat: 45.0355, long: 38.9753 },
-  "Ростов-на-Дону": { lat: 47.2357, long: 39.7015 },
-  "Казань": { lat: 55.7961, long: 49.1064 },
-  "Екатеринбург": { lat: 56.8389, long: 60.6057 },
-  "Новосибирск": { lat: 55.0084, long: 82.9357 },
-};
 const russiaMapTarget: MapTarget = { lat: 61.2, long: 89.2, zoom: 2 };
 
 export function CartPageClient() {
@@ -127,9 +125,29 @@ export function CartPageClient() {
   // Если город действительно выбирали в шапке, начинаем с него. Без сохранённого
   // выбора показываем всю Россию — карта больше не привязана к Махачкале.
   useEffect(() => {
-    const city = localStorage.getItem("momo-city");
-    const center = city ? cityCenters[city] : undefined;
-    if (center) setMapTarget({ ...center, zoom: 11 });
+    const applyCityCenter = (center: CityCenter | null) => {
+      if (center) setMapTarget({ lat: center.lat, long: center.long, zoom: 11 });
+    };
+    const city = localStorage.getItem(CITY_STORAGE_KEY);
+    applyCityCenter(
+      popularCityCenter(city) ??
+        parseStoredCityCenter(localStorage.getItem(CITY_CENTER_STORAGE_KEY), city),
+    );
+
+    const onCityChange = (event: Event) => {
+      const detail = (event as CustomEvent<Partial<CityCenter>>).detail;
+      if (
+        typeof detail?.city === "string" &&
+        Number.isFinite(detail.lat) &&
+        Number.isFinite(detail.long)
+      ) {
+        applyCityCenter({ city: detail.city, lat: detail.lat!, long: detail.long! });
+      } else if (typeof detail?.city === "string") {
+        applyCityCenter(popularCityCenter(detail.city));
+      }
+    };
+    window.addEventListener(CITY_CHANGE_EVENT, onCityChange);
+    return () => window.removeEventListener(CITY_CHANGE_EVENT, onCityChange);
   }, []);
 
   const { trust, payEnabled, paySandbox } = useSiteConfig();

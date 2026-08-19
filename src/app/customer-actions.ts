@@ -239,9 +239,10 @@ export async function deleteMyAccount(): Promise<{ ok: boolean; error?: string }
   if (!me) return { ok: false, error: "Нужно войти заново." };
 
   try {
-    deleteCustomer(me.id);
+    const affectedReviewSlugs = deleteCustomer(me.id);
     await endCustomerSession();
     revalidatePath("/", "layout");
+    for (const slug of affectedReviewSlugs) revalidatePath(`/product/${slug}`);
     return { ok: true };
   } catch (e) {
     // Удаление своих данных — право по закону: молча терять отказ нельзя.

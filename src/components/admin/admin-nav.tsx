@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/customers", label: "Клиенты" },
   { href: "/admin/dealers", label: "B2B" },
   { href: "/admin/products", label: "Товары" },
+  { href: "/admin/reviews", label: "Отзывы" },
   { href: "/admin/listening-stand", label: "Стенд" },
   { href: "/admin/messages", label: "Чаты" },
   { href: "/admin/support", label: "Материалы" },

@@ -2,14 +2,13 @@ import { siteConfig, productImageUrl } from "./data";
 import { isInStock } from "./format";
 import { SITE_URL as BASE } from "./site-url";
 import { articlePlainText } from "./article";
-import type { Product, Category, NewsItem } from "./types";
+import type { Product, Category, NewsItem, PublicProductReview } from "./types";
 
 /*
   Разметка Schema.org (JSON-LD) для поисковиков. Принцип — утверждать только
   то, что есть в данных: наличие пишем лишь когда оно известно из прайса,
-  описание — только если оно заполнено. Рейтинг и отзывы НЕ размечаем, пока
-  они синтетические (см. src/lib/reviews.ts) — за фейковый aggregateRating
-  поисковики снимают сниппет и накладывают санкции.
+  описание — только если оно заполнено. Рейтинг и отзывы размечаются только
+  из записей покупателей с подтверждённой оплатой.
 
   Домен берём из src/lib/site-url.ts — там же его берут metadataBase, sitemap,
   robots и письма о заказах.
@@ -74,7 +73,11 @@ export function websiteSchema() {
 }
 
 /** Карточка товара. Цена, валюта и — когда известно — наличие и описание. */
-export function productSchema(product: Product, category?: Category) {
+export function productSchema(
+  product: Product,
+  category?: Category,
+  reviews: PublicProductReview[] = [],
+) {
   const offer: Record<string, unknown> = {
     "@type": "Offer",
     url: `${BASE}/product/${product.slug}`,
@@ -112,6 +115,28 @@ export function productSchema(product: Product, category?: Category) {
   if (category) schema.category = category.title;
   if (product.description?.length)
     schema.description = product.description.join(" ");
+  if (reviews.length) {
+    const average = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+    schema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: Number(average.toFixed(2)),
+      reviewCount: reviews.length,
+      bestRating: 5,
+      worstRating: 1,
+    };
+    schema.review = reviews.map((review) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: review.author },
+      datePublished: review.createdAt.slice(0, 10),
+      reviewBody: review.text,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    }));
+  }
   return schema;
 }
 

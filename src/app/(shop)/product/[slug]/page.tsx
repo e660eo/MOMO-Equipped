@@ -10,7 +10,7 @@ import {
   productImageUrl,
   siteConfig,
 } from "@/lib/data";
-import { Headphones, MessageSquare } from "lucide-react";
+import { Headphones } from "lucide-react";
 import { isInStock } from "@/lib/format";
 import { fullSpecs } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
@@ -21,6 +21,8 @@ import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 import { brandLandingPath } from "@/lib/seo-landings";
 import { YandexSplitBadge } from "@/components/yandex-split-badge";
 import { isListeningStandProduct } from "@/lib/listening-stand";
+import { getPublicProductReviews } from "@/lib/product-reviews";
+import { ProductReviews } from "@/components/product-reviews";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -66,6 +68,7 @@ export default async function ProductPage({
   const { stats, rows, notes } = fullSpecs(product.title, product.description);
   // Обложка + дополнительные снимки из поля images (владелец пополняет сам)
   const gallery = [product.image, ...(product.images ?? [])].map(productImageUrl);
+  const reviews = getPublicProductReviews(product.slug);
 
   // Крошки для разметки повторяют навигацию выше: Главная → Каталог → категория → товар
   const crumbs = [
@@ -79,7 +82,7 @@ export default async function ProductPage({
 
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-12">
-      <JsonLd data={productSchema(product, category)} />
+      <JsonLd data={productSchema(product, category, reviews)} />
       <JsonLd data={breadcrumbSchema(crumbs)} />
       {/* Хлебные крошки */}
       <nav className="mb-8 flex flex-wrap gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground">
@@ -276,33 +279,11 @@ export default async function ProductPage({
         </div>
       </div>
 
-      {/*
-        Отзывы. Раньше здесь показывались сгенерированные из хеша slug тексты
-        с именами и датами — это недостоверные сведения о товаре, на боевом
-        домене прямой риск. Настоящих отзывов пока нет, поэтому честно говорим
-        об этом и зовём оставить первый. Когда отзывы появятся — секция
-        наполнится ими, а не заглушкой.
-      */}
-      <section id="reviews" className="mt-20 scroll-mt-28">
-        <h2 className="font-display text-xl font-semibold uppercase">Отзывы</h2>
-        <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-10 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-border">
-            <MessageSquare size={20} className="text-muted-foreground" />
-          </span>
-          <p className="max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
-            Отзывов на этот товар пока нет. Уже брали его? Напишите пару слов о
-            том, как он себя показал, — это поможет другим выбрать.
-          </p>
-          <a
-            href={`${siteConfig.contacts.whatsapp}?text=${encodeURIComponent(
-              `Отзыв о товаре: ${product.title}`,
-            )}`}
-            className="mt-1 inline-flex rounded-sm border border-border px-6 py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
-          >
-            Оставить отзыв
-          </a>
-        </div>
-      </section>
+      <ProductReviews
+        productSlug={product.slug}
+        productTitle={product.title}
+        reviews={reviews}
+      />
 
       {/* Похожие */}
       {related.length > 0 && (
