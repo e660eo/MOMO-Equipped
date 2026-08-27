@@ -7,10 +7,11 @@ const { loadEnvConfig } = nextEnv;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 loadEnvConfig(root);
 
-const UPDATE_ID = "new-arrivals-2026-08-13";
+const UPDATE_ID = "new-arrivals-2026-08-27";
 const TARGET_SLUGS = [
-  "monoblok-bd-1500-1",
-  "monoblok-avtomobilnyy-fr-500-138116",
+  "estradnye-kolonki-20sm-v-mashinu-he-810-916179",
+  "dinamiki-estradnye-zeus-mr-8-1-20sm",
+  "dinamiki-estradnye-momo-he-815-20sm",
 ];
 
 const dataDir = process.env.MOMO_DATA_DIR?.trim() || path.join(root, "data");

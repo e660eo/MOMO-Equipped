@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-13T21:00:00.000Z",
+  "updatedAt": "2026-08-27T12:00:00.000Z",
   "sources": {
-    "dealer": "Дил.прайс МОМО 14.08.2026.xlsx"
+    "dealer": "Дил.прайс МОМО 21.08.2026.xlsx"
   },
   "prices": {
     "dinamiki-estradnye-25sm-momo-he-1000-709600": {
@@ -12,7 +12,7 @@
       "dealer": 999
     },
     "kolonki-estradnye-130mm-dlya-avtomobilya-he-130-053896": {
-      "dealer": 1368
+      "dealer": 1418
     },
     "dinamiki-estradnye-v-mashinu-16sm-he-610-096126": {
       "dealer": 1526
@@ -21,16 +21,28 @@
       "dealer": 2050
     },
     "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173": {
-      "dealer": 2290
+      "dealer": 2520
     },
     "dinamiki-momo-estradnye-avtomobilnye-16sm-he-715-403655": {
-      "dealer": 2690
+      "dealer": 2770
     },
     "estradnye-kolonki-20sm-v-mashinu-he-810-916179": {
-      "dealer": 2180
+      "dealer": 2900,
+      "dagestan": 3045,
+      "wholesale": 3045
+    },
+    "dinamiki-estradnye-momo-he-815-20sm": {
+      "dealer": 4818.35,
+      "dagestan": 3465,
+      "wholesale": 3465
+    },
+    "dinamiki-estradnye-zeus-mr-8-1-20sm": {
+      "dealer": 1375.44,
+      "dagestan": 1444,
+      "wholesale": 1444
     },
     "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149": {
-      "dealer": 2890
+      "dealer": 2980
     },
     "dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399": {
       "dealer": 1050
@@ -63,10 +75,10 @@
       "dealer": 926.82
     },
     "dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938": {
-      "dealer": 654.73
+      "dealer": 780
     },
     "kolonki-koaksialnye-ovalnye-v-mashinu-us-690-650235": {
-      "dealer": 2476.41
+      "dealer": 2630
     },
     "dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265": {
       "dealer": 1680
@@ -303,7 +315,7 @@
       "dealer": 2464.5
     },
     "kabel-akusticheskiy-sc-17ga-ssa-omednennyy-alyuminiy-2x1kv-m-859170": {
-      "dealer": 1456
+      "dealer": 1450
     },
     "kabel-otreznoy-silovoy-pc-4ga-cu-med-5h21mm2-15m-358656": {
       "dealer": 7600.5
@@ -408,15 +420,13 @@
       "dealer": 792.67
     },
     "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-777635": {
-      "dealer": 1718.55
+      "dealer": 1470
     },
     "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-r-264408": {
       "dealer": 1401.1
     },
     "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-8ga-5-m-272891": {
-      "dealer": 1078.93
+      "dealer": 1090
     }
   }
 }
-
-

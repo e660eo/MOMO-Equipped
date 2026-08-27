@@ -63,7 +63,10 @@ export function getClearanceProducts(): Product[] {
 
 /** Новые поступления — единый источник для главной и страницы «Новинки». */
 export function getNewProducts(): Product[] {
-  return getProducts().filter((p) => p.isNew && !p.isClearance);
+  // Новые карточки добавляются в конец каталога, поэтому разворачиваем список:
+  // последняя поставка должна первой попасть на главную, а не затеряться после
+  // моделей, которые получили отметку «Новинка» раньше.
+  return getProducts().filter((p) => p.isNew && !p.isClearance).reverse();
 }
 
 /**
