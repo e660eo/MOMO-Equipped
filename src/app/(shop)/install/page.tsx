@@ -127,9 +127,15 @@ export default function InstallPage() {
       </section>
 
       <div className="mt-10 flex flex-wrap gap-3">
+        <Link
+          href="/builder"
+          className="inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
+        >
+          Собрать систему
+        </Link>
         <a
           href={siteConfig.contacts.whatsapp}
-          className="inline-flex rounded-sm bg-signal px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
+          className="inline-flex rounded-sm border border-border px-7 py-3.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
         >
           Спросить про установку
         </a>

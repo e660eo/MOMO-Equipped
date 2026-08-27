@@ -11,6 +11,8 @@ export const METRIKA_GOALS = {
   paymentStarted: "payment_started",
   purchase: "purchase",
   supportMessage: "support_message",
+  systemBuilderComplete: "system_builder_complete",
+  systemBuilderAdd: "system_builder_add",
 } as const;
 
 export const ANALYTICS_CONSENT_KEY = "momo-cookie-consent";

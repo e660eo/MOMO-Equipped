@@ -133,10 +133,10 @@ export default function Home() {
                 Смотреть каталог
               </Link>
               <Link
-                href="/contacts"
+                href="/builder"
                 className="inline-flex rounded-sm border border-border bg-surface/70 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-sm transition-colors hover:border-signal hover:text-signal"
               >
-                Подобрать комплект
+                Собрать систему
               </Link>
             </div>
           </div>
@@ -299,7 +299,7 @@ export default function Home() {
           <SectionHead
             eyebrow="Собрано и проверено"
             title="Готовые сборки"
-            linkHref="/catalog"
+            linkHref="/builder"
             linkLabel="Собрать своё →"
           />
           <p className="-mt-6 mb-10 max-w-[62ch] text-muted-foreground">
