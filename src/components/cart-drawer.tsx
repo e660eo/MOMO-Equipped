@@ -48,6 +48,7 @@ import { ConsentCheckbox } from "./consent-checkbox";
 import { cn } from "@/lib/utils";
 import { YandexSplitBadge } from "./yandex-split-badge";
 import type { MapTarget, MapView } from "./ozon-pickup-map";
+import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
 
 const OzonPickupMap = dynamic(
   () => import("./ozon-pickup-map").then((module) => module.OzonPickupMap),
@@ -73,6 +74,7 @@ const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
 const russiaMapTarget: MapTarget = { lat: 61.2, long: 89.2, zoom: 2 };
+type CheckoutField = "name" | "phone" | "address" | "consent" | "delivery";
 
 export function CartPageClient() {
   const { items, setQty, remove, clear } = useCart();
@@ -84,6 +86,7 @@ export function CartPageClient() {
   const [comment, setComment] = useState("");
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutField, string>>>({});
   const [sent, setSent] = useState(false);
   const [lastOrderId, setLastOrderId] = useState("");
   const [sending, setSending] = useState(false);
@@ -109,6 +112,12 @@ export function CartPageClient() {
   const lastMapViewRef = useRef<MapView | null>(null);
   const deliveryPickerRef = useRef<HTMLDivElement>(null);
   const payButtonRef = useRef<HTMLButtonElement>(null);
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!error) return;
+    requestAnimationFrame(() => errorSummaryRef.current?.focus());
+  }, [error]);
 
   // Подставляем сохранённые данные получателя при первом открытии
   useEffect(() => {
@@ -250,8 +259,8 @@ export function CartPageClient() {
     );
   }
 
-  async function findPlace(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function findPlace(event?: FormEvent) {
+    event?.preventDefault();
     if (placeQuery.trim().length < 2) {
       setDeliveryMsg("Введите город, улицу или адрес.");
       return;
@@ -337,6 +346,7 @@ export function CartPageClient() {
     }
     if (pay && !delivery) {
       setError("");
+      setFieldErrors({ delivery: "Выберите и подтвердите пункт выдачи Ozon." });
       if (!points.length && !clusters.length && !mapBusy && lastMapViewRef.current) {
         void loadMapArea(lastMapViewRef.current);
       }
@@ -348,21 +358,24 @@ export function CartPageClient() {
       );
       return;
     }
-    if (!name.trim() || !phone.trim() || !address.trim()) {
-      setError("Заполните ФИО, телефон и адрес доставки.");
-      return;
+    const nextErrors: Partial<Record<CheckoutField, string>> = {};
+    if (!name.trim()) nextErrors.name = "Укажите фамилию и имя получателя.";
+    if (!phone.trim() || !isPhoneComplete(phone)) {
+      nextErrors.phone = "Введите 10 цифр номера после +7.";
     }
-    if (!isPhoneComplete(phone)) {
-      setError("Проверьте телефон — в номере должно быть 10 цифр после +7.");
-      return;
-    }
+    if (!address.trim()) nextErrors.address = "Укажите адрес доставки.";
     // Согласие на обработку ПД не запоминаем — его дают заново на каждый заказ.
-    if (!consent) {
-      setError("Отметьте согласие на обработку персональных данных.");
+    if (!consent) nextErrors.consent = "Подтвердите согласие на обработку данных.";
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      setError("Проверьте отмеченные поля.");
+      requestAnimationFrame(() => errorSummaryRef.current?.focus());
       return;
     }
+    setFieldErrors({});
     setError("");
     setSending(true);
+    reachMetrikaGoal(METRIKA_GOALS.checkoutStart, { payment: pay ? "online" : "manager" });
 
     /*
       Сначала сохраняем заказ на сервере. Обычная заявка сразу появляется в
@@ -382,6 +395,9 @@ export function CartPageClient() {
     });
     setSending(false);
     const orderNumber = saved.ok ? saved.id : null;
+    if (saved.ok) {
+      reachMetrikaGoal(METRIKA_GOALS.orderCreated, { payment: pay ? "online" : "manager" });
+    }
     if (saved.ok && bonusSpent > 0) notifyCustomerSessionChanged();
 
     if (pay && !saved.ok) {
@@ -407,6 +423,7 @@ export function CartPageClient() {
       появится с настоящим статусом оплаты.
     */
     if (pay && saved.ok && saved.paymentUrl) {
+      reachMetrikaGoal(METRIKA_GOALS.paymentStarted);
       // Запоминаем получателя до ухода со страницы
       try {
         localStorage.setItem(
@@ -439,6 +456,12 @@ export function CartPageClient() {
     setSent(true);
     setConsent(false);
     clear();
+  }
+
+  function handleCheckoutSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    void submit(submitter?.value === "online");
   }
 
   return (
@@ -506,7 +529,32 @@ export function CartPageClient() {
             </Link>
           </div>
         ) : (
-          <>
+          <form noValidate onSubmit={handleCheckoutSubmit}>
+            {(error || Object.keys(fieldErrors).length > 0) && (
+              <div
+                ref={errorSummaryRef}
+                role="alert"
+                tabIndex={-1}
+                aria-labelledby="checkout-error-title"
+                className="mb-5 rounded-lg border border-signal/40 bg-signal/5 p-4"
+              >
+                <h2 id="checkout-error-title" className="text-sm font-semibold">
+                  Не удалось продолжить
+                </h2>
+                {error && <p className="mt-1 text-sm text-[var(--signal-text)]">{error}</p>}
+                {Object.keys(fieldErrors).length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                    {Object.entries(fieldErrors).map(([field, message]) => (
+                      <li key={field}>
+                        <a href={`#rc-${field}`} className="underline underline-offset-2 hover:text-signal">
+                          {message}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
             <ul>
               {items.map((i) => (
                 <li
@@ -533,6 +581,7 @@ export function CartPageClient() {
                     */}
                     <span className="mt-1.5 inline-flex items-center gap-2">
                       <button
+                        type="button"
                         aria-label="Убавить"
                         onClick={() => setQty(i.slug, i.qty - 1)}
                         className="tap-44 relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
@@ -543,6 +592,7 @@ export function CartPageClient() {
                         {i.qty}
                       </span>
                       <button
+                        type="button"
                         aria-label="Прибавить"
                         onClick={() => setQty(i.slug, i.qty + 1)}
                         className="tap-44 relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-signal hover:text-signal"
@@ -550,6 +600,7 @@ export function CartPageClient() {
                         <Plus size={12} />
                       </button>
                       <button
+                        type="button"
                         aria-label="Удалить из корзины"
                         onClick={() => remove(i.slug)}
                         className="tap-44 relative ml-1 inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors hover:text-signal"
@@ -605,12 +656,19 @@ export function CartPageClient() {
                 </label>
                 <input
                   id="rc-name"
+                  required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setFieldErrors((current) => ({ ...current, name: undefined }));
+                  }}
                   autoComplete="name"
+                  aria-invalid={Boolean(fieldErrors.name) || undefined}
+                  aria-describedby={fieldErrors.name ? "rc-name-error" : undefined}
                   placeholder="Фамилия Имя Отчество"
                   className={inputCls}
                 />
+                {fieldErrors.name && <p id="rc-name-error" className="mt-1 text-sm text-[var(--signal-text)]">{fieldErrors.name}</p>}
               </div>
               <div>
                 <label className={labelCls} htmlFor="rc-phone">
@@ -619,23 +677,37 @@ export function CartPageClient() {
                 <PhoneInput
                   id="rc-phone"
                   value={phone}
-                  onChange={setPhone}
+                  onChange={(value) => {
+                    setPhone(value);
+                    setFieldErrors((current) => ({ ...current, phone: undefined }));
+                  }}
+                  required
+                  ariaInvalid={Boolean(fieldErrors.phone)}
+                  ariaDescribedBy={fieldErrors.phone ? "rc-phone-error" : undefined}
                   className={inputCls}
                 />
+                {fieldErrors.phone && <p id="rc-phone-error" className="mt-1 text-sm text-[var(--signal-text)]">{fieldErrors.phone}</p>}
               </div>
               <div>
-                <label className={labelCls} htmlFor="rc-addr">
+                <label className={labelCls} htmlFor="rc-address">
                   Адрес доставки
                 </label>
                 <textarea
-                  id="rc-addr"
+                  id="rc-address"
+                  required
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setFieldErrors((current) => ({ ...current, address: undefined }));
+                  }}
                   rows={2}
                   autoComplete="street-address"
                   placeholder="Город, улица, дом, квартира"
+                  aria-invalid={Boolean(fieldErrors.address) || undefined}
+                  aria-describedby={fieldErrors.address ? "rc-address-error" : undefined}
                   className={inputCls}
                 />
+                {fieldErrors.address && <p id="rc-address-error" className="mt-1 text-sm text-[var(--signal-text)]">{fieldErrors.address}</p>}
               </div>
               <div>
                 <label className={labelCls} htmlFor="rc-comment">
@@ -652,7 +724,9 @@ export function CartPageClient() {
               </div>
               {payEnabled && (
                 <div
+                  id="rc-delivery"
                   ref={deliveryPickerRef}
+                  aria-describedby={fieldErrors.delivery ? "rc-delivery-error" : undefined}
                   className="overflow-hidden rounded-2xl border border-signal/50 bg-signal/5"
                 >
                   <div className="border-b border-border bg-surface p-4">
@@ -689,7 +763,7 @@ export function CartPageClient() {
                         </button>
                       </div>
                     </div>
-                    <form onSubmit={findPlace} className="relative mt-3 flex gap-2">
+                    <div className="relative mt-3 flex gap-2">
                       <label htmlFor="ozon-place-search" className="sr-only">
                         Город или адрес для поиска ПВЗ Ozon
                       </label>
@@ -705,19 +779,26 @@ export function CartPageClient() {
                             setPlaceQuery(event.target.value);
                             setPlaceResults([]);
                           }}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              void findPlace();
+                            }
+                          }}
                           placeholder="Например: Москва, Тверская улица"
                           autoComplete="off"
                           className="w-full rounded-sm border border-input bg-background py-2.5 pl-9 pr-3 text-base outline-none transition-colors focus:border-[#005bff] sm:text-sm"
                         />
                       </div>
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={() => void findPlace()}
                         disabled={placeBusy || placeQuery.trim().length < 2}
                         className="rounded-sm bg-[#005bff] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#0047c7] disabled:opacity-60"
                       >
                         {placeBusy ? "Ищем…" : "Найти"}
                       </button>
-                    </form>
+                    </div>
                     {placeResults.length > 0 && (
                       <div className="mt-2 overflow-hidden rounded-lg border border-border bg-background shadow-lg">
                         {placeResults.map((place) => (
@@ -747,6 +828,7 @@ export function CartPageClient() {
                       onSelect={(point) => {
                         setSelectedPoint(point);
                         setDelivery(null);
+                        setFieldErrors((current) => ({ ...current, delivery: undefined }));
                         setDeliveryMsg("Проверьте адрес и подтвердите выбранный ПВЗ.");
                       }}
                     />
@@ -813,6 +895,11 @@ export function CartPageClient() {
                         {deliveryMsg}
                       </p>
                     )}
+                    {fieldErrors.delivery && (
+                      <p id="rc-delivery-error" className="mt-2 text-sm text-[var(--signal-text)]">
+                        {fieldErrors.delivery}
+                      </p>
+                    )}
                     <p className="mt-2 text-[0.72rem] leading-relaxed text-muted-foreground">
                       Товары передаём в Ozon только после успешной оплаты.
                     </p>
@@ -855,7 +942,12 @@ export function CartPageClient() {
                       setPromoInput(e.target.value);
                       setPromoMsg("");
                     }}
-                    onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void applyPromo();
+                      }
+                    }}
                     placeholder="Промокод"
                     aria-label="Промокод"
                     className={cn(inputCls, "uppercase")}
@@ -917,12 +1009,6 @@ export function CartPageClient() {
               </div>
             )}
 
-            {error && (
-              <p className="mt-3 text-sm text-signal" role="alert">
-                {error}
-              </p>
-            )}
-
             {discount > 0 && (
               <div className="mt-5 space-y-1 text-sm">
                 <div className="flex items-baseline justify-between text-muted-foreground">
@@ -963,21 +1049,35 @@ export function CartPageClient() {
             <ConsentCheckbox
               id="rc-consent"
               checked={consent}
-              onChange={setConsent}
+              onChange={(value) => {
+                setConsent(value);
+                setFieldErrors((current) => ({ ...current, consent: undefined }));
+              }}
+              ariaInvalid={Boolean(fieldErrors.consent)}
+              ariaDescribedBy={fieldErrors.consent ? "rc-consent-error" : undefined}
               className="mb-4"
             />
+            {fieldErrors.consent && (
+              <p id="rc-consent-error" className="-mt-2 mb-4 text-sm text-[var(--signal-text)]">
+                {fieldErrors.consent}
+              </p>
+            )}
             {payEnabled ? (
               <>
                 <button
+                  type="submit"
+                  name="checkoutMode"
+                  value="online"
                   ref={payButtonRef}
-                  onClick={() => submit(true)}
-                   disabled={sending}
+                  disabled={sending}
                   className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
                 >
                   {sending ? "Оформляю заказ…" : customer ? "Оплатить на сайте" : "Войти и оплатить"}
                 </button>
                 <button
-                  onClick={() => submit(false)}
+                  type="submit"
+                  name="checkoutMode"
+                  value="offline"
                   disabled={sending}
                   className="mt-2.5 w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
                 >
@@ -994,7 +1094,9 @@ export function CartPageClient() {
             ) : (
               <>
                 <button
-                  onClick={() => submit(false)}
+                  type="submit"
+                  name="checkoutMode"
+                  value="offline"
                   disabled={sending}
                   className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] active:scale-[0.99] disabled:opacity-60"
                 >
@@ -1006,7 +1108,7 @@ export function CartPageClient() {
                 </p>
               </>
             )}
-          </>
+          </form>
         )}
       </div>
     </main>

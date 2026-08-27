@@ -4,6 +4,7 @@ import { getCategories, getCategory, getProductsByCategory } from "@/lib/data";
 import { isInStock } from "@/lib/format";
 import { CATEGORY_LANDINGS } from "@/lib/seo-landings";
 import { SeoCatalogLanding } from "@/components/seo-catalog-landing";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
 
 export function generateStaticParams() {
   return getCategories().map((category) => ({ category: category.slug }));
@@ -28,6 +29,13 @@ export async function generateMetadata({
       description: landing.metaDescription,
       type: "website",
       url: `/catalog/${slug}`,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: landing.metaTitle,
+      description: landing.metaDescription,
+      images: [DEFAULT_SOCIAL_IMAGE.url],
     },
   };
 }

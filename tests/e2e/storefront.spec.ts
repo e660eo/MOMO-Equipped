@@ -9,11 +9,10 @@ test("homepage explains the offer and warranty policy", async ({ page }) => {
   });
   const response = await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Звук, который чувствуешь");
-  const heroLogo = page.locator('img[alt="MOMO Equipped"]').first();
+  const heroLogo = page.locator('img[alt="Modern Original Music Organization"]').first();
   await expect(heroLogo).toBeVisible();
   expect(await heroLogo.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await expect(page.getByText("Автоакустика MOMO и ZEUS", { exact: true })).toBeVisible();
-  await expect(page.getByText("Сабвуферы, усилители, динамики и готовые системы автозвука.")).toBeVisible();
   await expect(page.getByText(/24 мес.*авторизованной установкой/i).first()).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /momo-eq\.ru\/?$/);
   if (process.env.PLAYWRIGHT_PRODUCTION === "1") {
@@ -80,4 +79,61 @@ test("mobile layout has no horizontal overflow", async ({ page, isMobile }) => {
     content: document.documentElement.scrollWidth,
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
+});
+
+test("checkout uses native form semantics and field-linked errors", async ({ page }) => {
+  await page.goto("/product/monoblok-bd-1500-1");
+  await page.getByRole("button", { name: "В корзину" }).first().click();
+  await page.goto("/cart");
+
+  const form = page.locator("form").filter({ has: page.locator("#rc-name") });
+  await expect(form).toBeVisible();
+  await expect(page.locator("#rc-name")).toHaveAttribute("required", "");
+  await expect(page.locator("#rc-phone")).toHaveAttribute("required", "");
+  await expect(page.locator("#rc-address")).toHaveAttribute("required", "");
+
+  await form.getByRole("button", { name: "Оформить заказ" }).click();
+  const summary = page.getByRole("alert", { name: "Не удалось продолжить" });
+  await expect(summary).toContainText("Проверьте отмеченные поля");
+  await expect(summary).toBeFocused();
+  await expect(page.locator("#rc-name")).toHaveAttribute("aria-invalid", "true");
+  await expect(page.locator("#rc-name-error")).toContainText("Укажите фамилию");
+});
+
+test("catalogue stores interactive filters in the URL", async ({ page, isMobile }) => {
+  await page.goto("/catalog");
+  if (isMobile) await page.getByRole("button", { name: "Фильтры и сортировка" }).click();
+  await page.getByLabel("Поиск по товарам").fill("сабвуфер");
+  await page.getByLabel("Сортировка").selectOption("price_asc");
+  await page.getByText("Только в наличии").click();
+
+  await expect(page).toHaveURL(/search=%D1%81%D0%B0%D0%B1%D0%B2%D1%83%D1%84%D0%B5%D1%80/);
+  await expect(page).toHaveURL(/sort=price_asc/);
+  await expect(page).toHaveURL(/stock=1/);
+  await page.reload();
+  await expect(page.getByLabel("Поиск по товарам")).toHaveValue("сабвуфер");
+  await expect(page.getByLabel("Сортировка")).toHaveValue("price_asc");
+});
+
+test("category HTML links every product without JavaScript", async ({ request }) => {
+  const response = await request.get("/catalog/aksessuary");
+  expect(response.ok()).toBeTruthy();
+  const html = await response.text();
+  const links = new Set(
+    [...html.matchAll(/href="\/product\/([^"]+)"/g)].map((match) => match[1]),
+  );
+  expect(links.size).toBeGreaterThanOrEqual(64);
+});
+
+test("analytics is gated by an explicit consent choice", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('script[src="/yandex-metrica.js"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Только необходимые" }).click();
+  await page.reload();
+  await expect(page.locator('script[src="/yandex-metrica.js"]')).toHaveCount(0);
+
+  await page.evaluate(() => localStorage.removeItem("momo-cookie-consent"));
+  await page.reload();
+  await page.getByRole("button", { name: "Разрешить аналитику" }).click();
+  await expect(page.locator('script[src="/yandex-metrica.js"]')).toHaveCount(1);
 });

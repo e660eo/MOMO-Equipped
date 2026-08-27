@@ -1,6 +1,7 @@
 import { readJson, updateJson, assertWritable } from "./store";
 import type { OrderItem, Product, Promo } from "./types";
 import { audit } from "./audit-log";
+import { ExpectedError } from "./errors";
 
 /*
   Промокоды. Скидка в процентах, ограничение по числу активаций. Файл в папке
@@ -77,16 +78,86 @@ export function promoDiscountForItems(
   return { eligibleSubtotal, discount: discountForPromo(eligibleSubtotal, promo) };
 }
 
-/** Списать одну активацию — после того как код применён к заказу. */
-export function redeemPromo(code: string, customerKey?: string): void {
+type PromoReservationContext = { subtotal: number; customerKey?: string };
+
+/**
+ * Резервирует одну активацию непосредственно перед записью заказа.
+ * Проверка и инкремент происходят внутри одного синхронного updateJson, поэтому
+ * две параллельные заявки не могут обе забрать последнюю активацию.
+ */
+export function reservePromo(
+  code: string,
+  redemptionId: string,
+  context: PromoReservationContext,
+): void {
+  assertWritable();
   const norm = normalizeCode(code);
-  updateJson<Promo[]>(FILE, (all) =>
-    all.map((p) => p.code === norm ? {
-      ...p,
-      used: p.used + 1,
-      ...(customerKey ? { customerUses: { ...(p.customerUses ?? {}), [customerKey]: (p.customerUses?.[customerKey] ?? 0) + 1 } } : {}),
-    } : p),
-  );
+  updateJson<Promo[]>(FILE, (all) => {
+    const promo = all.find((item) => item.code === norm);
+    if (!promo) throw new ExpectedError("Промокод больше не действует.");
+    if (promo.redemptions?.[redemptionId] !== undefined) return all;
+
+    const now = new Date().toISOString();
+    const customerUses = context.customerKey
+      ? promo.customerUses?.[context.customerKey] ?? 0
+      : 0;
+    const unavailable =
+      promo.active === false ||
+      Boolean(promo.startsAt && promo.startsAt > now) ||
+      Boolean(promo.endsAt && promo.endsAt < now) ||
+      (promo.limit > 0 && promo.used >= promo.limit) ||
+      Boolean(promo.minSubtotal && context.subtotal < promo.minSubtotal) ||
+      Boolean(
+        promo.perCustomerLimit &&
+        context.customerKey &&
+        customerUses >= promo.perCustomerLimit,
+      );
+    if (unavailable) throw new ExpectedError("Промокод больше не действует.");
+
+    return all.map((item) => item.code === norm ? {
+      ...item,
+      used: item.used + 1,
+      redemptions: {
+        ...(item.redemptions ?? {}),
+        [redemptionId]: context.customerKey ?? "",
+      },
+      ...(context.customerKey ? {
+        customerUses: {
+          ...(item.customerUses ?? {}),
+          [context.customerKey]: customerUses + 1,
+        },
+      } : {}),
+    } : item);
+  });
+}
+
+/** Освобождает конкретную активацию; повторный вызов ничего не меняет. */
+export function releasePromo(code: string, redemptionId: string): boolean {
+  assertWritable();
+  const norm = normalizeCode(code);
+  let changed = false;
+  updateJson<Promo[]>(FILE, (all) => all.map((promo) => {
+    if (promo.code !== norm) return promo;
+    const customerKey = promo.redemptions?.[redemptionId];
+    if (customerKey === undefined) return promo;
+    changed = true;
+
+    const redemptions = { ...(promo.redemptions ?? {}) };
+    delete redemptions[redemptionId];
+    const customerUses = { ...(promo.customerUses ?? {}) };
+    if (customerKey) {
+      const next = Math.max(0, (customerUses[customerKey] ?? 0) - 1);
+      if (next > 0) customerUses[customerKey] = next;
+      else delete customerUses[customerKey];
+    }
+    return {
+      ...promo,
+      used: Math.max(0, promo.used - 1),
+      ...(Object.keys(redemptions).length ? { redemptions } : { redemptions: undefined }),
+      ...(Object.keys(customerUses).length ? { customerUses } : { customerUses: undefined }),
+    };
+  }));
+  return changed;
 }
 
 /* ------------------------------- панель --------------------------------- */

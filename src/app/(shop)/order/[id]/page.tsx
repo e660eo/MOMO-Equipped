@@ -11,6 +11,8 @@ import {
   ReturnToCartForNewPayment,
 } from "@/components/payment-return-actions";
 import type { PaymentStatus } from "@/lib/types";
+import { MetrikaGoal } from "@/components/metrika-goal";
+import { METRIKA_GOALS } from "@/lib/metrika";
 
 /*
   Страница возврата с оплаты: сюда Яндекс Пэй приводит покупателя, когда тот
@@ -108,6 +110,11 @@ export default async function OrderStatusPage({
     <main className="mx-auto max-w-[560px] px-6 py-20">
       {paid ? (
         <>
+          <MetrikaGoal
+            goal={METRIKA_GOALS.purchase}
+            dedupeKey={order.id}
+            params={{ amount: order.payment?.amount ?? order.total, sandbox: order.payment?.sandbox === true }}
+          />
           <ClearCartAfterPayment />
           <h1 className="font-display text-2xl font-extrabold uppercase">
             Заказ оплачен

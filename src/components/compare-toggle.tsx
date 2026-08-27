@@ -27,14 +27,14 @@ export function CompareToggle({
       aria-pressed={active}
       title={active ? "Убрать из сравнения" : "Добавить к сравнению"}
       className={cn(
-        "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide transition duration-150 active:scale-90",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-sm border px-3 py-2 font-mono text-[0.7rem] uppercase tracking-wide transition duration-150 active:scale-95",
         active
           ? "border-signal bg-signal/10 text-signal"
           : "border-border text-muted-foreground hover:border-signal hover:text-signal",
         className,
       )}
     >
-      <Scale size={12} />
+      <Scale size={14} />
       {active ? "В сравнении" : "Сравнить"}
     </button>
   );

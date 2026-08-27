@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/data";
 import { safeHref } from "@/lib/sanitize";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Реквизиты",
-  description:
-    "Информационная карта и официальные реквизиты ИП Махмудов З.Ф. (магазин MOMO): ИНН, ОГРНИП, ОКВЭД, банковские реквизиты.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Реквизиты",
+  "Информационная карта и официальные реквизиты ИП Махмудов З.Ф. (магазин MOMO): ИНН, ОГРНИП, ОКВЭД, банковские реквизиты.",
+  "/requisites",
+);
 
 export default function RequisitesPage() {
   const r = siteConfig.requisites;

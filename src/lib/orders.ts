@@ -12,6 +12,8 @@ import type {
 } from "./types";
 import { audit } from "./audit-log";
 import { reconcileOrderBonus } from "./bonus-ledger";
+import { ExpectedError } from "./errors";
+import { releasePromo, reservePromo } from "./promos";
 
 export { STATUS_LABELS } from "./order-status";
 
@@ -99,12 +101,44 @@ function withoutExpired(orders: Order[]): Order[] {
   );
 }
 
-function releaseBonusesFromExpiredPaymentAttempts(before: Order[], after: Order[]): void {
+function paymentReleasesResources(order: Order): boolean {
+  return new Set<PaymentStatus>(["FAILED", "VOIDED", "REFUNDED"]).has(
+    order.payment?.status ?? "none",
+  );
+}
+
+function shouldHoldResources(order: Order): boolean {
+  return order.status !== "canceled" && !paymentReleasesResources(order);
+}
+
+function reconcileOrderPromo(order: Order): boolean {
+  const promo = order.promo;
+  if (!promo?.redemptionId) return false;
+  const shouldBeActive = shouldHoldResources(order);
+  const isActive = promo.redemptionActive === true;
+
+  // reserve/release сами идемпотентны по redemptionId. Вызываем их даже если
+  // флаг заказа выглядит верным: это чинит редкий разрыв между двумя JSON,
+  // если процесс завершился между их атомарными записями.
+  if (shouldBeActive) {
+    reservePromo(promo.code, promo.redemptionId, {
+      subtotal: order.items.reduce((sum, item) => sum + item.price * item.qty, 0),
+      customerKey: promo.customerKey,
+    });
+  } else {
+    releasePromo(promo.code, promo.redemptionId);
+  }
+  return shouldBeActive !== isActive;
+}
+
+function releaseResourcesFromExpiredPaymentAttempts(before: Order[], after: Order[]): void {
   const kept = new Set(after.map((order) => order.id));
   for (const order of before) {
-    if (!kept.has(order.id) && isUnpaidPaymentAttempt(order) && order.bonus?.spent) {
-      reconcileOrderBonus({ ...order, status: "canceled" });
-    }
+    if (kept.has(order.id) || !isUnpaidPaymentAttempt(order)) continue;
+    const canceled = { ...order, status: "canceled" as const };
+    if (order.bonus?.spent) reconcileOrderBonus(canceled);
+    if (order.promo?.redemptionActive) reconcileOrderPromo(canceled);
+    if (order.stockDeducted) adjustProductStock(order.items, 1);
   }
 }
 
@@ -115,7 +149,7 @@ export function pruneOldOrders(): number {
   if (kept.length === orders.length) return 0;
 
   assertWritable();
-  releaseBonusesFromExpiredPaymentAttempts(orders, kept);
+  releaseResourcesFromExpiredPaymentAttempts(orders, kept);
   updateJson<Order[]>(FILE, withoutExpired);
   return orders.length - kept.length;
 }
@@ -124,13 +158,16 @@ export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Ord
   assertWritable();
   // Чистим на каждом новом заказе: отдельный планировщик ради пары записей
   // в год — лишняя деталь, которая ломается незаметно.
-  const orders = withoutExpired(getOrders());
-  releaseBonusesFromExpiredPaymentAttempts(getOrders(), orders);
+  const current = getOrders();
+  const orders = withoutExpired(current);
+  releaseResourcesFromExpiredPaymentAttempts(current, orders);
+  const reservedLines = adjustProductStock(order.items, -1);
   const full: Order = {
     ...order,
     id: nextId(orders),
     createdAt: new Date().toISOString(),
     status: "new",
+    ...(reservedLines > 0 ? { stockDeducted: true } : {}),
     history: [
       {
         at: new Date().toISOString(),
@@ -147,34 +184,45 @@ export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Ord
     ],
   };
   // Свежие сверху, заодно чистим просроченные
-  updateJson<Order[]>(FILE, (all) => {
-    const kept = withoutExpired(all);
-    releaseBonusesFromExpiredPaymentAttempts(all, kept);
-    return [full, ...kept];
-  });
+  try {
+    updateJson<Order[]>(FILE, (all) => [full, ...withoutExpired(all)]);
+  } catch (error) {
+    if (reservedLines > 0) adjustProductStock(order.items, 1);
+    throw error;
+  }
   return full;
 }
 
-/* Статусы, при которых товар считается проданным и остаток списан. */
-const COMMITTED = new Set<OrderStatus>(["in_work", "done"]);
-
 /*
-  Меняет остаток товаров по позициям заказа: sign −1 — списать (продажа),
-  +1 — вернуть (отмена). Трогаем только товары, где остаток ведётся (stock —
-  число); товары без учёта (флаг inStock) не при чём. Ниже нуля не опускаем —
-  отрицательный остаток на витрине смысла не имеет. Отдельный updateJson по
-  products.json: заказы и каталог лежат в разных файлах.
+  Меняет остаток товаров по позициям заказа: sign −1 — зарезервировать,
+  +1 — освободить. Трогаем только товары, где остаток ведётся (stock — число).
+  Перед списанием проверяем ВСЕ строки внутри одного updateJson: частичного
+  резерва и тихого обнуления быть не должно.
 */
-function adjustProductStock(items: OrderItem[], sign: 1 | -1): void {
+function adjustProductStock(items: OrderItem[], sign: 1 | -1): number {
+  let changed = 0;
   updateJson<Product[]>("products.json", (all) => {
     const bySlug = new Map(all.map((p) => [p.slug, p]));
+    if (sign === -1) {
+      for (const item of items) {
+        const product = bySlug.get(item.slug);
+        if (typeof product?.stock !== "number") continue;
+        if (product.stock < item.qty) {
+          throw new ExpectedError(
+            `Недостаточно товара «${item.title}»: доступно ${product.stock}.`,
+          );
+        }
+      }
+    }
     for (const item of items) {
       const p = bySlug.get(item.slug);
       if (!p || typeof p.stock !== "number") continue;
-      p.stock = Math.max(0, p.stock + sign * item.qty);
+      p.stock += sign * item.qty;
+      changed += 1;
     }
     return all;
   });
+  return changed;
 }
 
 export function updateOrder(
@@ -184,10 +232,9 @@ export function updateOrder(
   assertWritable();
 
   /*
-    Списание/возврат остатка привязано к смене статуса. Флаг stockDeducted на
-    заказе не даёт списать дважды: остаток уходит при первом переводе в
-    «в работе»/«выполнен» и возвращается при откате в «новый»/«отменён».
-    Правку остатка делаем ДО записи заказа, а сам флаг пишем тем же патчем.
+    Остаток и промокод приводим к состоянию будущего заказа. Правки ресурсов
+    делаем до записи заказа; флаги пишем тем же патчем и используем для
+    идемпотентности повторных действий администратора.
   */
   let stockPatch: { stockDeducted: boolean } | undefined;
   const before = getOrder(id);
@@ -195,19 +242,19 @@ export function updateOrder(
     before && patch.status && patch.status !== before.status &&
     reconcileOrderBonus({ ...before, status: patch.status }),
   );
-  if (patch.status) {
-    const order = getOrder(id);
-    if (order && order.status !== patch.status) {
-      const wasDeducted = order.stockDeducted === true;
-      const shouldDeduct = COMMITTED.has(patch.status);
-      if (shouldDeduct && !wasDeducted) {
-        adjustProductStock(order.items, -1);
-        stockPatch = { stockDeducted: true };
-      } else if (!shouldDeduct && wasDeducted) {
-        adjustProductStock(order.items, 1);
-        stockPatch = { stockDeducted: false };
-      }
+  let promoChanged = false;
+  if (before && patch.status && before.status !== patch.status) {
+    const projected = { ...before, status: patch.status };
+    const wasDeducted = before.stockDeducted === true;
+    const shouldDeduct = shouldHoldResources(projected);
+    if (shouldDeduct && !wasDeducted) {
+      const changed = adjustProductStock(before.items, -1);
+      if (changed > 0) stockPatch = { stockDeducted: true };
+    } else if (!shouldDeduct && wasDeducted) {
+      adjustProductStock(before.items, 1);
+      stockPatch = { stockDeducted: false };
     }
+    promoChanged = reconcileOrderPromo(projected);
   }
 
   updateJson<Order[]>(FILE, (all) =>
@@ -230,7 +277,10 @@ export function updateOrder(
             : `Повторно списано ${o.bonus?.spent ?? 0} бонусов`,
         });
       }
-      return { ...o, ...patch, ...stockPatch, history };
+      const promoPatch = promoChanged && o.promo
+        ? { promo: { ...o.promo, redemptionActive: shouldHoldResources({ ...o, ...patch }) } }
+        : {};
+      return { ...o, ...patch, ...stockPatch, ...promoPatch, history };
     }),
   );
   if (before) {
@@ -258,14 +308,33 @@ export function countNewOrders(): number {
 export function setOrderPayment(id: string, payment: OrderPayment): void {
   assertWritable();
   const before = getOrder(id);
+  const projected = before ? { ...before, payment } : undefined;
   const bonusChanged = before
-    ? reconcileOrderBonus({ ...before, payment })
+    ? reconcileOrderBonus(projected!)
     : false;
+  let stockPatch: { stockDeducted: boolean } | undefined;
+  let promoChanged = false;
+  if (before && projected) {
+    const shouldDeduct = shouldHoldResources(projected);
+    const wasDeducted = before.stockDeducted === true;
+    if (shouldDeduct && !wasDeducted) {
+      const changed = adjustProductStock(before.items, -1);
+      if (changed > 0) stockPatch = { stockDeducted: true };
+    } else if (!shouldDeduct && wasDeducted) {
+      adjustProductStock(before.items, 1);
+      stockPatch = { stockDeducted: false };
+    }
+    promoChanged = reconcileOrderPromo(projected);
+  }
   const bonusReturned = payment.status === "FAILED" || payment.status === "VOIDED" || payment.status === "REFUNDED";
   updateJson<Order[]>(FILE, (all) =>
     all.map((o) => o.id === id ? {
       ...o,
       payment,
+      ...stockPatch,
+      ...(promoChanged && o.promo ? {
+        promo: { ...o.promo, redemptionActive: shouldHoldResources({ ...o, payment }) },
+      } : {}),
       history: [
         ...(o.history ?? []),
         { at: new Date().toISOString(), actor: "Платёжная система", type: "payment" as const, from: o.payment?.status, to: payment.status },

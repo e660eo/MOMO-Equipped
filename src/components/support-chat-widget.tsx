@@ -5,6 +5,7 @@ import { Headphones, Loader2, MessageCircle, Send, X } from "lucide-react";
 import { useCustomer } from "@/components/customer-provider";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
 import type { PublicSupportConversation } from "@/lib/types";
+import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
 
 const TOKEN_KEY = "momo-support-token";
 const SEEN_KEY = "momo-support-seen";
@@ -139,6 +140,7 @@ export function SupportChatWidget() {
       const body = (await response.json()) as ChatResponse;
       if (!body.ok) return setError(body.error);
       applyConversation(body.conversation, true);
+      reachMetrikaGoal(METRIKA_GOALS.supportMessage);
       setDraft("");
       setConsent(false);
     } catch {

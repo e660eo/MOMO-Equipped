@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { hasSession } from "@/lib/admin-auth";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { logoutAdmin } from "./actions";
 import { countNewOrders } from "@/lib/orders";
 import { countWaitingSupportConversations } from "@/lib/support-conversations";
@@ -26,9 +27,15 @@ export default async function AdminLayout({
   const authorized = await hasSession();
 
   // Страница входа рисуется этим же layout, но до авторизации показывать
-  // навигацию не нужно — отдаём голый лист.
+  // навигацию не нужно. Переключатель темы оставляем доступным и здесь,
+  // чтобы войти в панель можно было сразу в комфортном оформлении.
   if (!authorized) {
-    return <div className="min-h-screen bg-bg text-foreground">{children}</div>;
+    return (
+      <div className="admin-scope relative min-h-screen bg-bg text-foreground">
+        <ThemeToggle className="fixed right-5 top-5 z-50 bg-surface shadow-sm" />
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -43,6 +50,10 @@ export default async function AdminLayout({
             newMessages={countWaitingSupportConversations()}
           />
           <div className="ml-auto flex items-center gap-4 text-[0.8rem]">
+            <div className="flex items-center gap-2">
+              <span className="hidden text-muted-foreground sm:inline">Тема</span>
+              <ThemeToggle />
+            </div>
             <Link
               href="/"
               target="_blank"

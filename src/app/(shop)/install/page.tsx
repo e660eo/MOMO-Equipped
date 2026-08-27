@@ -3,12 +3,13 @@ import Link from "next/link";
 import { MapPin, Phone, Clock } from "lucide-react";
 import { siteConfig } from "@/lib/data";
 import { YandexMap } from "@/components/yandex-map";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Где установить",
-  description:
-    "Установка автоакустики MOMO: фирменная точка в Махачкале, помощь с подбором и настройкой. Партнёрским студиям — дилерская программа.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Где установить",
+  "Установка автоакустики MOMO: фирменная точка в Махачкале, помощь с подбором и настройкой. Партнёрским студиям — дилерская программа.",
+  "/install",
+);
 
 const steps = [
   { n: "01", title: "Подберём комплект", text: "Скажите авто и задачу — соберём акустику, усилитель и сабвуфер под вашу машину и бюджет." },

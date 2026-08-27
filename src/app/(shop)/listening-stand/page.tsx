@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ListeningStand } from "@/components/listening-stand";
 import { getProducts } from "@/lib/data";
 import { isListeningStandProduct } from "@/lib/listening-stand";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
 
 export const metadata: Metadata = {
   title: "Онлайн-стенд автозвука MOMO и ZEUS",
@@ -13,6 +14,13 @@ export const metadata: Metadata = {
     description: "Сравнение автомобильной акустики MOMO и ZEUS по единым записям и экспертным оценкам.",
     url: "/listening-stand",
     type: "website",
+    images: [DEFAULT_SOCIAL_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Онлайн-стенд MOMO и ZEUS",
+    description: "Сравнение автомобильной акустики MOMO и ZEUS по единым записям и экспертным оценкам.",
+    images: [DEFAULT_SOCIAL_IMAGE.url],
   },
 };
 

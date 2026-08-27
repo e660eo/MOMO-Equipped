@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { siteConfig, getBrands, getProducts } from "@/lib/data";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "О компании",
-  description:
-    "Modern Original Music Organization — российский производитель автомобильной акустики MOMO и ZEUS. В автозвуке с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
-  alternates: { canonical: "/about" },
-};
+export const metadata: Metadata = publicPageMetadata(
+  "О компании",
+  "Modern Original Music Organization — российский производитель автомобильной акустики MOMO и ZEUS. В автозвуке с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
+  "/about",
+);
 
 /*
   Страница собрана ТОЛЬКО из проверяемых фактов: год из тикера «автозвук

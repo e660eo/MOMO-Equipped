@@ -17,6 +17,7 @@ describe("reachMetrikaGoal", () => {
   it("sends the successful registration goal without parameters", () => {
     const ym = vi.fn();
     vi.stubGlobal("window", { ym });
+    vi.stubGlobal("localStorage", { getItem: () => "accepted" });
 
     reachMetrikaGoal(METRIKA_GOALS.registrationSuccess);
 

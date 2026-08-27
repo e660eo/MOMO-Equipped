@@ -26,7 +26,7 @@ const CATEGORY_ORDER = [
 ];
 
 type Availability = "" | "in" | "preorder" | "unknown" | "out" | "low";
-type FlagFilter = "" | "new" | "hidden" | "clearance";
+type FlagFilter = "" | "new" | "hidden" | "clearance" | "missing_description";
 type Sort = "catalog" | "title" | "price_asc" | "price_desc" | "stock";
 
 function isUnknown(product: Product): boolean {
@@ -86,6 +86,7 @@ export function ProductsList({
       if (flag === "new" && !product.isNew) return false;
       if (flag === "hidden" && !product.hidden) return false;
       if (flag === "clearance" && !product.isClearance) return false;
+      if (flag === "missing_description" && product.description?.length) return false;
       return true;
     });
     return list.sort((a, b) => {
@@ -101,6 +102,7 @@ export function ProductsList({
   const page = Math.min(currentPage, pages);
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const unknownCount = products.filter(isUnknown).length;
+  const missingDescriptionCount = products.filter((product) => !product.description?.length).length;
   const active = Boolean(q.trim() || category || availability || flag || sort !== "catalog");
   const allVisibleSelected = visible.length > 0 && visible.every((p) => selected.has(p.slug));
 
@@ -173,6 +175,16 @@ export function ProductsList({
         </button>
       )}
 
+      {missingDescriptionCount > 0 && (
+        <button
+          type="button"
+          onClick={() => { setFlag("missing_description"); resetPage(); }}
+          className="mt-3 w-full rounded-sm border border-amber-500/50 bg-amber-500/5 px-4 py-3 text-left text-[0.85rem] text-amber-700 hover:bg-amber-500/10 dark:text-amber-300"
+        >
+          Контент: у {missingDescriptionCount} товаров нет описания. Показать карточки для заполнения →
+        </button>
+      )}
+
       <div className="mt-5 grid gap-3 rounded-xl border border-border bg-surface p-4 md:grid-cols-2 xl:grid-cols-5">
         <input
           value={q}
@@ -198,6 +210,7 @@ export function ProductsList({
           <option value="new">Новинки</option>
           <option value="hidden">Скрытые</option>
           <option value="clearance">Уценка</option>
+          <option value="missing_description">Без описания ({missingDescriptionCount})</option>
         </select>
         <select value={sort} onChange={(e) => { setSort(e.target.value as Sort); resetPage(); }} className="rounded-sm border border-input bg-bg px-3 py-2 text-sm focus:border-signal focus:outline-none md:col-span-2 xl:col-span-1">
           <option value="catalog">Порядок каталога</option>

@@ -14,8 +14,8 @@ import { getHealthReport, httpStatusForHealth } from "@/lib/health";
   не повод будить владельца ночью.
 
   Наружу без ключа отдаём только уровень — ни путей, ни цифр диска. С ключом
-  (?key=HEALTH_TOKEN) — полную раскладку по проверкам, чтобы владелец мог сам
-  посмотреть детали curl'ом.
+  с заголовком Authorization: Bearer HEALTH_TOKEN — полную раскладку по
+  проверкам. Секрет не попадает в URL, историю браузера и access logs.
 */
 
 // Ответ обязан быть свежим на каждый запрос — иначе монитор увидит протухший
@@ -28,8 +28,8 @@ export async function GET(request: Request) {
   const status = httpStatusForHealth(report.status);
 
   const token = process.env.HEALTH_TOKEN?.trim();
-  const key = new URL(request.url).searchParams.get("key");
-  const authorized = Boolean(token) && key === token;
+  const authorization = request.headers.get("authorization")?.trim() ?? "";
+  const authorized = Boolean(token) && authorization === `Bearer ${token}`;
 
   const body = authorized
     ? report

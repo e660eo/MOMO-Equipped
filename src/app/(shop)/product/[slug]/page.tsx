@@ -23,6 +23,8 @@ import { YandexSplitBadge } from "@/components/yandex-split-badge";
 import { isListeningStandProduct } from "@/lib/listening-stand";
 import { getPublicProductReviews } from "@/lib/product-reviews";
 import { ProductReviews } from "@/components/product-reviews";
+import { MetrikaGoal } from "@/components/metrika-goal";
+import { METRIKA_GOALS } from "@/lib/metrika";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -36,16 +38,24 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = getProduct(slug);
   if (!product) return { title: "Товар не найден" };
+  const socialDescription = `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, гарантия 12 месяцев, 24 месяца при авторизованной установке.`;
+  const socialImage = productImageUrl(product.image);
   return {
     title: product.title,
     description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, Яндекс Сплит. Гарантия 12 месяцев, 24 месяца при авторизованной установке.`,
     alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       title: product.title,
-      description: `${product.title} — ${product.brand}. Цена ${formatPrice(product.price)}, гарантия 12 месяцев, 24 месяца при авторизованной установке.`,
+      description: socialDescription,
       type: "website",
       url: `/product/${product.slug}`,
-      images: [productImageUrl(product.image)],
+      images: [socialImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.title,
+      description: socialDescription,
+      images: [socialImage],
     },
   };
 }
@@ -82,6 +92,11 @@ export default async function ProductPage({
 
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-12">
+      <MetrikaGoal
+        goal={METRIKA_GOALS.productView}
+        dedupeKey={product.slug}
+        params={{ product: product.slug, brand: product.brand }}
+      />
       <JsonLd data={productSchema(product, category, reviews)} />
       <JsonLd data={breadcrumbSchema(crumbs)} />
       {/* Хлебные крошки */}

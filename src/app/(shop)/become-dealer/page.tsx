@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { BadgeCheck, Boxes, Headphones, MapPinned, Wrench } from "lucide-react";
 import { DealerApplicationForm } from "@/components/dealer-application-form";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Стать дилером MOMO и ZEUS",
-  description: "Партнёрская программа MOMO и ZEUS для магазинов и студий автозвука: ассортимент, поддержка, авторизованная установка и дилерский кабинет.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Стать дилером MOMO и ZEUS",
+  "Партнёрская программа MOMO и ZEUS для магазинов и студий автозвука: ассортимент, поддержка, авторизованная установка и дилерский кабинет.",
+  "/become-dealer",
+);
 
 const benefits = [
   { icon: Boxes, title: "Каталог и остатки", text: "В кабинете видны доступный ассортимент, ваши цены и актуальные остатки." },

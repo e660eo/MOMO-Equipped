@@ -79,6 +79,16 @@ export function cleanProductTitle(title: string): string {
   return sizeToEnd(normDyuym(stripFiller(title || "")));
 }
 
+const VERIFIED_TITLE_OVERRIDES: Record<string, string> = {
+  // Название подтверждено полем ozonOfferId этой же позиции. Отличает её от
+  // второй карточки «Клемма аккумулятора» без выдумывания характеристик.
+  "klemma-akkumulyatora-dlya-avtomobilya-656147": "Клемма аккумулятора для автомобиля",
+};
+
+function desiredTitle(product: Product): string {
+  return VERIFIED_TITLE_OVERRIDES[product.slug] ?? cleanProductTitle(product.title);
+}
+
 /*
   Одноразовая миграция названий в живых данных — вызывается из instrumentation
   на старте сервера. Данные лежат вне репозитория (MOMO_DATA_DIR), поэтому
@@ -91,13 +101,13 @@ export function cleanProductTitle(title: string): string {
 */
 export function cleanupProductTitles(): { changed: number } {
   const current = readJson<Product[]>("products.json");
-  if (!current.some((p) => cleanProductTitle(p.title) !== p.title)) {
+  if (!current.some((p) => desiredTitle(p) !== p.title)) {
     return { changed: 0 };
   }
   let changed = 0;
   updateJson<Product[]>("products.json", (list) =>
     list.map((p) => {
-      const title = cleanProductTitle(p.title);
+      const title = desiredTitle(p);
       if (title === p.title) return p;
       changed++;
       return { ...p, title };

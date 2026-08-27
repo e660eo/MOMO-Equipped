@@ -29,6 +29,7 @@ import { WaveDivider } from "@/components/wave-divider";
 import { SectionHead } from "@/components/section-head";
 import { Reveal } from "@/components/reveal";
 import { getActiveBanners } from "@/lib/banners";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
 
 export const metadata: Metadata = {
   title: { absolute: "Автоакустика MOMO и ZEUS — официальный каталог" },
@@ -41,6 +42,13 @@ export const metadata: Metadata = {
       "Динамики, сабвуферы и усилители MOMO и ZEUS. Гарантия 12 месяцев, 24 месяца при авторизованной установке.",
     type: "website",
     url: "/",
+    images: [DEFAULT_SOCIAL_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Автоакустика MOMO и ZEUS",
+    description: "Динамики, сабвуферы и усилители MOMO и ZEUS.",
+    images: [DEFAULT_SOCIAL_IMAGE.url],
   },
 };
 

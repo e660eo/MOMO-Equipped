@@ -2,8 +2,13 @@
 
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef } from "react";
-import { YANDEX_METRIKA_ID } from "@/lib/metrika";
+import { Suspense, useEffect, useRef, useState } from "react";
+import {
+  ANALYTICS_CONSENT_EVENT,
+  METRIKA_GOAL_EVENT,
+  YANDEX_METRIKA_ID,
+  analyticsConsentGranted,
+} from "@/lib/metrika";
 
 /*
   init засчитывает первый просмотр сам. Дальше сайт работает как SPA: переходы
@@ -40,32 +45,57 @@ function MetrikaRouteTracker() {
   как обычный файл. Опции init оставлены ровно те, что были выбраны в счётчике:
   webvisor (запись сессий), clickmap (карта кликов), ecommerce (события
   корзины из dataLayer — пригодятся, когда начнём их отправлять).
-  strategy="lazyOnload" — грузим последним, чтобы 86 КБ аналитики не
-  конкурировали с отрисовкой страницы.
+  afterInteractive используется после согласия: компонент может появиться уже
+  после window.load, но скрипт всё равно должен быть вставлен в документ.
 
   Внешние адреса явно разрешены в CSP.
 */
 export function YandexMetrica() {
+  const [enabled, setEnabled] = useState(false);
+  const pending = useRef<Array<{ goal: string; params?: Record<string, unknown> }>>([]);
+
+  useEffect(() => {
+    setEnabled(analyticsConsentGranted());
+    const onConsent = () => setEnabled(analyticsConsentGranted());
+    window.addEventListener(ANALYTICS_CONSENT_EVENT, onConsent);
+    return () => window.removeEventListener(ANALYTICS_CONSENT_EVENT, onConsent);
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const onGoal = (event: Event) => {
+      const detail = (event as CustomEvent<{ goal: string; params?: Record<string, unknown> }>).detail;
+      if (!detail?.goal) return;
+      if (window.ym) window.ym(YANDEX_METRIKA_ID, "reachGoal", detail.goal, detail.params);
+      else pending.current.push(detail);
+    };
+    window.addEventListener(METRIKA_GOAL_EVENT, onGoal);
+    return () => window.removeEventListener(METRIKA_GOAL_EVENT, onGoal);
+  }, [enabled]);
+
+  if (!enabled) return null;
+
+  const flush = () => {
+    if (!window.ym) return;
+    for (const item of pending.current.splice(0)) {
+      window.ym(YANDEX_METRIKA_ID, "reachGoal", item.goal, item.params);
+    }
+  };
+
   return (
     <>
       <Script
         id="yandex-metrica"
         src="/yandex-metrica.js"
-        strategy="lazyOnload"
+        // Компонент появляется только после согласия, то есть зачастую уже
+        // после window.load. afterInteractive гарантированно вставляет скрипт
+        // и при таком позднем условном рендере.
+        strategy="afterInteractive"
+        onReady={flush}
       />
       <Suspense fallback={null}>
         <MetrikaRouteTracker />
       </Suspense>
-      <noscript>
-        <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`}
-            style={{ position: "absolute", left: "-9999px" }}
-            alt=""
-          />
-        </div>
-      </noscript>
     </>
   );
 }

@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/product-card";
 import { JsonLd } from "@/components/json-ld";
 import { articleSchema } from "@/lib/structured-data";
 import { hasArticle, readingMinutes, articlePlainText } from "@/lib/article";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
 
 export function generateStaticParams() {
   return getNews().map((n) => ({ slug: n.slug }));
@@ -33,11 +34,20 @@ export async function generateMetadata({
   return {
     title: item.title,
     description,
+    alternates: { canonical: `/news/${item.slug}` },
     openGraph: {
       title: item.title,
       description,
       type: "article",
       publishedTime: item.date,
+      url: `/news/${item.slug}`,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description,
+      images: [DEFAULT_SOCIAL_IMAGE.url],
     },
   };
 }

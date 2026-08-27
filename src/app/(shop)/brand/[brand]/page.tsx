@@ -4,6 +4,7 @@ import { getBrands, getCategories, getProducts } from "@/lib/data";
 import { isInStock } from "@/lib/format";
 import { BRAND_LANDINGS } from "@/lib/seo-landings";
 import { SeoCatalogLanding } from "@/components/seo-catalog-landing";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
 
 const SEO_BRANDS = ["momo", "zeus"] as const;
 
@@ -29,6 +30,13 @@ export async function generateMetadata({
       description: landing.metaDescription,
       type: "website",
       url: `/brand/${slug}`,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: landing.metaTitle,
+      description: landing.metaDescription,
+      images: [DEFAULT_SOCIAL_IMAGE.url],
     },
   };
 }

@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getNews } from "@/lib/data";
 import { hasArticle, readingMinutes } from "@/lib/article";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Новости",
-  description:
-    "Полезные статьи, обновления ассортимента и советы по автозвуку от MOMO.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Новости",
+  "Полезные статьи, обновления ассортимента и советы по автозвуку от MOMO.",
+  "/news",
+);
 
 export default function NewsPage() {
   const news = getNews();

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { SITE_URL } from "@/lib/site-url";
 
 /*
   Единственная точка, через которую проходит каждый запрос к страницам.
@@ -51,6 +52,9 @@ function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yastatic.net https://*.yandex.ru https://*.yandex.net",
+    // React не использует HTML-обработчики onclick="...". Запрещаем их
+    // отдельно, даже пока bootstrap Next требует inline script elements.
+    "script-src-attr 'none'",
     // Стили инлайновые по устройству React (style={{…}}) и Tailwind. Отдельной
     // дырой это не является: подмена стилей — не выполнение кода.
     "style-src 'self' 'unsafe-inline' blob:",
@@ -83,6 +87,19 @@ function contentSecurityPolicy(): string {
 
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Один индексируемый хост. Редирект в приложении страхует конфигурацию
+  // reverse proxy и сохраняет путь с query string.
+  if (process.env.NODE_ENV === "production") {
+    const forwardedHost = req.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+    const host = (forwardedHost || req.headers.get("host") || req.nextUrl.host)
+      .toLowerCase()
+      .replace(/:\d+$/, "");
+    if (host === "www.momo-eq.ru") {
+      const canonical = new URL(`${pathname}${req.nextUrl.search}`, SITE_URL);
+      return NextResponse.redirect(canonical, 308);
+    }
+  }
 
   /*
     Отсев без куки — быстрый и грубый. Подпись здесь не проверить (в edge нет

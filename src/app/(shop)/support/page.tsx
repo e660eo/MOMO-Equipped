@@ -4,11 +4,13 @@ import { BookOpen, Cable, FileBadge, FileDown, Headphones, LifeBuoy, ShieldCheck
 import { getSupportDocuments } from "@/lib/support-documents";
 import { siteConfig } from "@/lib/data";
 import type { SupportDocumentCategory } from "@/lib/types";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Центр поддержки MOMO и ZEUS",
-  description: "Инструкции, схемы подключения, сертификаты, гарантийные условия и техническая поддержка по автоакустике MOMO и ZEUS.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Центр поддержки MOMO и ZEUS",
+  "Инструкции, схемы подключения, сертификаты, гарантийные условия и техническая поддержка по автоакустике MOMO и ZEUS.",
+  "/support",
+);
 
 const category: Record<SupportDocumentCategory, { label: string; icon: typeof BookOpen }> = {
   instruction: { label: "Инструкции", icon: BookOpen },

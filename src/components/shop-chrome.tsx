@@ -58,9 +58,12 @@ export function ShopChrome({ children }: { children: React.ReactNode }) {
             под футером проступала светлая полоса фона body.
         */}
         <div className="flex min-h-screen flex-col">
+          <a href="#main-content" className="skip-link">
+            Перейти к содержимому
+          </a>
           <AnnouncementBar />
           <SiteHeader />
-          <div className="flex-1">{children}</div>
+          <div id="main-content" tabIndex={-1} className="flex-1">{children}</div>
           <SiteFooter />
         </div>
         {/*

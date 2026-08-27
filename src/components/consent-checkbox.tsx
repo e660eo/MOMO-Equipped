@@ -18,11 +18,15 @@ export function ConsentCheckbox({
   checked,
   onChange,
   className = "",
+  ariaInvalid,
+  ariaDescribedBy,
 }: {
   id: string;
   checked?: boolean;
   onChange?: (value: boolean) => void;
   className?: string;
+  ariaInvalid?: boolean;
+  ariaDescribedBy?: string;
 }) {
   const controlled = onChange !== undefined;
 
@@ -39,6 +43,8 @@ export function ConsentCheckbox({
       <input
         id={id}
         type="checkbox"
+        aria-invalid={ariaInvalid || undefined}
+        aria-describedby={ariaDescribedBy}
         {...(controlled
           ? { checked, onChange: (e) => onChange(e.target.checked) }
           : { required: true })}

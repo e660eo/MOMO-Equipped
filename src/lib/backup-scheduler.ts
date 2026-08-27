@@ -56,6 +56,13 @@ export function scheduleDailyBackup(): void {
   if (started) return;
   started = true;
 
+  // Боевой сервер работает на Linux. Локальная production-сборка под Windows
+  // не имеет bash и раньше каждую минуту печатала spawn bash ENOENT.
+  if (process.platform === "win32") {
+    console.warn("Бэкап: планировщик пропущен — scripts/backup.sh рассчитан на Linux.");
+    return;
+  }
+
   const check = () => {
     if (new Date().getHours() >= BACKUP_HOUR && !backupExistsToday()) {
       runBackup();

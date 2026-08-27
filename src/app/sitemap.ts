@@ -27,6 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/requisites`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE}/privacy`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/offer`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const categories: MetadataRoute.Sitemap = getCategories().map((c) => ({

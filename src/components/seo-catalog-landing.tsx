@@ -42,6 +42,7 @@ export function SeoCatalogLanding({
   crumbs: Crumb[];
 }) {
   const shown = products.slice(0, 24);
+  const remainingProducts = products.slice(shown.length);
   const { trust } = siteConfig;
 
   return (
@@ -126,18 +127,36 @@ export function SeoCatalogLanding({
             <ProductCard
               key={product.slug}
               product={product}
-              priority={index < 4}
+              priority={index === 0}
             />
           ))}
         </div>
 
         {total > shown.length && (
-          <div className="mt-9 text-center">
+          <div className="mt-9 rounded-xl border border-border bg-surface p-5 sm:p-6">
+            <h3 className="font-display text-base font-semibold uppercase">
+              Все модели раздела
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ещё {remainingProducts.length} {plural(remainingProducts.length, "модель", "модели", "моделей")} — откройте карточку или используйте фильтры.
+            </p>
+            <ul className="mt-4 grid gap-x-8 sm:grid-cols-2">
+              {remainingProducts.map((product) => (
+                <li key={product.slug} className="border-t border-border">
+                  <Link
+                    href={`/product/${product.slug}`}
+                    className="inline-flex min-h-11 w-full items-center text-sm transition-colors hover:text-signal"
+                  >
+                    {product.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
             <Link
               href={catalogHref}
-              className="inline-flex rounded-sm border border-border px-7 py-3.5 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+              className="mt-5 inline-flex min-h-11 items-center rounded-sm border border-border px-6 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
             >
-              Смотреть все {total} {plural(total, "товар", "товара", "товаров")}
+              Открыть фильтры для всех {total} товаров
             </Link>
           </div>
         )}

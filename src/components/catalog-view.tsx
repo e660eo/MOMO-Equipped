@@ -17,6 +17,7 @@ import { ProductCard } from "./product-card";
 import { cn, plural } from "@/lib/utils";
 import { cleanQuery } from "@/lib/sanitize";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
 
 // «Популярное» намеренно нет: статистики продаж и просмотров у нас не собирается,
 // а прежний пункт «Сначала популярные» просто отдавал порядок строк в JSON.
@@ -61,6 +62,24 @@ const selectCls =
   "w-full rounded-sm border border-input bg-surface px-3 py-3 text-base text-foreground transition-colors focus:border-signal focus:outline-none sm:text-sm";
 
 const PAGE = 24;
+const SORT_VALUES: Sort[] = [
+  "sound_first",
+  "availability",
+  "price_asc",
+  "price_desc",
+  "title_asc",
+  "title_desc",
+];
+
+function sortParam(value: string | null): Sort {
+  return SORT_VALUES.includes(value as Sort) ? value as Sort : "sound_first";
+}
+
+function positiveNumber(value: string | null, fallback: number): number {
+  if (value === null || value.trim() === "") return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
 
 const pluralItems = (n: number) => plural(n, "товар", "товара", "товаров");
 
@@ -80,19 +99,27 @@ export function CatalogView({
 
   const category = params.get("category") ?? "";
   const brand = params.get("brand") ?? "";
+  const urlSearch = cleanQuery(params.get("search"));
+  const urlSort = params.get("sort");
+  const urlStock = params.get("stock");
+  const urlDiameter = params.get("diameter") ?? "";
+  const urlPower = params.get("power") ?? "";
+  const urlImpedance = params.get("impedance") ?? "";
+  const urlMinPrice = params.get("minPrice");
+  const urlMaxPrice = params.get("maxPrice");
 
-  const [sort, setSort] = useState<Sort>("sound_first");
+  const [sort, setSort] = useState<Sort>(() => sortParam(urlSort));
   /*
     Начальный поиск может прийти из шапки: /catalog?search=…
     Через cleanQuery, потому что адрес страницы может составить кто угодно:
     ссылка с десятком тысяч символов в параметре ушла бы и в разметку, и в
     перебор товаров, и в Метрику.
   */
-  const [query, setQuery] = useState(cleanQuery(params.get("search")));
+  const [query, setQuery] = useState(urlSearch);
   // Наличие известно не у всех товаров (у части статуса из прайса просто нет),
   // поэтому фильтр показывает только подтверждённо доступные, а не «прячет
   // распроданное»: неизвестный статус — не повод обещать наличие.
-  const [inStockOnly, setInStockOnly] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(urlStock === "1");
 
   /*
     Фильтры по характеристикам. Значения распознаются из названия и описания
@@ -100,9 +127,9 @@ export function CatalogView({
     фильтр сужает выдачу до товаров, где она распознана, — как в любом
     магазине. Счётчики в опциях показывают, сколько товаров за каждой.
   */
-  const [diaFilter, setDiaFilter] = useState("");
-  const [powFilter, setPowFilter] = useState("");
-  const [impFilter, setImpFilter] = useState("");
+  const [diaFilter, setDiaFilter] = useState(urlDiameter);
+  const [powFilter, setPowFilter] = useState(urlPower);
+  const [impFilter, setImpFilter] = useState(urlImpedance);
 
   /*
     Разобранные характеристики и приведённое название — по одному проходу на
@@ -160,8 +187,8 @@ export function CatalogView({
   }, [products]);
 
   const [price, setPrice] = useState<[number, number]>([
-    priceBounds.min,
-    priceBounds.max,
+    Math.max(priceBounds.min, positiveNumber(urlMinPrice, priceBounds.min)),
+    Math.min(priceBounds.max, positiveNumber(urlMaxPrice, priceBounds.max)),
   ]);
   const priceActive =
     price[0] > priceBounds.min || price[1] < priceBounds.max;
@@ -215,15 +242,91 @@ export function CatalogView({
   const setFilter = useCallback(
     (key: string, value: string) => {
       const next = new URLSearchParams(params.toString());
+      const currentState: Record<string, string> = {
+        search: query,
+        sort: sort === "sound_first" ? "" : sort,
+        stock: inStockOnly ? "1" : "",
+        diameter: diaFilter,
+        power: powFilter,
+        impedance: impFilter,
+        minPrice: price[0] > priceBounds.min ? String(price[0]) : "",
+        maxPrice: price[1] < priceBounds.max ? String(price[1]) : "",
+      };
+      for (const [stateKey, stateValue] of Object.entries(currentState)) {
+        if (stateValue) next.set(stateKey, stateValue);
+        else next.delete(stateKey);
+      }
       if (value) next.set(key, value);
       else next.delete(key);
-      router.push(`${pathname}?${next.toString()}`, { scroll: false });
+      const queryString = next.toString();
+      router.push(`${pathname}${queryString ? `?${queryString}` : ""}`, { scroll: false });
+      reachMetrikaGoal(METRIKA_GOALS.catalogFilter);
     },
-    [params, router, pathname],
+    [params, router, pathname, query, sort, inStockOnly, diaFilter, powFilter, impFilter, price, priceBounds.min, priceBounds.max],
   );
+
+  const replaceParams = useCallback(
+    (values: Record<string, string>) => {
+      const next = new URLSearchParams(params.toString());
+      const currentState: Record<string, string> = {
+        search: query,
+        sort: sort === "sound_first" ? "" : sort,
+        stock: inStockOnly ? "1" : "",
+        diameter: diaFilter,
+        power: powFilter,
+        impedance: impFilter,
+        minPrice: price[0] > priceBounds.min ? String(price[0]) : "",
+        maxPrice: price[1] < priceBounds.max ? String(price[1]) : "",
+      };
+      for (const [key, value] of Object.entries(currentState)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+      }
+      for (const [key, value] of Object.entries(values)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+      }
+      const queryString = next.toString();
+      router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    },
+    [params, pathname, router, query, sort, inStockOnly, diaFilter, powFilter, impFilter, price, priceBounds.min, priceBounds.max],
+  );
+
+  // Back/forward и ссылка из мессенджера восстанавливают полный вид каталога.
+  useEffect(() => setQuery(urlSearch), [urlSearch]);
+  useEffect(() => setSort(sortParam(urlSort)), [urlSort]);
+  useEffect(() => setInStockOnly(urlStock === "1"), [urlStock]);
+  useEffect(() => setDiaFilter(urlDiameter), [urlDiameter]);
+  useEffect(() => setPowFilter(urlPower), [urlPower]);
+  useEffect(() => setImpFilter(urlImpedance), [urlImpedance]);
+  useEffect(() => {
+    setPrice([
+      Math.max(priceBounds.min, positiveNumber(urlMinPrice, priceBounds.min)),
+      Math.min(priceBounds.max, positiveNumber(urlMaxPrice, priceBounds.max)),
+    ]);
+  }, [urlMinPrice, urlMaxPrice, priceBounds.min, priceBounds.max]);
+
+  // Частые изменения поиска и ползунков пишем в history только после паузы.
+  useEffect(() => {
+    if (urlSearch === query) return;
+    const timer = window.setTimeout(() => {
+      replaceParams({ search: query });
+      if (query) reachMetrikaGoal(METRIKA_GOALS.catalogSearch);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [urlSearch, query, replaceParams]);
+
+  useEffect(() => {
+    const min = price[0] > priceBounds.min ? String(price[0]) : "";
+    const max = price[1] < priceBounds.max ? String(price[1]) : "";
+    if ((urlMinPrice ?? "") === min && (urlMaxPrice ?? "") === max) return;
+    const timer = window.setTimeout(() => replaceParams({ minPrice: min, maxPrice: max }), 300);
+    return () => window.clearTimeout(timer);
+  }, [urlMinPrice, urlMaxPrice, price, priceBounds.min, priceBounds.max, replaceParams]);
 
   const resetAll = useCallback(() => {
     setQuery("");
+    setSort("sound_first");
     setPrice([priceBounds.min, priceBounds.max]);
     setInStockOnly(false);
     setDiaFilter("");
@@ -299,7 +402,7 @@ export function CatalogView({
     [categories, category],
   );
   const hasFilters = Boolean(
-    category || brand || query || priceActive || inStockOnly ||
+    category || brand || query || sort !== "sound_first" || priceActive || inStockOnly ||
     diaFilter || powFilter || impFilter,
   );
 
@@ -316,6 +419,15 @@ export function CatalogView({
       list.push({ key: "brand", label: brand, clear: () => setFilter("brand", "") });
     if (query)
       list.push({ key: "query", label: `«${query}»`, clear: () => setQuery("") });
+    if (sort !== "sound_first")
+      list.push({
+        key: "sort",
+        label: "Изменена сортировка",
+        clear: () => {
+          setSort("sound_first");
+          replaceParams({ sort: "" });
+        },
+      });
     if (priceActive)
       list.push({
         key: "price",
@@ -326,23 +438,44 @@ export function CatalogView({
       list.push({
         key: "instock",
         label: "В наличии",
-        clear: () => setInStockOnly(false),
+        clear: () => {
+          setInStockOnly(false);
+          replaceParams({ stock: "" });
+        },
       });
     if (diaFilter)
-      list.push({ key: "dia", label: diaFilter, clear: () => setDiaFilter("") });
+      list.push({
+        key: "dia",
+        label: diaFilter,
+        clear: () => {
+          setDiaFilter("");
+          replaceParams({ diameter: "" });
+        },
+      });
     if (powFilter)
-      list.push({ key: "pow", label: powFilter, clear: () => setPowFilter("") });
+      list.push({
+        key: "pow",
+        label: powFilter,
+        clear: () => {
+          setPowFilter("");
+          replaceParams({ power: "" });
+        },
+      });
     if (impFilter)
       list.push({
         key: "imp",
         label: `${impFilter} Ом`,
-        clear: () => setImpFilter(""),
+        clear: () => {
+          setImpFilter("");
+          replaceParams({ impedance: "" });
+        },
       });
     return list;
   }, [
     activeCategory,
     brand,
     query,
+    sort,
     priceActive,
     price,
     priceBounds.min,
@@ -352,6 +485,7 @@ export function CatalogView({
     powFilter,
     impFilter,
     setFilter,
+    replaceParams,
   ]);
 
   // Счётчик на кнопке «Фильтры»: в свёрнутом виде иначе не видно, что они активны
@@ -440,7 +574,11 @@ export function CatalogView({
             </span>
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value as Sort)}
+              onChange={(e) => {
+                const value = e.target.value as Sort;
+                setSort(value);
+                replaceParams({ sort: value === "sound_first" ? "" : value });
+              }}
               className={selectCls}
             >
               <option value="sound_first">Сначала акустика</option>
@@ -494,7 +632,10 @@ export function CatalogView({
               </span>
               <select
                 value={diaFilter}
-                onChange={(e) => setDiaFilter(e.target.value)}
+                onChange={(e) => {
+                  setDiaFilter(e.target.value);
+                  replaceParams({ diameter: e.target.value });
+                }}
                 className={selectCls}
               >
                 <option value="">Любой</option>
@@ -513,7 +654,10 @@ export function CatalogView({
               </span>
               <select
                 value={powFilter}
-                onChange={(e) => setPowFilter(e.target.value)}
+                onChange={(e) => {
+                  setPowFilter(e.target.value);
+                  replaceParams({ power: e.target.value });
+                }}
                 className={selectCls}
               >
                 <option value="">Любая</option>
@@ -532,7 +676,10 @@ export function CatalogView({
               </span>
               <select
                 value={impFilter}
-                onChange={(e) => setImpFilter(e.target.value)}
+                onChange={(e) => {
+                  setImpFilter(e.target.value);
+                  replaceParams({ impedance: e.target.value });
+                }}
                 className={selectCls}
               >
                 <option value="">Любое</option>
@@ -600,7 +747,10 @@ export function CatalogView({
             <input
               type="checkbox"
               checked={inStockOnly}
-              onChange={(e) => setInStockOnly(e.target.checked)}
+              onChange={(e) => {
+                setInStockOnly(e.target.checked);
+                replaceParams({ stock: e.target.checked ? "1" : "" });
+              }}
               className="h-6 w-6 shrink-0 cursor-pointer accent-[#FF5500]"
             />
             <span className="font-medium">Только в наличии</span>
@@ -646,6 +796,7 @@ export function CatalogView({
                 onClick={resetAll}
                 className="ml-1 inline-flex min-h-11 items-center px-1 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground underline-offset-4 transition-colors hover:text-signal hover:underline"
               >
+                <h2 className="sr-only">Товары каталога</h2>
                 Сбросить всё
               </button>
             </div>
@@ -670,7 +821,7 @@ export function CatalogView({
                   меряется время отрисовки главного содержимого.
                 */}
                 {shown.map((p, i) => (
-                  <ProductCard key={p.slug} product={p} priority={i < 4} />
+                  <ProductCard key={p.slug} product={p} priority={i === 0} />
                 ))}
               </div>
 

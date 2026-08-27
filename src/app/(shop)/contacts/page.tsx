@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/lib/data";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
 import { YandexMap } from "@/components/yandex-map";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Контакты",
-  description:
-    "Телефон, email, адрес и мессенджеры MOMO. Проконсультируем по подбору автоакустики.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Контакты",
+  "Телефон, email, адрес и мессенджеры MOMO. Проконсультируем по подбору автоакустики.",
+  "/contacts",
+);
 
 const rows = (c: typeof siteConfig.contacts) => [
   { label: "Телефон", value: c.phone },

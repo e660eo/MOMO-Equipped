@@ -720,8 +720,28 @@ html[data-theme-vt="active"]::view-transition-group(root) {
 }
 
 /* Оранжевый для мелкого текста: темнее в светлой теме, светлее в тёмной (WCAG AA) */
-:root { --signal-text: #d64a00; }
+:root { --signal-text: #c94300; }
 :root[data-theme="dark"] { --signal-text: #ff8a4d; }
+
+/* Белый на фирменном #ff5500 даёт лишь 3.21:1. Для залитых сигнальных
+   контролов используем почти чёрный foreground: контраст 5.58:1, а сам
+   фирменный оттенок остаётся прежним для графики и крупных акцентов. */
+.bg-signal.text-white { color: #17171a; }
+
+/* Skip-link появляется только при клавиатурном фокусе. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1000;
+  transform: translateY(-200%);
+  border-radius: 0.25rem;
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+  color: var(--fg);
+  box-shadow: var(--card-shadow);
+}
+.skip-link:focus { transform: translateY(0); }
 
 /* Логотип чёрный по своей природе — в тёмной теме инвертируем в белый */
 :root[data-theme="dark"] .dark-logo { filter: invert(1) brightness(1.15); }

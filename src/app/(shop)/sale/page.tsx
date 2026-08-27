@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import { getClearanceProducts, siteConfig } from "@/lib/data";
 import { plural } from "@/lib/utils";
 import { ProductCard } from "@/components/product-card";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Уценка и распродажа",
-  description:
-    "Уценённые товары MOMO по сниженной цене: витринные образцы, остатки и распродажа. Та же гарантия, ограниченное количество.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Уценка и распродажа",
+  "Уценённые товары MOMO по сниженной цене: витринные образцы, остатки и распродажа. Та же гарантия, ограниченное количество.",
+  "/sale",
+);
 
 export default function SalePage() {
   const products = getClearanceProducts();
@@ -61,11 +62,14 @@ export default function SalePage() {
 
       {/* Сетка товаров */}
       {products.length > 0 ? (
-        <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
-          {products.map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
-        </div>
+        <section className="mt-10">
+          <h2 className="sr-only">Товары со скидкой</h2>
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((p, index) => (
+              <ProductCard key={p.slug} product={p} priority={index === 0} />
+            ))}
+          </div>
+        </section>
       ) : (
         <div className="mt-10 flex flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface p-14 text-center">
           <p className="font-display text-lg font-semibold">

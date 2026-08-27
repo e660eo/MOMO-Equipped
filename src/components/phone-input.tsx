@@ -17,6 +17,8 @@ export function PhoneInput({
   className,
   placeholder = "+7 ___ ___-__-__",
   required,
+  ariaInvalid,
+  ariaDescribedBy,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -24,6 +26,8 @@ export function PhoneInput({
   className?: string;
   placeholder?: string;
   required?: boolean;
+  ariaInvalid?: boolean;
+  ariaDescribedBy?: string;
 }) {
   return (
     <input
@@ -32,6 +36,8 @@ export function PhoneInput({
       inputMode="tel"
       autoComplete="tel"
       required={required}
+      aria-invalid={ariaInvalid || undefined}
+      aria-describedby={ariaDescribedBy}
       placeholder={placeholder}
       className={className}
       value={value}

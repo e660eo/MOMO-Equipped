@@ -92,7 +92,7 @@ export function SiteFooter() {
 
           {cols.map((col) => (
             <div key={col.title}>
-              <h4 className={headCls}>{col.title}</h4>
+              <h2 className={headCls}>{col.title}</h2>
               <ul className="flex flex-col">
                 {col.links.map((l) => (
                   <li key={l.href}>
@@ -106,7 +106,7 @@ export function SiteFooter() {
           ))}
 
           <div>
-            <h4 className={headCls}>Контакты</h4>
+            <h2 className={headCls}>Контакты</h2>
             <ul className="flex flex-col">
               <li>
                 <a

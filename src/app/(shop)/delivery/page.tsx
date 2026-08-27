@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Store, Truck, CreditCard, Undo2 } from "lucide-react";
 import { siteConfig, formatPrice } from "@/lib/data";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Доставка и оплата",
-  description:
-    "Как получить заказ MOMO: самовывоз в Махачкале, доставка по всей России через Ozon, бесплатно от 5 000 ₽. Оплата и сплит без процентов.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Доставка и оплата",
+  "Как получить заказ MOMO: самовывоз в Махачкале, доставка по всей России через Ozon, бесплатно от 5 000 ₽. Оплата и сплит без процентов.",
+  "/delivery",
+);
 
 export default function DeliveryPage() {
   const { contacts, trust } = siteConfig;

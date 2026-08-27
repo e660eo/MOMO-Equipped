@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "node:crypto";
 import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment, updateOrder } from "@/lib/orders";
 import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
@@ -7,7 +8,13 @@ import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getProducts } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
-import { findValidPromo, promoDiscountForItems, redeemPromo } from "@/lib/promos";
+import { messageFor } from "@/lib/errors";
+import {
+  findValidPromo,
+  promoDiscountForItems,
+  releasePromo,
+  reservePromo,
+} from "@/lib/promos";
 import {
   searchRussianPlaces,
   type PublicPlaceResult,
@@ -334,6 +341,8 @@ export async function submitOrder(payload: {
 
   let bonusReservation: ReturnType<typeof reserveOrderBonus> | undefined;
   let bonusAttached = false;
+  let promoRedemptionId: string | undefined;
+  let promoAttached = false;
   try {
     let deliveryCharge = 0;
     let delivery: Order["delivery"];
@@ -355,6 +364,10 @@ export async function submitOrder(payload: {
     if (requestedBonus > 0 && me) {
       bonusReservation = reserveOrderBonus(me.id, requestedBonus);
     }
+    if (promo) {
+      promoRedemptionId = crypto.randomUUID();
+      reservePromo(promo.code, promoRedemptionId, { subtotal, customerKey });
+    }
     const payable = total - requestedBonus + deliveryCharge;
     const order = addOrder({
       customer: {
@@ -366,7 +379,14 @@ export async function submitOrder(payload: {
       },
       items,
       total: payable,
-      ...(promo ? { promo } : {}),
+      ...(promo ? {
+        promo: {
+          ...promo,
+          redemptionId: promoRedemptionId,
+          customerKey,
+          redemptionActive: true,
+        },
+      } : {}),
       ...(bonusReservation ? {
         bonus: { spent: requestedBonus, transactionId: bonusReservation.id },
       } : {}),
@@ -374,6 +394,7 @@ export async function submitOrder(payload: {
       ...(payload.pay ? { paymentRequested: true } : {}),
       ...(delivery ? { delivery } : {}),
     });
+    promoAttached = Boolean(promoRedemptionId);
     if (bonusReservation) {
       bonusAttached = true;
       try {
@@ -384,9 +405,6 @@ export async function submitOrder(payload: {
         console.error(`Заказ ${order.id}: не удалось подписать бонусную операцию`, error);
       }
     }
-
-    // Активацию списываем после сохранения заказа — код применён.
-    if (promo) redeemPromo(promo.code, customerKey);
 
     /*
       Для WhatsApp-заявки письмо отправляем сразу и не задерживаем покупателя
@@ -447,9 +465,18 @@ export async function submitOrder(payload: {
     if (bonusReservation && !bonusAttached) {
       releaseBonusReservation(bonusReservation);
     }
+    if (promo?.code && promoRedemptionId && !promoAttached) {
+      releasePromo(promo.code, promoRedemptionId);
+    }
     // Для WhatsApp клиент всё равно сможет отправить состав менеджеру. Для
     // онлайн-оплаты показываем ошибку и не начинаем платёж без локальной записи.
-    console.error("Не удалось сохранить заказ:", e);
-    return { ok: false, error: "Не получилось сохранить заказ на сайте." };
+    return {
+      ok: false,
+      error: messageFor(
+        e,
+        "Не получилось сохранить заказ на сайте.",
+        "Не удалось сохранить заказ",
+      ),
+    };
   }
 }

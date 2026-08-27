@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { SITE_URL } from "@/lib/site-url";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,14 @@ export const metadata: Metadata = {
       "Сабвуферы, усилители и эстрадная акустика MOMO. Гарантия 12 месяцев, 24 месяца при авторизованной установке.",
     type: "website",
     locale: "ru_RU",
+    url: "/",
+    images: [DEFAULT_SOCIAL_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MOMO — автоакустика и аксессуары",
+    description: "Сабвуферы, усилители и эстрадная акустика MOMO и ZEUS.",
+    images: [DEFAULT_SOCIAL_IMAGE.url],
   },
   // Невидимая метка версии: по ней снаружи видно, какая сборка развёрнута.
   // Правка данных и пустой коммит не меняют бандлы, и без метки выкат

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ANALYTICS_CONSENT_EVENT, ANALYTICS_CONSENT_KEY } from "@/lib/metrika";
 
 /*
   Уведомление о файлах cookie (152-ФЗ). Сама политика cookie уже есть в
@@ -13,14 +14,12 @@ import Link from "next/link";
   вспышку баннера до гидратации. Поэтому первый кадр пустой, а решение о показе
   принимается после монтирования.
 */
-const KEY = "momo-cookie-consent";
-
 export function CookieNotice() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem(KEY)) setShow(true);
+      if (!localStorage.getItem(ANALYTICS_CONSENT_KEY)) setShow(true);
     } catch {
       // Приватный режим/недоступное хранилище — не навязываемся.
     }
@@ -28,10 +27,19 @@ export function CookieNotice() {
 
   function accept() {
     try {
-      localStorage.setItem(KEY, "1");
+      localStorage.setItem(ANALYTICS_CONSENT_KEY, "accepted");
     } catch {
       // Не удалось сохранить — просто закрываем на эту сессию.
     }
+    window.dispatchEvent(new Event(ANALYTICS_CONSENT_EVENT));
+    setShow(false);
+  }
+
+  function decline() {
+    try {
+      localStorage.setItem(ANALYTICS_CONSENT_KEY, "declined");
+    } catch {}
+    window.dispatchEvent(new Event(ANALYTICS_CONSENT_EVENT));
     setShow(false);
   }
 
@@ -45,8 +53,8 @@ export function CookieNotice() {
     >
       <p className="text-[0.82rem] leading-relaxed text-muted-foreground">
         Сайт использует файлы cookie и сервис веб-аналитики, чтобы магазин
-        работал корректно и становился удобнее. Продолжая пользоваться сайтом, вы
-        соглашаетесь с этим — подробнее в{" "}
+        работал корректно и становился удобнее. Аналитика включится только с
+        вашего согласия — подробнее в{" "}
         <Link
           href="/privacy"
           className="text-[var(--signal-text)] underline underline-offset-2 transition-colors hover:no-underline"
@@ -55,12 +63,20 @@ export function CookieNotice() {
         </Link>
         .
       </p>
-      <button
-        onClick={accept}
-        className="mt-3 inline-flex rounded-sm bg-signal px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
-      >
-        Принять
-      </button>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          onClick={accept}
+          className="inline-flex min-h-11 items-center rounded-sm bg-signal px-5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
+        >
+          Разрешить аналитику
+        </button>
+        <button
+          onClick={decline}
+          className="inline-flex min-h-11 items-center rounded-sm border border-border px-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+        >
+          Только необходимые
+        </button>
+      </div>
     </div>
   );
 }

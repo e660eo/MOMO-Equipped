@@ -156,18 +156,18 @@ function ProductCardImpl({
           {product.brand}
         </span>
         {product.isNew && (
-          <span className="rounded-sm bg-signal px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-white">
+          <span className="rounded-sm bg-signal px-2 py-1 font-mono text-xs uppercase tracking-wide text-white">
             Новинка
           </span>
         )}
         {product.isClearance && (
-          <span className="rounded-sm bg-[var(--signal-text)] px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-white">
+          <span className="rounded-sm bg-[var(--signal-text)] px-2 py-1 font-mono text-xs uppercase tracking-wide text-white">
             Уценка
           </span>
         )}
         {/* «В наличии» на каждой плитке — шум; предупреждаем только про ожидание */}
         {isInStock(product) === false && (
-          <span className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-muted-foreground">
+          <span className="rounded-sm border border-border px-2 py-1 font-mono text-xs uppercase tracking-wide text-muted-foreground">
             Под заказ
           </span>
         )}
@@ -187,7 +187,7 @@ function ProductCardImpl({
           {specs.map((s) => (
             <span
               key={s}
-              className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[0.62rem] tracking-wide text-muted-foreground"
+              className="rounded-sm border border-border px-2 py-1 font-mono text-xs tracking-wide text-muted-foreground"
             >
               {s}
             </span>

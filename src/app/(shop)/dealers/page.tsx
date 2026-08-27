@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DealerLocator } from "@/components/dealer-locator";
 import { getDealerLocations } from "@/lib/dealers";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
 // Администратор меняет адреса и статусы без новой сборки сайта.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Купить рядом — официальная сеть MOMO и ZEUS",
-  description: "Официальные дилеры и представители MOMO и ZEUS по городам России: адреса, телефоны и авторизованные установочные центры.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Купить рядом — официальная сеть MOMO и ZEUS",
+  "Официальные дилеры и представители MOMO и ZEUS по городам России: адреса, телефоны и авторизованные установочные центры.",
+  "/dealers",
+);
 
 export default function DealersPage() {
   const dealers = getDealerLocations(true);

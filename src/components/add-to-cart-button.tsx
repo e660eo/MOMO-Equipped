@@ -4,6 +4,7 @@ import { useCart } from "@/lib/cart-store";
 import { isInStock, stockLimit } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
 
 /*
   Кнопка покупки.
@@ -67,6 +68,7 @@ export function AddToCartButton({
           image: product.image,
           ...(limit !== null ? { stock: limit } : {}),
         });
+        reachMetrikaGoal(METRIKA_GOALS.addToCart, { product: product.slug });
       }}
       title={
         reachedLimit

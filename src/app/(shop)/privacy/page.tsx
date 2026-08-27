@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/lib/data";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Политика конфиденциальности",
-  description:
-    "Политика обработки персональных данных ИП Махмудов З.Ф. (магазин MOMO): какие данные собираем, зачем, как храним и как отозвать согласие.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Политика конфиденциальности",
+  "Политика обработки персональных данных ИП Махмудов З.Ф. (магазин MOMO): какие данные собираем, зачем, как храним и как отозвать согласие.",
+  "/privacy",
+);
 
 // Дата редакции показывается в шапке и в тексте согласия. Менять при правках политики.
 const REVISION = "21 июля 2026 года";

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig, formatPrice } from "@/lib/data";
+import { publicPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Публичная оферта",
-  description:
-    "Договор розничной купли-продажи интернет-магазина MOMO (ИП Махмудов З.Ф.): оформление заказа, цена и оплата, доставка через Ozon, возврат и гарантия.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "Публичная оферта",
+  "Договор розничной купли-продажи интернет-магазина MOMO (ИП Махмудов З.Ф.): оформление заказа, цена и оплата, доставка через Ozon, возврат и гарантия.",
+  "/offer",
+);
 
 // Дата редакции. Менять при правках оферты.
 const REVISION = "27 июля 2026 года";
