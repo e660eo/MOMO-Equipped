@@ -1,5 +1,6 @@
 import type { Product } from "./types";
 import { isInStock } from "./format";
+import { buildAutomaticRecommendation } from "./audio-compatibility";
 
 export type AudioGoal = "balanced" | "loud" | "bass";
 export type SpeakerSize = "130" | "165" | "200" | "unknown";
@@ -13,7 +14,13 @@ export interface AudioBuilderSelection {
 export type AudioBuilderProduct = Pick<
   Product,
   "slug" | "title" | "price" | "image" | "inStock" | "stock"
->;
+> & Partial<Pick<Product, "category" | "description">>;
+
+export interface AudioTechnicalCheck {
+  label: string;
+  value: string;
+  status: "ok" | "warning";
+}
 
 export interface AudioBuilderItem {
   role: string;
@@ -31,6 +38,9 @@ export interface AudioBuilderRecommendation {
   isOverBudget: boolean;
   assumedSize: Exclude<SpeakerSize, "unknown">;
   needsSizeCheck: boolean;
+  mode: "automatic" | "curated";
+  confidence: number;
+  technicalChecks: AudioTechnicalCheck[];
 }
 
 interface Preset {
@@ -173,6 +183,9 @@ export function buildAudioRecommendation(
   products: AudioBuilderProduct[],
   selection: AudioBuilderSelection,
 ): AudioBuilderRecommendation | null {
+  const automatic = buildAutomaticRecommendation(products, selection);
+  if (automatic) return automatic;
+
   const assumedSize = selection.size === "unknown" ? "165" : selection.size;
   const productBySlug = new Map(products.map((product) => [product.slug, product]));
 
@@ -208,6 +221,14 @@ export function buildAudioRecommendation(
     isOverBudget: chosen.total > budget,
     assumedSize,
     needsSizeCheck: selection.size === "unknown",
+    mode: "curated",
+    confidence: 68,
+    technicalChecks: [
+      {
+        label: "Режим подбора",
+        value: "Проверенная редакторская сборка — в карточках не хватает данных для полного расчёта",
+        status: "warning",
+      },
+    ],
   };
 }
-

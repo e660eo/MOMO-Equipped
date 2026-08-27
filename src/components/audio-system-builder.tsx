@@ -175,7 +175,10 @@ export function AudioSystemBuilder({
   );
 
   useEffect(() => {
-    if (step > 1) contentRef.current?.focus();
+    if (step > 1 && contentRef.current) {
+      contentRef.current.focus({ preventScroll: true });
+      contentRef.current.scrollIntoView({ block: "start" });
+    }
   }, [step]);
 
   const finish = () => {
@@ -222,14 +225,14 @@ export function AudioSystemBuilder({
       <section className="rounded-2xl border border-border bg-surface p-5 shadow-[0_18px_55px_-38px_rgba(0,0,0,.45)] sm:p-7">
         <StepProgress step={Math.min(step, 3)} />
 
-        <div ref={contentRef} tabIndex={-1} className="mt-8 outline-none">
+        <div ref={contentRef} tabIndex={-1} className="mt-8 scroll-mt-24 outline-none sm:scroll-mt-28">
           {step === 1 && (
             <fieldset>
               <legend className="font-display text-xl font-extrabold uppercase sm:text-2xl">
                 Как должен <span className="text-signal">звучать</span> автомобиль?
               </legend>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Выберите главное. Остальные компоненты мастер подстроит под эту задачу.
+                Выберите главное. Алгоритм сопоставит мощность, сопротивление и каналы усиления.
               </p>
               <div className="mt-6 grid gap-3">
                 {goals.map((option) => {
@@ -381,6 +384,16 @@ export function AudioSystemBuilder({
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {recommendation?.summary ?? "Сейчас в каталоге нет полной готовой комбинации под выбранные параметры. Менеджер соберёт её вручную."}
               </p>
+              {recommendation && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-signal/35 bg-signal/10 px-3 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--signal-text)]">
+                    {recommendation.mode === "automatic" ? "Расчёт по характеристикам" : "Проверенная сборка"}
+                  </span>
+                  <span className="rounded-full border border-border px-3 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.1em] text-muted-foreground">
+                    Данные {recommendation.confidence}%
+                  </span>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setStep(1)}
@@ -393,7 +406,7 @@ export function AudioSystemBuilder({
         </div>
       </section>
 
-      <aside aria-live="polite" className="overflow-hidden rounded-2xl border border-white/10 text-[#f5f3ef] shadow-[0_28px_70px_-40px_rgba(0,0,0,.9)] [background:radial-gradient(100%_100%_at_100%_0%,rgba(255,85,0,.18),transparent_58%),linear-gradient(145deg,#0d0d0f,#1b1b1f)] lg:sticky lg:top-[92px]">
+      <aside className="overflow-hidden rounded-2xl border border-white/10 text-[#f5f3ef] shadow-[0_28px_70px_-40px_rgba(0,0,0,.9)] [background:radial-gradient(100%_100%_at_100%_0%,rgba(255,85,0,.18),transparent_58%),linear-gradient(145deg,#0d0d0f,#1b1b1f)] lg:sticky lg:top-[92px]">
         <div className="border-b border-white/10 p-5 sm:p-7">
           <div className="flex items-center justify-between gap-4">
             <span className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/55">Сигнальная цепь</span>
@@ -405,7 +418,7 @@ export function AudioSystemBuilder({
           <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-white/55">
             {step === 4 && recommendation
               ? "Каждое звено — реальный товар из каталога. Нажмите на модель, чтобы открыть характеристики."
-              : "Ответьте на три вопроса — мастер выстроит путь от источника сигнала до фронта и баса."}
+              : "Ответьте на три вопроса — алгоритм выстроит путь от источника сигнала до фронта и баса."}
           </p>
           <SignalChain
             labels={
@@ -424,6 +437,37 @@ export function AudioSystemBuilder({
                 За основу взят распространённый размер 16 см. Перед покупкой подтвердите посадочное место автомобиля.
               </div>
             )}
+            <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-mono text-[0.6rem] uppercase tracking-[0.15em] text-white/55">
+                  Техническая проверка
+                </p>
+                <span className="font-display text-sm font-bold text-signal">
+                  {recommendation.confidence}%
+                </span>
+              </div>
+              <ul className="mt-3 space-y-3">
+                {recommendation.technicalChecks.map((check) => (
+                  <li key={`${check.label}-${check.value}`} className="flex items-start gap-2.5">
+                    <span
+                      className={cn(
+                        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
+                        check.status === "ok"
+                          ? "bg-emerald-400/15 text-emerald-300"
+                          : "bg-amber-300/15 text-amber-300",
+                      )}
+                    >
+                      {check.status === "ok" ? <Check size={12} strokeWidth={3} /> : <Gauge size={12} />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="sr-only">{check.status === "ok" ? "Проверено: " : "Нужно подтвердить: "}</span>
+                      <span className="block text-xs font-semibold text-white/85">{check.label}</span>
+                      <span className="mt-0.5 block text-[0.7rem] leading-relaxed text-white/45">{check.value}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <ul className="divide-y divide-white/10">
               {recommendation.items.map(({ role, product }) => (
                 <li key={`${role}-${product.slug}`}>
@@ -492,4 +536,3 @@ export function AudioSystemBuilder({
     </div>
   );
 }
-

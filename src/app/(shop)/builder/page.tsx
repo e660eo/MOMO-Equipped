@@ -10,11 +10,13 @@ export const metadata: Metadata = publicPageMetadata(
 );
 
 export default function AudioSystemBuilderPage() {
-  const products = getProducts().map(({ slug, title, price, image, inStock, stock }) => ({
+  const products = getProducts().map(({ slug, title, price, image, category, description, inStock, stock }) => ({
     slug,
     title,
     price,
     image,
+    category,
+    description,
     inStock,
     stock,
   }));
@@ -29,7 +31,7 @@ export default function AudioSystemBuilderPage() {
             Соберите звук <span className="text-signal">под себя</span>
           </h1>
           <p className="mt-5 max-w-[64ch] text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Три вопроса — и вы получите рабочую систему из товаров каталога: акустику, усиление, бас и подключение. Цены и наличие учитываются прямо сейчас.
+            Три вопроса — и алгоритм сопоставит товары каталога по RMS, сопротивлению и каналам усиления. Цены и наличие учитываются прямо сейчас.
           </p>
         </div>
       </section>
@@ -43,4 +45,3 @@ export default function AudioSystemBuilderPage() {
     </main>
   );
 }
-
