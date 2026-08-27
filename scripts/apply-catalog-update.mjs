@@ -7,7 +7,7 @@ const { loadEnvConfig } = nextEnv;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 loadEnvConfig(root);
 
-const UPDATE_ID = "new-arrivals-2026-08-27";
+const UPDATE_ID = "new-arrivals-2026-08-27-order";
 const TARGET_SLUGS = [
   "estradnye-kolonki-20sm-v-mashinu-he-810-916179",
   "dinamiki-estradnye-zeus-mr-8-1-20sm",
@@ -50,18 +50,20 @@ for (const target of targets) {
   );
 
   if (index === -1) {
-    products.unshift(target);
+    products.push(target);
     continue;
   }
 
   // Не теряем живой остаток и поля интеграций, которых нет в seed-товаре.
   // При совпадении по названию сохраняем уже опубликованный URL.
   const existing = products[index];
-  products[index] = {
+  const updated = {
     ...existing,
     ...target,
     slug: existing.slug,
   };
+  products.splice(index, 1);
+  products.push(updated);
 }
 
 const news = fs.existsSync(newsFile)
