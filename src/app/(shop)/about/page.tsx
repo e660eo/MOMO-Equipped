@@ -6,7 +6,7 @@ import { siteConfig, getBrands, getProducts } from "@/lib/data";
 export const metadata: Metadata = {
   title: "О компании",
   description:
-    "Modern Original Music Organization — автозвук из Махачкалы с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
+    "Modern Original Music Organization — российский производитель автомобильной акустики MOMO и ZEUS. В автозвуке с 2015 года. Стандартная гарантия 12 месяцев, расширенная — 24 месяца при установке в авторизованном центре.",
   alternates: { canonical: "/about" },
 };
 
@@ -45,8 +45,8 @@ export default function AboutPage() {
       <div className="mt-8 grid items-start gap-10 md:grid-cols-[1.4fr_1fr]">
         <div className="space-y-5 text-[1.02rem] leading-relaxed text-muted-foreground">
           <p>
-            Modern Original Music Organization — производитель автомобильной акустики MOMO и ZEUS
-            из Махачкалы. Мы занимаемся автозвуком с 2015 года: разрабатываем
+            Modern Original Music Organization — российский производитель автомобильной
+            акустики MOMO и ZEUS. Мы занимаемся автозвуком с 2015 года: разрабатываем
             оборудование, собираем комплекты под конкретные машины и бюджеты и
             отвечаем за качество гарантией.
           </p>
