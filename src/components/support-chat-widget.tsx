@@ -156,7 +156,7 @@ export function SupportChatWidget() {
         <section
           role="dialog"
           aria-label="Поддержка MOMO"
-          className="fixed bottom-[5.25rem] right-3 z-[140] flex h-[min(620px,calc(100dvh-6.5rem))] w-[calc(100vw-1.5rem)] max-w-[390px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:right-5"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_5.5rem)] right-3 z-[140] flex h-[min(620px,calc(100dvh_-_env(safe-area-inset-top)_-_7rem))] w-[calc(100vw-1.5rem)] max-w-[390px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:right-5"
         >
           <header className="relative overflow-hidden bg-[#141416] px-5 py-4 text-white">
             <div className="pointer-events-none absolute -right-9 -top-11 h-32 w-32 rounded-full border-[18px] border-[#ff5500]/20" />
@@ -296,7 +296,7 @@ export function SupportChatWidget() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label={open ? "Закрыть поддержку" : "Открыть поддержку"}
-        className="fixed bottom-4 right-3 z-[130] inline-flex h-14 items-center gap-3 rounded-full border border-white/10 bg-[#141416] px-4 text-white shadow-[0_12px_34px_rgba(20,20,22,0.32)] transition hover:-translate-y-0.5 hover:border-[#ff5500]/60 sm:right-5"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_0.75rem)] right-3 z-[130] inline-flex h-14 items-center gap-3 rounded-full border border-white/10 bg-[#141416] px-3 text-white shadow-[0_12px_34px_rgba(20,20,22,0.32)] transition hover:-translate-y-0.5 hover:border-[#ff5500]/60 min-[380px]:px-4 sm:right-5"
       >
         <span className="relative grid h-8 w-8 place-items-center rounded-full bg-[#ff5500]">
           <MessageCircle size={17} />
@@ -304,7 +304,7 @@ export function SupportChatWidget() {
             <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-[#141416] bg-white" />
           )}
         </span>
-        <span className="pr-1 text-sm font-semibold">Поддержка</span>
+        <span className="hidden pr-1 text-sm font-semibold min-[380px]:inline">Поддержка</span>
       </button>
     </>
   );

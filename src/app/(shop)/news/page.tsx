@@ -13,7 +13,7 @@ export const metadata: Metadata = publicPageMetadata(
 export default function NewsPage() {
   const news = getNews();
   return (
-    <main className="mx-auto max-w-[1200px] px-6 py-14">
+    <main className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
       <h1 className="font-display text-[clamp(1.8rem,3.4vw,2.6rem)] font-extrabold uppercase">
         Новости
       </h1>

@@ -356,6 +356,104 @@ body {
 }
 
 /*
+  Базовая мобильная страховка. Контент не должен расширять viewport из-за
+  длинного артикула, ссылки, изображения или flex-ребёнка. clip, в отличие
+  от hidden, не создаёт отдельную область прокрутки и не ломает sticky.
+*/
+html {
+  max-width: 100%;
+  overflow-x: clip;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  overflow-wrap: anywhere;
+}
+
+:where(img, video, canvas, svg) {
+  max-width: 100%;
+}
+
+:where(button, a, input, select, textarea) {
+  touch-action: manipulation;
+}
+
+:where(input, select, textarea) {
+  min-width: 0;
+}
+
+/* Safari не приближает страницу при фокусе на поле меньше 16px. */
+@media (max-width: 639px) {
+  :where(input, select, textarea) {
+    font-size: 16px !important;
+  }
+
+  .admin-scope :where(input, select, textarea, button) {
+    min-height: 44px;
+  }
+
+  /* Широкие рабочие таблицы остаются доступными, но прокручиваются как
+     отдельная аккуратная дорожка от края до края, а не раздвигают страницу. */
+  .admin-scope .overflow-x-auto {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 1rem;
+    scrollbar-width: thin;
+  }
+
+  .admin-scope .responsive-data-table,
+  .admin-scope .responsive-data-table tbody,
+  .admin-scope .responsive-data-table tr,
+  .admin-scope .responsive-data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-scope .responsive-data-table thead { display: none; }
+
+  .admin-scope .responsive-data-table .responsive-record {
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--surface);
+  }
+
+  .admin-scope .responsive-data-table .responsive-record > td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 0.42fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .admin-scope .responsive-data-table .responsive-record > td:last-child { border-bottom: 0; }
+
+  .admin-scope .responsive-data-table .responsive-record > td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .admin-scope .responsive-data-table .responsive-expanded > td {
+    display: block;
+    margin: -0.35rem 0 0.9rem;
+    padding: 0.75rem 0;
+    border: 0;
+  }
+}
+
+/*
   Смена темы: на один кадр глушим все переходы и анимации.
   Иначе переключатель заставляет браузер анимировать background, color и
   border-color разом по всему дереву — см. комментарий в theme-toggle.tsx.

@@ -200,7 +200,7 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
                 </button>
               ))}
             </div>
-            <label className="grid min-w-[210px] gap-1.5 text-xs font-semibold text-black/60">
+            <label className="grid w-full min-w-0 gap-1.5 text-xs font-semibold text-black/60 sm:w-auto sm:min-w-[210px]">
               Сортировка
               <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="h-11 rounded-xl border border-black/10 bg-[#f7f7f7] px-3 text-sm outline-none focus:border-[#ff5500]">
                 <option value="default">Сначала актуальные</option>
@@ -288,7 +288,7 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
       </aside>
 
       {selected.length > 0 && (
-        <a href="#dealer-order-summary" className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-40 flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-[#111214] px-4 text-white shadow-2xl shadow-black/25 xl:hidden">
+        <a href="#dealer-order-summary" className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)_+_5.25rem)] z-40 flex min-h-14 items-center justify-between gap-3 rounded-2xl bg-[#111214] px-4 text-white shadow-2xl shadow-black/25 sm:inset-x-4 xl:hidden">
           <span><b className="block text-sm">{selected.length} поз. · {totalUnits} шт.</b><span className="text-[0.68rem] text-white/45">Открыть заказ</span></span>
           <strong className="text-lg">{formatPrice(total)}</strong>
         </a>

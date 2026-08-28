@@ -68,7 +68,7 @@ export default async function NewsItemPage({
   const others = news.filter((n) => n.slug !== item.slug).slice(0, 2);
 
   return (
-    <main className="mx-auto max-w-[760px] px-6 py-14">
+    <main className="mx-auto max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
       {full && <JsonLd data={articleSchema(item)} />}
 
       <nav className="mb-8 flex gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground">

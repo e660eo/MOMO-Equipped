@@ -73,7 +73,7 @@ export function SiteFooter() {
 
   return (
     <footer className="relative overflow-hidden text-[#f5f3ef] [background:radial-gradient(110%_150%_at_88%_8%,rgba(255,85,0,0.2),transparent_58%),linear-gradient(115deg,#0d0d0f_0%,#1b1b1f_62%,#232327_100%)]">
-      <div className="mx-auto max-w-[1200px] px-6 pb-10 pt-16">
+      <div className="mx-auto max-w-[1200px] px-4 pb-[calc(env(safe-area-inset-bottom)_+_6rem)] pt-12 sm:px-6 sm:pb-10 sm:pt-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.15fr]">
           {/* Логотип и адрес */}
           <div>

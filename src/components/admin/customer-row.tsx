@@ -72,8 +72,8 @@ export function CustomerRow({
 
   return (
     <>
-      <tr className="admin-row border-b border-border">
-        <td className="py-3 pr-3 font-medium">
+      <tr className="responsive-record admin-row border-b border-border">
+        <td data-label="Покупатель" className="py-3 pr-3 font-medium">
           {customer.name}
           {customer.address && (
             <span className="block text-[0.75rem] font-normal text-muted-foreground">
@@ -81,7 +81,7 @@ export function CustomerRow({
             </span>
           )}
         </td>
-        <td className="py-3 pr-3 text-muted-foreground">
+        <td data-label="Контакты" className="py-3 pr-3 text-muted-foreground">
           <a
             href={`tel:${customer.phone.replace(/[^+\d]/g, "")}`}
             className="hover:text-signal"
@@ -90,16 +90,16 @@ export function CustomerRow({
           </a>
           <span className="block text-[0.75rem]">{customer.email}</span>
         </td>
-        <td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
+        <td data-label="Был" className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
           {fmtDate(customer.createdAt)}
         </td>
-        <td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
+        <td data-label="Регистрация" className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
           {fmtDate(customer.lastLoginAt)}
         </td>
-        <td className="py-3 pr-3 text-right font-semibold tabular-nums text-signal">
+        <td data-label="Бонусы" className="py-3 pr-3 text-right font-semibold tabular-nums text-signal">
           {customer.bonusBalance}
         </td>
-        <td className="py-3 pr-3 text-right">
+        <td data-label="Действия" className="py-3 pr-3 text-right">
           {count > 0 ? (
             <button
               type="button"
@@ -113,16 +113,16 @@ export function CustomerRow({
             <span className="text-muted-foreground">0</span>
           )}
         </td>
-        <td className="py-3 pr-3 text-right font-medium">
+        <td data-label="Куплено на" className="py-3 pr-3 text-right font-medium">
           {spent > 0 ? formatPrice(spent) : "—"}
         </td>
-        <td className="py-3 pr-3 text-right">
+        <td data-label="Заказы" className="py-3 pr-3 text-right">
           <div className="flex items-center justify-end gap-3"><button type="button" onClick={() => setOpen((value) => !value)} className="font-medium text-signal">{open ? "Закрыть" : "Карточка"}</button><ResetPasswordButton customerId={customer.id} name={customer.name} /></div>
         </td>
       </tr>
 
       {open && (
-        <tr className="border-b border-border">
+        <tr className="responsive-expanded border-b border-border">
           <td colSpan={8} className="bg-bg/40 px-3 py-4">
             <BonusEditor customer={customer} history={bonusHistory} />
             <form action={saveCustomerAdmin} className="mb-4 grid gap-3 rounded-xl border border-border bg-surface p-4 md:grid-cols-2">

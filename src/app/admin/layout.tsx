@@ -41,7 +41,7 @@ export default async function AdminLayout({
   return (
     <div className="admin-scope min-h-screen overflow-x-hidden bg-bg text-foreground">
       <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-8 gap-y-3 px-5 py-3.5">
+        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:gap-x-8 sm:gap-y-3 sm:px-5 sm:py-3.5">
           <Link href="/admin" className="font-display text-sm font-extrabold uppercase tracking-tight">
             MOMO · панель
           </Link>
@@ -49,7 +49,7 @@ export default async function AdminLayout({
             newOrders={countNewOrders()}
             newMessages={countWaitingSupportConversations()}
           />
-          <div className="ml-auto flex items-center gap-4 text-[0.8rem]">
+          <div className="flex w-full items-center justify-between gap-2 text-[0.8rem] sm:ml-auto sm:w-auto sm:justify-start sm:gap-4">
             <div className="flex items-center gap-2">
               <span className="hidden text-muted-foreground sm:inline">Тема</span>
               <ThemeToggle />
@@ -72,7 +72,7 @@ export default async function AdminLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-[1200px] px-5 py-8">{children}</main>
+      <main className="mx-auto max-w-[1200px] px-4 py-5 sm:px-5 sm:py-8">{children}</main>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export default async function ResetPasswordPage({
   const { token = "" } = await searchParams;
 
   return (
-    <main className="mx-auto max-w-[420px] px-6 py-16">
+    <main className="mx-auto max-w-[420px] px-4 py-12 sm:px-6 sm:py-16">
       <h1 className="font-display text-[clamp(1.5rem,3vw,2rem)] font-extrabold uppercase leading-tight">
         Новый пароль
       </h1>

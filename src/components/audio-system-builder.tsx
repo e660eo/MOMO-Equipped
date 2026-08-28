@@ -275,7 +275,7 @@ export function AudioSystemBuilder({
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 Речь о штатном посадочном месте в передних дверях. Если сомневаетесь — так и отметьте.
               </p>
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-6 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                 {sizes.map((option) => (
                   <OptionButton
                     key={option.value}
@@ -288,7 +288,7 @@ export function AudioSystemBuilder({
                   </OptionButton>
                 ))}
               </div>
-              <div className="mt-6 grid grid-cols-[auto_1fr] gap-3">
+              <div className="mt-6 grid grid-cols-1 gap-3 min-[380px]:grid-cols-[auto_1fr]">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
@@ -356,7 +356,7 @@ export function AudioSystemBuilder({
                 <ShieldCheck size={16} className="mt-0.5 shrink-0 text-signal" />
                 Если точная система не помещается, покажем ближайший рабочий вариант и разницу в цене.
               </div>
-              <div className="mt-6 grid grid-cols-[auto_1fr] gap-3">
+              <div className="mt-6 grid grid-cols-1 gap-3 min-[380px]:grid-cols-[auto_1fr]">
                 <button
                   type="button"
                   onClick={() => setStep(2)}

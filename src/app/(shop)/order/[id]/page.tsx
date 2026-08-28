@@ -56,7 +56,7 @@ export default async function OrderStatusPage({
 
   if (!order || !allowed) {
     return (
-      <main className="mx-auto max-w-[560px] px-6 py-20">
+      <main className="mx-auto max-w-[560px] px-4 py-12 sm:px-6 sm:py-20">
         <h1 className="font-display text-2xl font-extrabold uppercase">
           Заказ не найден
         </h1>
@@ -107,7 +107,7 @@ export default async function OrderStatusPage({
   const sum = formatPrice(order.payment?.amount ?? order.total);
 
   return (
-    <main className="mx-auto max-w-[560px] px-6 py-20">
+    <main className="mx-auto max-w-[560px] px-4 py-12 sm:px-6 sm:py-20">
       {paid ? (
         <>
           <MetrikaGoal

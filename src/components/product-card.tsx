@@ -13,7 +13,7 @@ import { CompareToggle } from "./compare-toggle";
 import { YandexSplitBadge } from "./yandex-split-badge";
 
 const CARD_IMAGE_SIZES =
-  "(max-width: 639px) calc(50vw - 28px), (max-width: 1023px) calc(33vw - 28px), 256px";
+  "(max-width: 379px) calc(100vw - 32px), (max-width: 639px) calc(50vw - 24px), (max-width: 1023px) calc(33vw - 28px), 256px";
 
 /*
   Плитка товара.
@@ -108,7 +108,7 @@ function ProductCardImpl({
       onPointerEnter={onEnter}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="spotlight-card product-tile group flex flex-col overflow-hidden rounded border border-border bg-surface p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow)]"
+      className="spotlight-card product-tile group flex min-w-0 flex-col overflow-hidden rounded border border-border bg-surface p-3 transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow)] sm:p-3.5"
     >
       <Link
         href={`/product/${product.slug}`}
@@ -151,7 +151,7 @@ function ProductCardImpl({
         )}
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5 sm:mt-4 sm:gap-2">
         <span className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
           {product.brand}
         </span>
@@ -176,7 +176,7 @@ function ProductCardImpl({
 
       <Link href={`/product/${product.slug}`} className="mt-1.5">
         {/* min-h-11 вместо 2.8em: та же высота в две строки, но не меньше 44px */}
-        <h3 className="min-h-11 text-[0.92rem] font-medium leading-snug transition-colors group-hover:text-signal">
+        <h3 className="min-h-11 break-words text-[0.92rem] font-medium leading-snug transition-colors group-hover:text-signal">
           {product.title}
         </h3>
       </Link>

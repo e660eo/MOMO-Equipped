@@ -55,7 +55,7 @@ export default function OfferPage() {
       : `${trust.processingDays} рабочих дней`;
 
   return (
-    <main className="mx-auto max-w-[840px] px-6 py-14">
+    <main className="mx-auto max-w-[840px] px-4 py-10 sm:px-6 sm:py-14">
       <p className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         Договор розничной купли-продажи · публичная оферта
       </p>

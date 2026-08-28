@@ -53,7 +53,7 @@ export default function PrivacyPage() {
   const { contacts, requisites: r } = siteConfig;
 
   return (
-    <main className="mx-auto max-w-[840px] px-6 py-14">
+    <main className="mx-auto max-w-[840px] px-4 py-10 sm:px-6 sm:py-14">
       <p className="font-label text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         Обработка персональных данных · 152-ФЗ
       </p>

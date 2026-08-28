@@ -91,7 +91,7 @@ export default async function ProductPage({
   ];
 
   return (
-    <main className="mx-auto max-w-[1200px] px-6 py-12">
+    <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-12">
       <MetrikaGoal
         goal={METRIKA_GOALS.productView}
         dedupeKey={product.slug}
@@ -100,7 +100,7 @@ export default async function ProductPage({
       <JsonLd data={productSchema(product, category, reviews)} />
       <JsonLd data={breadcrumbSchema(crumbs)} />
       {/* Хлебные крошки */}
-      <nav className="mb-8 flex flex-wrap gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground">
+      <nav className="mb-6 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[0.68rem] uppercase tracking-wider text-muted-foreground sm:mb-8 sm:text-[0.72rem]">
         <Link href="/" className="hover:text-signal">
           Главная
         </Link>
@@ -128,7 +128,7 @@ export default async function ProductPage({
         </div>
 
         {/* Инфо */}
-        <div>
+          <div className="min-w-0">
           <div className="flex items-center gap-3">
             <Link
               href={brandLandingPath(product.brand)}
@@ -179,19 +179,19 @@ export default async function ProductPage({
             className="mt-6"
           />
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 grid gap-3 min-[430px]:grid-cols-2 sm:flex sm:flex-wrap">
             <AddToCartButton product={product} size="lg" />
             {isListeningStandProduct(product) && (
               <Link
                 href="/listening-stand"
-                className="inline-flex items-center gap-2 rounded-sm border border-border px-6 py-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-border px-5 py-3.5 text-center text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
               >
                 <Headphones size={17} /> Слушать в стенде
               </Link>
             )}
             <a
               href={siteConfig.contacts.whatsapp}
-              className="inline-flex items-center rounded-sm border border-border px-8 py-4 text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
+              className="inline-flex min-h-12 items-center justify-center rounded-sm border border-border px-5 py-3.5 text-center text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
             >
               Задать вопрос
             </a>
@@ -201,7 +201,7 @@ export default async function ProductPage({
           {stats.length > 0 && (
             <div
               className={`mt-8 grid gap-3 border-t border-border pt-6 ${
-                stats.length === 1 ? "grid-cols-1" : stats.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                stats.length === 1 ? "grid-cols-1" : stats.length === 2 ? "grid-cols-2" : "grid-cols-2 min-[430px]:grid-cols-3"
               }`}
             >
               {stats.map((s) => (
@@ -236,12 +236,12 @@ export default async function ProductPage({
                   ) : (
                     <div
                       key={s.label + s.value}
-                      className="flex items-baseline justify-between gap-6 py-2.5"
+                      className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 py-2.5"
                     >
                       <dt className="text-[0.85rem] text-muted-foreground">
                         {s.label}
                       </dt>
-                      <dd className="text-right font-mono text-[0.85rem] font-medium">
+                      <dd className="max-w-[48vw] break-words text-right font-mono text-[0.85rem] font-medium sm:max-w-none">
                         {s.value}
                       </dd>
                     </div>
@@ -271,12 +271,12 @@ export default async function ProductPage({
           )}
 
           {/* Гарантии */}
-          <div className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6 text-center">
-            <div>
+          <div className="mt-8 grid grid-cols-1 divide-y divide-border border-t border-border pt-3 text-center min-[430px]:grid-cols-3 min-[430px]:divide-x min-[430px]:divide-y-0">
+            <div className="py-3 min-[430px]:px-2">
               <p className="font-display text-sm font-semibold">Доставка</p>
               <p className="mt-1 text-xs text-muted-foreground">По России</p>
             </div>
-            <div>
+            <div className="py-3 min-[430px]:px-2">
               <p className="font-display text-sm font-semibold">Гарантия</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {siteConfig.trust.warrantyMonths} мес. стандартная
@@ -284,7 +284,7 @@ export default async function ProductPage({
                 {siteConfig.trust.extendedWarrantyMonths} мес. с авторизованной установкой
               </p>
             </div>
-            <div>
+            <div className="py-3 min-[430px]:px-2">
               <p className="font-display text-sm font-semibold">Возврат</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {siteConfig.trust.returnDays} дней
@@ -316,7 +316,7 @@ export default async function ProductPage({
               </Link>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 sm:gap-5 md:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.slug} product={p} />
             ))}

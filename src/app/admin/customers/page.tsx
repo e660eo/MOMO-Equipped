@@ -108,7 +108,7 @@ export default async function AdminCustomersPage({
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-[0.85rem]">
+          <table className="responsive-data-table w-full min-w-0 border-collapse text-[0.85rem] md:min-w-[720px]">
             <thead>
               <tr className="border-b border-border text-left text-[0.72rem] uppercase tracking-wider text-muted-foreground">
                 <th className="py-2.5 pr-3 font-medium">Покупатель</th>

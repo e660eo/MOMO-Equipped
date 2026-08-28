@@ -49,7 +49,7 @@ export function CookieNotice() {
     <div
       role="region"
       aria-label="Уведомление об использовании файлов cookie"
-      className="fixed bottom-3 left-3 right-[5.5rem] z-40 rounded-xl border border-border bg-surface p-4 shadow-[var(--card-shadow)] sm:right-auto sm:max-w-sm"
+      className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_5.25rem)] left-3 right-3 z-50 max-h-[calc(100dvh_-_env(safe-area-inset-top)_-_6.5rem)] overflow-y-auto rounded-xl border border-border bg-surface p-4 shadow-[var(--card-shadow)] sm:bottom-3 sm:right-auto sm:max-h-none sm:max-w-sm"
     >
       <p className="text-[0.82rem] leading-relaxed text-muted-foreground">
         Сайт использует файлы cookie и сервис веб-аналитики, чтобы магазин

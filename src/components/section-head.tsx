@@ -12,8 +12,8 @@ export function SectionHead({
   linkLabel?: string;
 }) {
   return (
-    <div className="mb-11 flex items-end justify-between gap-5">
-      <div>
+    <div className="mb-8 flex flex-col items-start gap-2 sm:mb-11 sm:flex-row sm:items-end sm:justify-between sm:gap-5">
+      <div className="min-w-0">
         {eyebrow && (
           <p className="mb-2.5 inline-flex items-center gap-2.5 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground before:h-px before:w-6 before:bg-signal before:content-['']">
             {eyebrow}
@@ -27,7 +27,7 @@ export function SectionHead({
         <Link
           href={linkHref}
           // min-h-11 — область нажатия пальцем; строка в 19px для этого мала
-          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap font-mono text-[0.78rem] uppercase tracking-wider text-muted-foreground transition-colors hover:text-signal"
+          className="inline-flex min-h-11 max-w-full items-center font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground transition-colors hover:text-signal sm:shrink-0 sm:whitespace-nowrap sm:text-[0.78rem]"
         >
           {linkLabel}
         </Link>

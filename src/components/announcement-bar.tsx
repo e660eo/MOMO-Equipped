@@ -29,7 +29,7 @@ export function AnnouncementBar() {
 
   return (
     <div className="relative overflow-hidden bg-black text-white">
-      <div className="relative z-10 mx-auto flex h-10 max-w-[1200px] items-center justify-between gap-4 px-6 text-[0.8rem] font-semibold">
+      <div className="relative z-10 mx-auto flex h-10 max-w-[1200px] items-center justify-between gap-3 px-4 text-[0.75rem] font-semibold sm:px-6 sm:text-[0.8rem]">
         {/* Ротация сообщений */}
         <div className="relative h-5 flex-1 overflow-hidden">
           {items.map((it, i) => {
@@ -39,14 +39,14 @@ export function AnnouncementBar() {
                 key={i}
                 aria-hidden={i !== index}
                 className={cn(
-                  "absolute inset-0 flex items-center gap-2 whitespace-nowrap transition-all duration-500 ease-out",
+                  "absolute inset-0 flex min-w-0 items-center gap-2 transition-all duration-500 ease-out",
                   i === index
                     ? "translate-y-0 opacity-100"
                     : "pointer-events-none -translate-y-full opacity-0",
                 )}
               >
-                <Icon size={15} strokeWidth={2.4} className="text-signal" />
-                {it.text}
+                <Icon size={15} strokeWidth={2.4} className="shrink-0 text-signal" />
+                <span className="truncate">{it.text}</span>
               </span>
             );
           })}

@@ -122,7 +122,7 @@ export function SeoCatalogLanding({
           </Link>
         </div>
 
-        <div className="mt-7 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-7 grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {shown.map((product, index) => (
             <ProductCard
               key={product.slug}

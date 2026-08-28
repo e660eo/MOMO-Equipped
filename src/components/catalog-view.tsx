@@ -811,7 +811,7 @@ export function CatalogView({
               */}
               <div
                 className={cn(
-                  "grid grid-cols-2 gap-5 transition-opacity duration-200 md:grid-cols-3",
+                  "grid grid-cols-1 gap-4 transition-opacity duration-200 min-[380px]:grid-cols-2 sm:gap-5 md:grid-cols-3",
                   pending && "opacity-60",
                 )}
               >

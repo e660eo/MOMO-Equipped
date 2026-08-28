@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { SITE_URL } from "@/lib/site-url";
 import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo-metadata";
@@ -34,6 +34,17 @@ export const metadata: Metadata = {
     "build-revision": process.env.BUILD_REVISION ?? "unknown",
     "build-time": process.env.BUILD_TIME ?? "unknown",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f5f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
+  ],
 };
 
 /*

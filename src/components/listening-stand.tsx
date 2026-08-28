@@ -150,7 +150,7 @@ export function ListeningStand({ products }: { products: Product[] }) {
         </div>
 
         {filtered.length ? (
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-3 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
             {filtered.map((product) => {
               const active = selected.slug === product.slug;
               const recorded = hasPublishedListeningAudio(product);
@@ -331,7 +331,7 @@ export function ListeningStand({ products }: { products: Product[] }) {
             </p>
           )}
 
-          <div className="mt-5 grid grid-cols-2 gap-2">
+          <div className="mt-5 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
             <Link
               href={`/product/${selected.slug}`}
               className="inline-flex min-h-11 items-center justify-center rounded-sm border border-white/15 px-3 text-[0.75rem] font-semibold transition hover:border-signal hover:text-signal"

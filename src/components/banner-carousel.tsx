@@ -144,8 +144,8 @@ function BannerSlide({
       className={cn(
         "relative w-full shrink-0 snap-start overflow-hidden",
         artwork
-          ? "aspect-[16/7] min-h-[180px] sm:min-h-0"
-          : "min-h-[560px] sm:min-h-[440px] lg:aspect-[7/2] lg:min-h-[360px]",
+          ? "aspect-[16/7] min-h-[160px] sm:min-h-0"
+          : "min-h-[500px] sm:min-h-[440px] lg:aspect-[7/2] lg:min-h-[360px]",
         theme.article,
       )}
       style={artwork && artworkRatio ? { aspectRatio: artworkRatio } : undefined}
@@ -187,7 +187,7 @@ function BannerSlide({
       {hasCopy && (
         <div
           className={cn(
-            "relative z-20 flex h-full max-w-[660px] flex-col items-start px-6 pb-[285px] pt-12 sm:justify-center sm:px-14 sm:py-12 lg:px-16",
+            "relative z-20 flex h-full max-w-[660px] flex-col items-start px-5 pb-[250px] pt-10 sm:justify-center sm:px-14 sm:py-12 lg:px-16",
             banner.mediaFit === "cover" && "pb-28 sm:pb-12",
             contentOnRight && "sm:ml-auto sm:items-end sm:text-right",
           )}

@@ -559,9 +559,9 @@ export function CartPageClient() {
               {items.map((i) => (
                 <li
                   key={i.slug}
-                  className="grid grid-cols-[64px_1fr_auto] items-center gap-3.5 border-b border-border py-3.5"
+                  className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-border py-3.5 min-[430px]:grid-cols-[64px_minmax(0,1fr)_auto] min-[430px]:gap-3.5"
                 >
-                  <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-sm border border-border bg-tile">
+                  <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-sm border border-border bg-tile min-[430px]:h-16 min-[430px]:w-16">
                     <ProductImage
                       src={productImageUrl(i.image)}
                       alt=""
@@ -569,7 +569,7 @@ export function CartPageClient() {
                       className="h-[85%] w-[85%] object-contain mix-blend-multiply"
                     />
                   </span>
-                  <span>
+                  <span className="min-w-0">
                     <span className="block text-[0.84rem] font-medium leading-snug">
                       {i.title}
                     </span>
@@ -609,7 +609,7 @@ export function CartPageClient() {
                       </button>
                     </span>
                   </span>
-                  <span className="font-display text-sm font-semibold">
+                  <span className="col-start-2 justify-self-end whitespace-nowrap font-display text-sm font-semibold min-[430px]:col-auto">
                     {formatPrice(i.price * i.qty)}
                   </span>
                 </li>

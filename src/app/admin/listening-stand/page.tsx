@@ -42,7 +42,15 @@ export default function AdminListeningStandPage() {
         ))}
       </div>
 
-      <div className="mt-7 overflow-hidden rounded-xl border border-border bg-surface">
+      <div className="mt-7 grid gap-3 md:hidden">
+        {products.map((product) => {
+          const ready = hasPublishedListeningAudio(product);
+          const hasAudio = Boolean(product.listening?.audio);
+          const scoreCount = [product.listening?.highs, product.listening?.mids, product.listening?.lows, product.listening?.volume].filter((value) => value !== undefined).length;
+          return <article key={`mobile-${product.slug}`} className="rounded-xl border border-border bg-surface p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><b className="block font-semibold">{product.title}</b><span className="text-xs text-muted-foreground">{product.brand}</span></div><Link href={`/admin/products/${product.slug}`} className="inline-flex min-h-11 shrink-0 items-center font-semibold text-signal">Настроить</Link></div><div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-sm"><span className={`inline-flex items-center gap-1.5 ${ready ? "text-signal" : "text-muted-foreground"}`}>{ready ? <Headphones size={14} /> : <Music2 size={14} />}{ready ? "Опубликована" : hasAudio ? "Черновик" : "Не загружена"}</span><span className="text-muted-foreground">Оценки {scoreCount}/4</span></div></article>;
+        })}
+      </div>
+      <div className="mt-7 hidden overflow-hidden rounded-xl border border-border bg-surface md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] text-left text-[0.8rem]">
             <thead className="border-b border-border bg-tile text-[0.68rem] uppercase tracking-wider text-muted-foreground">

@@ -144,7 +144,7 @@ export default function Home() {
 
         {/* ticker */}
         <div className="border-t border-border">
-          <div className="mx-auto flex max-w-[1200px] flex-wrap justify-between gap-x-8 gap-y-3 px-6 py-4 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="mx-auto grid max-w-[1200px] gap-2 px-4 py-4 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-muted-foreground sm:flex sm:flex-wrap sm:justify-between sm:gap-x-8 sm:gap-y-3 sm:px-6 sm:text-xs sm:tracking-[0.16em]">
             <span>
               гарантия{" "}
               <b className="font-medium text-foreground">
@@ -175,8 +175,8 @@ export default function Home() {
       )}
 
       {/* CATALOG — редакторская bento-сетка категорий */}
-      <section className="py-20">
-        <Reveal className="mx-auto max-w-[1200px] px-6">
+      <section className="py-14 sm:py-20">
+        <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
           <SectionHead
             eyebrow={`${categories.length} ${plural(categories.length, "категория", "категории", "категорий")} · ${products.length} ${plural(products.length, "позиция", "позиции", "позиций")}`}
             title="Каталог"
@@ -259,8 +259,8 @@ export default function Home() {
 
       {/* NEW ARRIVALS */}
       {newProducts.length > 0 && (
-        <section className="py-20">
-          <Reveal className="mx-auto max-w-[1200px] px-6">
+        <section className="py-14 sm:py-20">
+          <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <SectionHead
               eyebrow="Уже на складе"
               title="Новинки MOMO"
@@ -277,8 +277,8 @@ export default function Home() {
       )}
 
       {/* FLAGSHIP */}
-      <section className="border-t border-border bg-surface py-20">
-        <Reveal className="mx-auto max-w-[1200px] px-6">
+      <section className="border-t border-border bg-surface py-14 sm:py-20">
+        <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
           <SectionHead
             eyebrow="Старшие модели · линейка MOMO"
             title="Флагманы MOMO"
@@ -294,8 +294,8 @@ export default function Home() {
       </section>
 
       {/* BUNDLES — готовые сборки */}
-      <section className="border-t border-border bg-surface py-20">
-        <Reveal className="mx-auto max-w-[1200px] px-6">
+      <section className="border-t border-border bg-surface py-14 sm:py-20">
+        <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
           <SectionHead
             eyebrow="Собрано и проверено"
             title="Готовые сборки"
@@ -316,8 +316,8 @@ export default function Home() {
       </section>
 
       {/* MANIFEST + CONTACT */}
-      <section className="border-y border-border bg-surface py-20">
-        <Reveal className="mx-auto grid max-w-[1200px] items-center gap-14 px-6 md:grid-cols-[1.05fr_0.95fr]">
+      <section className="border-y border-border bg-surface py-14 sm:py-20">
+        <Reveal className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 sm:px-6 md:grid-cols-[1.05fr_0.95fr] md:gap-14">
           <div>
             <p className="mb-2.5 inline-flex items-center gap-2.5 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground before:h-px before:w-6 before:bg-signal before:content-['']">
               Манифест
@@ -340,7 +340,7 @@ export default function Home() {
 
           {/* Сигнальная карточка консультации — тёмная в обеих темах,
               в градиентном языке баннера «Сплит 0%» */}
-          <div className="relative overflow-hidden rounded-xl border border-white/10 p-8 text-[#f5f3ef] [background:radial-gradient(120%_180%_at_85%_15%,rgba(255,85,0,0.22),transparent_55%),linear-gradient(115deg,#101012_0%,#1b1b1f_60%,#232327_100%)]">
+          <div className="relative overflow-hidden rounded-xl border border-white/10 p-5 text-[#f5f3ef] sm:p-8 [background:radial-gradient(120%_180%_at_85%_15%,rgba(255,85,0,0.22),transparent_55%),linear-gradient(115deg,#101012_0%,#1b1b1f_60%,#232327_100%)]">
             {/* фирменная волна — призрачная текстура */}
             <svg
               aria-hidden
@@ -408,8 +408,8 @@ export default function Home() {
       </section>
 
       {/* NEWS */}
-      <section className="py-20">
-        <Reveal className="mx-auto max-w-[1200px] px-6">
+      <section className="py-14 sm:py-20">
+        <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
           <SectionHead
             eyebrow="Журнал MOMO"
             title="Новости"

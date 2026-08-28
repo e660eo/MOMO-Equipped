@@ -15,7 +15,7 @@ export default function SalePage() {
   const products = getClearanceProducts();
 
   return (
-    <main className="mx-auto max-w-[1200px] px-6 py-14">
+    <main className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
       {/* Хлебные крошки */}
       <nav className="mb-8 flex flex-wrap gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-muted-foreground">
         <Link href="/" className="hover:text-signal">
@@ -64,7 +64,7 @@ export default function SalePage() {
       {products.length > 0 ? (
         <section className="mt-10">
           <h2 className="sr-only">Товары со скидкой</h2>
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p, index) => (
               <ProductCard key={p.slug} product={p} priority={index === 0} />
             ))}
