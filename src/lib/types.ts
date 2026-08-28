@@ -505,6 +505,7 @@ export interface DealerApplication {
   comment?: string;
   status: DealerApplicationStatus;
   note?: string;
+  archivedAt?: string;
 }
 
 export type DealerOrderStatus = "new" | "confirmed" | "shipped" | "done" | "canceled";

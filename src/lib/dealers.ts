@@ -164,6 +164,10 @@ export function getDealerApplications(): DealerApplication[] {
   return readJson<DealerApplication[]>(APPLICATIONS).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+export function getDealerApplication(id: string): DealerApplication | undefined {
+  return readJson<DealerApplication[]>(APPLICATIONS).find((application) => application.id === id);
+}
+
 export function addDealerApplication(
   input: Omit<DealerApplication, "id" | "createdAt" | "status">,
 ): DealerApplication {
@@ -186,6 +190,33 @@ export function updateDealerApplication(
   updateJson<DealerApplication[]>(APPLICATIONS, (all) =>
     all.map((application) => application.id === id ? { ...application, ...patch } : application),
   );
+}
+
+export function setDealerApplicationArchived(
+  id: string,
+  archived: boolean,
+): DealerApplication | undefined {
+  assertWritable();
+  let updated: DealerApplication | undefined;
+  updateJson<DealerApplication[]>(APPLICATIONS, (all) => all.map((application) => {
+    if (application.id !== id) return application;
+    updated = {
+      ...application,
+      archivedAt: archived ? new Date().toISOString() : undefined,
+    };
+    return updated;
+  }));
+  return updated;
+}
+
+export function deleteDealerApplication(id: string): DealerApplication | undefined {
+  assertWritable();
+  const application = getDealerApplication(id);
+  if (!application) return undefined;
+  updateJson<DealerApplication[]>(APPLICATIONS, (all) =>
+    all.filter((item) => item.id !== id),
+  );
+  return application;
 }
 
 function inviteDigest(token: string): string {

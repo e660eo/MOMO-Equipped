@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Building2, FileCheck2, Package, Pencil, UserPlus } from "lucide-react";
+import { Building2, Package, Pencil, UserPlus } from "lucide-react";
 import { DealerCreateForm, type DealerCreateInitial } from "@/components/admin/dealer-create-form";
+import { DealerApplicationsPanel } from "@/components/admin/dealer-applications-panel";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireSession } from "@/lib/admin-auth";
 import { b2bPriceCounts, DEALER_PRICE_TIER_LABELS, getB2BPriceBook } from "@/lib/b2b-prices";
@@ -13,11 +14,9 @@ import {
 import { formatPrice } from "@/lib/format";
 import { getSiteConfig } from "@/lib/data";
 import { getDealerAccounts, getDealerApplications, getDealerLocation, getDealerLocations, getDealerOrders } from "@/lib/dealers";
-import { deleteDealerAction, enableAndSendDealerAccess, resendDealerInvite, setDealerApplicationStatus, setDealerLocationVisibility, setDealerOrderStatus, setDealerTerms } from "./actions";
+import { deleteDealerAction, enableAndSendDealerAccess, resendDealerInvite, setDealerLocationVisibility, setDealerOrderStatus, setDealerTerms } from "./actions";
 
-const APP_LABELS = { new: "Новая", in_work: "В работе", approved: "Одобрена", rejected: "Отклонена" } as const;
 const ORDER_LABELS = { new: "Новый", confirmed: "Подтверждён", shipped: "Отгружен", done: "Выполнен", canceled: "Отменён" } as const;
-const BUSINESS_LABELS = { store: "Магазин", install: "Студия установки", online: "Интернет-магазин", mixed: "Несколько направлений" } as const;
 
 export default async function AdminDealersPage({ searchParams }: { searchParams: Promise<{ application?: string }> }) {
   await requireSession();
@@ -29,13 +28,14 @@ export default async function AdminDealersPage({ searchParams }: { searchParams:
   const { yandexMapsApiKey = "" } = getSiteConfig();
   const priceCounts = b2bPriceCounts(priceBook);
   const params = await searchParams;
-  const selected = applications.find((item) => item.id === params.application);
+  const selected = applications.find((item) => item.id === params.application && !item.archivedAt);
   const initial: DealerCreateInitial | undefined = selected ? { applicationId: selected.id, name: selected.company, city: selected.city, phone: selected.phone, contactName: selected.contactName, loginEmail: selected.email, website: selected.website } : undefined;
   const inputClass = "h-9 rounded-md border border-border bg-white px-2 text-xs";
 
-  return <div><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.15em] text-signal">B2B</p><h1 className="mt-1 font-display text-3xl font-extrabold uppercase">Дилеры</h1><p className="mt-2 text-sm text-muted-foreground">Заявки, доступы, закрытые прайсы и дилерские заказы.</p>{priceBook.updatedAt && <p className="mt-2 text-xs text-muted-foreground">Прайсы обновлены {new Date(priceBook.updatedAt).toLocaleDateString("ru-RU")} · дилер {priceCounts.dealer} · Дагестан {priceCounts.dagestan} · опт {priceCounts.wholesale}</p>}</div><div className="flex gap-2 text-xs"><span className="rounded-full bg-signal/10 px-3 py-1.5 font-bold text-signal">{applications.filter((item) => item.status === "new").length} новых заявок</span><span className="rounded-full bg-black/5 px-3 py-1.5 font-bold">{orders.filter((item) => item.status === "new").length} новых заказов</span></div></div>
+  return <div><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.15em] text-signal">B2B</p><h1 className="mt-1 font-display text-3xl font-extrabold uppercase">Дилеры</h1><p className="mt-2 text-sm text-muted-foreground">Заявки, доступы, закрытые прайсы и дилерские заказы.</p>{priceBook.updatedAt && <p className="mt-2 text-xs text-muted-foreground">Прайсы обновлены {new Date(priceBook.updatedAt).toLocaleDateString("ru-RU")} · дилер {priceCounts.dealer} · Дагестан {priceCounts.dagestan} · опт {priceCounts.wholesale}</p>}</div><div className="flex gap-2 text-xs"><span className="rounded-full bg-signal/10 px-3 py-1.5 font-bold text-signal">{applications.filter((item) => item.status === "new" && !item.archivedAt).length} новых заявок</span><span className="rounded-full bg-black/5 px-3 py-1.5 font-bold">{orders.filter((item) => item.status === "new").length} новых заказов</span></div></div>
     <div className="mt-7 grid gap-5 lg:grid-cols-2"><section id="create" className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"><div className="flex items-center gap-3"><UserPlus className="text-signal" size={21} /><div><h2 className="font-display text-lg font-extrabold uppercase">Создать дилера</h2><p className="text-xs text-muted-foreground">Назначьте прайс; скидка от РРЦ останется запасным правилом.</p></div></div>{selected && <p className="mt-4 rounded-lg bg-signal/8 px-3 py-2 text-xs text-signal">Форма заполнена из заявки «{selected.company}».</p>}<DealerCreateForm key={initial?.applicationId ?? "blank"} initial={initial} yandexMapsApiKey={yandexMapsApiKey} /></section>
-      <section className="rounded-xl border border-border bg-surface p-5"><div className="flex items-center gap-3"><FileCheck2 className="text-signal" size={21} /><div><h2 className="font-display text-lg font-extrabold uppercase">Заявки</h2><p className="text-xs text-muted-foreground">{applications.length || "Пока нет"}</p></div></div><div className="mt-5 max-h-[660px] space-y-3 overflow-auto pr-1">{applications.map((application) => <article key={application.id} className="rounded-lg border border-border p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wider text-signal">{BUSINESS_LABELS[application.businessType]}</p><h3 className="mt-1 font-bold">{application.company}</h3><p className="mt-1 text-xs text-muted-foreground">{application.city} · {application.contactName}</p><p className="mt-2 text-xs"><a className="hover:text-signal" href={`tel:${application.phone}`}>{application.phone}</a> · <a className="hover:text-signal" href={`mailto:${application.email}`}>{application.email}</a></p></div><span className="rounded-full bg-black/5 px-2 py-1 text-[10px] font-bold">{APP_LABELS[application.status]}</span></div>{application.comment && <p className="mt-3 rounded-md bg-black/[.025] p-2 text-xs leading-5 text-muted-foreground">{application.comment}</p>}<div className="mt-3 flex flex-wrap items-center gap-2"><Link href={`/admin/dealers?application=${application.id}#create`} className="rounded-md bg-signal px-3 py-2 text-xs font-bold text-white">Одобрить и создать</Link><form action={setDealerApplicationStatus} className="flex flex-1 gap-2"><input type="hidden" name="id" value={application.id} /><select className={`${inputClass} min-w-0 flex-1`} name="status" defaultValue={application.status}><option value="new">Новая</option><option value="in_work">В работе</option><option value="approved">Одобрена</option><option value="rejected">Отклонена</option></select><button className="rounded-md border border-border px-3 text-xs font-bold">Сохранить</button></form></div></article>)}{!applications.length && <p className="rounded-lg bg-black/[.025] p-6 text-center text-sm text-muted-foreground">Новые заявки со страницы «Стать дилером» появятся здесь.</p>}</div></section></div>
+      <DealerApplicationsPanel applications={applications} />
+    </div>
 
     <section className="mt-5 rounded-xl border border-border bg-surface p-5">
       <div className="flex items-center gap-3">

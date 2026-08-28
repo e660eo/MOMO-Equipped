@@ -11,12 +11,15 @@ import {
 import { sendDealerInvite, sendDealerPasswordReset } from "@/lib/dealer-mail";
 import {
   createDealer,
+  deleteDealerApplication,
   deleteDealer,
   findDealerAccount,
   getDealerAccounts,
+  getDealerApplication,
   getDealerLocation,
   issueDealerInvite,
   recordDealerAccessMail,
+  setDealerApplicationArchived,
   setDealerLocationActive,
   setDealerLocationProfile,
   updateDealerAccountProfile,
@@ -272,6 +275,60 @@ export async function setDealerApplicationStatus(formData: FormData): Promise<vo
   const note = text(formData, "note", 500);
   updateDealerApplication(id, { status, ...(note ? { note } : {}) });
   audit({ entity: "dealer", entityId: id, action: "application_status", summary: `Статус дилерской заявки: ${status}` });
+  revalidatePath("/admin/dealers");
+}
+
+export async function archiveDealerApplicationAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const before = getDealerApplication(id);
+  if (!before || before.archivedAt) return;
+  const after = setDealerApplicationArchived(id, true);
+  if (!after) return;
+  audit({
+    entity: "dealer",
+    entityId: id,
+    action: "application_archived",
+    summary: `Заявка ${after.company} перемещена в архив`,
+    before: { archivedAt: before.archivedAt },
+    after: { archivedAt: after.archivedAt },
+  });
+  revalidatePath("/admin/dealers");
+}
+
+export async function restoreDealerApplicationAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const before = getDealerApplication(id);
+  if (!before?.archivedAt) return;
+  const after = setDealerApplicationArchived(id, false);
+  if (!after) return;
+  audit({
+    entity: "dealer",
+    entityId: id,
+    action: "application_restored",
+    summary: `Заявка ${after.company} восстановлена из архива`,
+    before: { archivedAt: before.archivedAt },
+    after: { archivedAt: after.archivedAt },
+  });
+  revalidatePath("/admin/dealers");
+}
+
+export async function deleteDealerApplicationAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = text(formData, "id", 80);
+  const before = getDealerApplication(id);
+  // Удалять можно только из архива: это защищает рабочие заявки от случайного удаления.
+  if (!before?.archivedAt) return;
+  const deleted = deleteDealerApplication(id);
+  if (!deleted) return;
+  audit({
+    entity: "dealer",
+    entityId: id,
+    action: "application_deleted",
+    summary: `Окончательно удалена заявка ${deleted.company}`,
+    before: deleted,
+  });
   revalidatePath("/admin/dealers");
 }
 
