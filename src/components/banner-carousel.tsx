@@ -254,9 +254,7 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
   const [interactionPaused, setInteractionPaused] = useState(false);
-  const [manualPaused, setManualPaused] = useState(false);
   const count = banners.length;
-  const paused = interactionPaused || manualPaused;
 
   const goTo = useCallback(
     (index: number) => {
@@ -277,7 +275,7 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
   }, [count, current]);
 
   useEffect(() => {
-    if (paused || count <= 1 || prefersReducedMotion()) return;
+    if (interactionPaused || count <= 1 || prefersReducedMotion()) return;
     const timer = window.setInterval(() => {
       setCurrent((active) => {
         const next = (active + 1) % count;
@@ -287,7 +285,7 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
       });
     }, 7000);
     return () => window.clearInterval(timer);
-  }, [count, paused]);
+  }, [count, interactionPaused]);
 
   if (count === 0) return null;
 
@@ -346,15 +344,6 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
             className="absolute right-3 top-1/2 z-40 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/55 text-xl text-white shadow-lg backdrop-blur-sm transition-[background-color,transform] hover:scale-105 hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal sm:inline-flex"
           >
             →
-          </button>
-          <button
-            type="button"
-            onClick={() => setManualPaused((value) => !value)}
-            aria-label={manualPaused ? "Запустить смену баннеров" : "Остановить смену баннеров"}
-            aria-pressed={manualPaused}
-            className="absolute right-4 top-4 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          >
-            {manualPaused ? <Play size={17} /> : <Pause size={17} />}
           </button>
           <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-black/65 px-3 py-2 shadow-lg backdrop-blur-sm">
             {banners.map((banner, index) => (
