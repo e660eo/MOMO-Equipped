@@ -136,6 +136,24 @@ interface StoredSelection {
 }
 
 const selections = new Map<string, StoredSelection>();
+const MAX_PENDING_SELECTIONS = 2_000;
+
+function pruneExpiredSelections(now = Date.now()): void {
+  for (const [token, selection] of selections) {
+    if (selection.expiresAt < now) selections.delete(token);
+  }
+}
+
+function makeRoomForSelection(): void {
+  pruneExpiredSelections();
+  // Map хранит ключи в порядке вставки: при атаке с меняющихся адресов
+  // жертвуем самыми старыми расчётами, но не позволяем памяти расти без границ.
+  while (selections.size >= MAX_PENDING_SELECTIONS) {
+    const oldest = selections.keys().next().value;
+    if (oldest === undefined) break;
+    selections.delete(oldest);
+  }
+}
 const OZON_DELIVERY_THRESHOLD = siteConfig.trust.freeShippingFrom;
 export const OZON_DELIVERY_SURCHARGE = 300;
 
@@ -482,6 +500,7 @@ export async function quoteOzonPickup(input: {
   const to = splits.map((split) => split.deliveryMethod.logisticTo).sort().at(-1);
   const customerPrice = ozonDeliveryCharge(lines);
   const token = crypto.randomUUID();
+  makeRoomForSelection();
   selections.set(token, {
     expiresAt: Date.now() + SELECTION_TTL_MS,
     phone,
@@ -509,6 +528,7 @@ export function consumeOzonSelection(
   phone: string,
   items: OrderItem[],
 ): OrderDelivery {
+  pruneExpiredSelections();
   const selection = selections.get(token);
   selections.delete(token);
   if (!selection || selection.expiresAt < Date.now()) {

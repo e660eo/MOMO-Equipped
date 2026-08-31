@@ -95,6 +95,7 @@ function noteFailure(ip: string): void {
   пока не шлём. Задача здесь другая: не пускать в файл мусор и простыни.
 */
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@.]+(\.[^\s@.]+)+$/;
+const MIN_PASSWORD_LENGTH = 8;
 
 export async function signUp(input: {
   name: string;
@@ -115,6 +116,11 @@ export async function signUp(input: {
     };
   }
 
+  // Считаем каждую регистрацию, а не только дубликаты. Иначе бот с новой
+  // почтой и телефоном на каждом запросе никогда не достигал лимита, хотя
+  // каждая успешная попытка выполняет scrypt, пишет JSON и ставит письмо в очередь.
+  noteFailure(ip);
+
   const name = typeof input.name === "string" ? input.name.trim().slice(0, 100) : "";
   const email = typeof input.email === "string" ? input.email.trim().slice(0, 120) : "";
   const phone = typeof input.phone === "string" ? input.phone.trim().slice(0, 30) : "";
@@ -125,8 +131,8 @@ export async function signUp(input: {
   if (phone.replace(/\D/g, "").length < 11) {
     return { ok: false, error: "Проверьте телефон." };
   }
-  if (password.length < 8) {
-    return { ok: false, error: "Пароль — от восьми символов." };
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, error: `Пароль — от ${MIN_PASSWORD_LENGTH} символов.` };
   }
   // Потолок на пароль: scrypt считает тем дольше, чем он длиннее, и
   // мегабайтная строка на входе — это способ занять сервер надолго.
@@ -137,9 +143,6 @@ export async function signUp(input: {
   try {
     const result = registerCustomer({ name, email, phone, password });
     if (!result.ok) {
-      // Занятая почта или телефон — тоже повод притормозить перебор:
-      // иначе форма превращается в проверку «есть ли такой клиент».
-      noteFailure(ip);
       return result;
     }
     await startCustomerSession(result.customer.id);
@@ -396,8 +399,8 @@ export async function resetPassword(
       error: "Ссылка недействительна или истекла. Запросите сброс заново.",
     };
   }
-  if (typeof password !== "string" || password.length < 6) {
-    return { ok: false, error: "Пароль — от шести символов." };
+  if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, error: `Пароль — от ${MIN_PASSWORD_LENGTH} символов.` };
   }
   if (password.length > 200) {
     return { ok: false, error: "Пароль слишком длинный." };

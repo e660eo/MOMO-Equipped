@@ -75,6 +75,44 @@ function bundleOrderItem(bundle: ResolvedBundle, qty: number): OrderItem {
   };
 }
 
+/*
+  Карта, поиск адреса и расчёт ПВЗ обращаются к внешним API от имени магазина.
+  Отдельный лимит не смешиваем с лимитом создания заказов: обычное движение
+  по карте не должно лишать покупателя возможности оформить корзину.
+*/
+const OZON_REQUEST_WINDOW_MS = 10 * 60 * 1000;
+const MAX_OZON_REQUESTS = 180;
+const MAX_OZON_CLIENTS = 5_000;
+const recentOzonRequests = new Map<string, number[]>();
+
+function tooManyOzonRequestsFrom(ip: string): boolean {
+  const now = Date.now();
+  const active = (recentOzonRequests.get(ip) ?? []).filter(
+    (time) => now - time < OZON_REQUEST_WINDOW_MS,
+  );
+
+  if (!recentOzonRequests.has(ip) && recentOzonRequests.size >= MAX_OZON_CLIENTS) {
+    for (const [trackedIp, times] of recentOzonRequests) {
+      if (times.every((time) => now - time >= OZON_REQUEST_WINDOW_MS)) {
+        recentOzonRequests.delete(trackedIp);
+      }
+    }
+    while (recentOzonRequests.size >= MAX_OZON_CLIENTS) {
+      const oldest = recentOzonRequests.keys().next().value;
+      if (oldest === undefined) break;
+      recentOzonRequests.delete(oldest);
+    }
+  }
+
+  if (active.length >= MAX_OZON_REQUESTS) return true;
+  recentOzonRequests.set(ip, [...active, now]);
+  return false;
+}
+
+async function ozonRequestAllowed(): Promise<boolean> {
+  return !tooManyOzonRequestsFrom(await clientIp());
+}
+
 export async function loadOzonPickupMap(payload: {
   viewport: OzonMapViewport;
   zoom: number;
@@ -82,6 +120,9 @@ export async function loadOzonPickupMap(payload: {
   | { ok: true; area: OzonMapArea }
   | { ok: false; error: string }
 > {
+  if (!(await ozonRequestAllowed())) {
+    return { ok: false, error: "Слишком много запросов к карте. Подождите несколько минут." };
+  }
   try {
     const area = await getOzonMapArea(payload.viewport, payload.zoom);
     return { ok: true, area };
@@ -95,6 +136,9 @@ export async function searchPickupPlace(query: string): Promise<
   | { ok: true; places: PublicPlaceResult[] }
   | { ok: false; error: string }
 > {
+  if (!(await ozonRequestAllowed())) {
+    return { ok: false, error: "Слишком много запросов к поиску. Подождите несколько минут." };
+  }
   try {
     const places = await searchRussianPlaces(query);
     return places.length
@@ -114,6 +158,9 @@ export async function selectOzonPickup(payload: {
   | { ok: true; delivery: OzonDeliverySelection }
   | { ok: false; error: string }
 > {
+  if (!(await ozonRequestAllowed())) {
+    return { ok: false, error: "Слишком много расчётов доставки. Подождите несколько минут." };
+  }
   try {
     const delivery = await quoteOzonPickup(payload);
     return { ok: true, delivery };
