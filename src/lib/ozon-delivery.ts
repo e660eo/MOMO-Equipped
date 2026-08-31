@@ -357,18 +357,13 @@ function ozonDeliveryCharge(lines: CatalogLine[]): number {
   return subtotal < OZON_DELIVERY_THRESHOLD ? OZON_DELIVERY_SURCHARGE : 0;
 }
 
-function validSplits(body: CheckoutResponse, lines: CatalogLine[]): {
+export function validSplits(body: CheckoutResponse, lines: CatalogLine[]): {
   splits: OzonDeliverySplit[];
   missing: CatalogLine[];
   syncCandidates: CatalogLine[];
 } {
   const bySku = new Map(lines.map((line) => [line.sku, line]));
   const splits: OzonDeliverySplit[] = [];
-  const mentionedByOzon = new Set(
-    (body.splits ?? []).flatMap((split) =>
-      (split.items ?? []).flatMap((item) => (item.sku ? [item.sku] : [])),
-    ),
-  );
   for (const split of body.splits ?? []) {
     const method = split.delivery_method;
     const timeslot = method?.timeslots?.find(
@@ -424,10 +419,11 @@ function validSplits(body: CheckoutResponse, lines: CatalogLine[]): {
   return {
     splits,
     missing,
-    // Если Ozon уже вернул товар в недоступном маршруте, проблема не в
-    // остатке (например, конкретный ПВЗ не принимает такой груз). Обновлять
-    // склад в этом случае бессмысленно и только расходует лимит API.
-    syncCandidates: missing.filter((line) => !mentionedByOzon.has(line.sku)),
+    // Ozon включает товар с нулевым FBS-остатком в недоступный split. Поэтому
+    // сам факт, что SKU упомянут в ответе, не означает ограничение ПВЗ:
+    // каждый отсутствующий в готовом маршруте товар надо сверить со складом
+    // MOMO и при необходимости опубликовать его остаток.
+    syncCandidates: missing,
   };
 }
 
