@@ -9,6 +9,7 @@ import type {
 } from "./types";
 import { orderGoodsFactor } from "./order-totals";
 import { syncOzonStocks } from "./ozon-stock";
+import { orderItemsForFulfillment } from "./bundle-cart";
 
 const API = "https://api-seller.ozon.ru";
 const MAX_POINT_DETAILS = 100;
@@ -516,7 +517,9 @@ export function consumeOzonSelection(
   if (selection.phone !== cleanPhone(phone)) {
     throw new Error("После расчёта доставки изменился телефон — выберите ПВЗ ещё раз.");
   }
-  const wanted = new Map(items.map((item) => [item.slug, item.qty]));
+  const wanted = new Map(
+    orderItemsForFulfillment(items).map((item) => [item.slug, item.qty]),
+  );
   if (
     selection.lines.length !== wanted.size ||
     selection.lines.some((line) => wanted.get(line.slug) !== line.quantity)
@@ -563,7 +566,9 @@ export async function createOzonShipment(order: Order): Promise<OrderCreateRespo
   }
   const person = nameParts(order.customer.name);
   const phone = cleanPhone(order.customer.phone);
-  const bySlug = new Map(order.items.map((item) => [item.slug, item]));
+  const bySlug = new Map(
+    orderItemsForFulfillment(order.items).map((item) => [item.slug, item]),
+  );
   const factor = orderGoodsFactor(order);
 
   const response = await ozonPost<OrderCreateResponse>("/v2/order/create", {

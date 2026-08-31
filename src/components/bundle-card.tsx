@@ -5,11 +5,12 @@ import { Package, Plus } from "lucide-react";
 import type { ResolvedBundle } from "@/lib/types";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
+import { bundleCartSlug } from "@/lib/bundle-cart";
 import { ProductImage } from "./product-image";
 import { YandexSplitBadge } from "./yandex-split-badge";
 
 export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
-  const addMany = useCart((s) => s.addMany);
+  const addBundle = useCart((s) => s.addBundle);
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-surface p-6 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-signal/60 hover:shadow-[0_18px_50px_-24px_rgba(255,85,0,0.45)]">
@@ -86,18 +87,25 @@ export function BundleCard({ bundle }: { bundle: ResolvedBundle }) {
 
         <button
           onClick={() =>
-            addMany(
-              bundle.products.map((p) => ({
-                slug: p.slug,
-                title: p.title,
-                price: p.price,
-                image: p.image,
-              })),
-              {
-                title: "Сборка добавлена",
-                description: `${bundle.title} — ${bundle.products.length} товара`,
+            addBundle({
+              slug: bundleCartSlug(bundle.slug),
+              title: `Комплект «${bundle.title}»`,
+              price: bundle.price,
+              image: bundle.products[0]?.image ?? "",
+              bundle: {
+                slug: bundle.slug,
+                title: bundle.title,
+                discountPercent: bundle.discountPercent,
+                fullPrice: bundle.fullPrice,
+                saving: bundle.saving,
+                items: bundle.products.map((product) => ({
+                  slug: product.slug,
+                  title: product.title,
+                  price: product.price,
+                  image: product.image,
+                })),
               },
-            )
+            })
           }
           className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-sm bg-signal px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#ff6a1f] hover:shadow-[0_6px_28px_rgba(255,85,0,0.35)]"
         >

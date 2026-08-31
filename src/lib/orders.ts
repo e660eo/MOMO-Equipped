@@ -14,6 +14,7 @@ import { audit } from "./audit-log";
 import { reconcileOrderBonus } from "./bonus-ledger";
 import { ExpectedError } from "./errors";
 import { releasePromo, reservePromo } from "./promos";
+import { orderItemsForFulfillment } from "./bundle-cart";
 
 export { STATUS_LABELS } from "./order-status";
 
@@ -203,8 +204,9 @@ function adjustProductStock(items: OrderItem[], sign: 1 | -1): number {
   let changed = 0;
   updateJson<Product[]>("products.json", (all) => {
     const bySlug = new Map(all.map((p) => [p.slug, p]));
+    const fulfillmentItems = orderItemsForFulfillment(items);
     if (sign === -1) {
-      for (const item of items) {
+      for (const item of fulfillmentItems) {
         const product = bySlug.get(item.slug);
         if (typeof product?.stock !== "number") continue;
         if (product.stock < item.qty) {
@@ -214,7 +216,7 @@ function adjustProductStock(items: OrderItem[], sign: 1 | -1): number {
         }
       }
     }
-    for (const item of items) {
+    for (const item of fulfillmentItems) {
       const p = bySlug.get(item.slug);
       if (!p || typeof p.stock !== "number") continue;
       p.stock += sign * item.qty;

@@ -5,7 +5,7 @@ import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment, updateOrder } from "@/lib/orders";
 import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
-import { getProducts } from "@/lib/data";
+import { getBundles, getProducts, getRawBundles } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
 import { messageFor } from "@/lib/errors";
@@ -35,6 +35,45 @@ import {
   type OzonMapViewport,
   type OzonDeliverySelection,
 } from "@/lib/ozon-delivery";
+import {
+  bundleCartSlug,
+  bundleSlugFromCart,
+  orderItemsForFulfillment,
+} from "@/lib/bundle-cart";
+import type { ResolvedBundle } from "@/lib/types";
+
+function bundleOrderItem(bundle: ResolvedBundle, qty: number): OrderItem {
+  const grouped = new Map<
+    string,
+    { slug: string; title: string; price: number; qty: number }
+  >();
+  for (const product of bundle.products) {
+    const current = grouped.get(product.slug);
+    if (current) current.qty += 1;
+    else {
+      grouped.set(product.slug, {
+        slug: product.slug,
+        title: product.title,
+        price: product.price,
+        qty: 1,
+      });
+    }
+  }
+  return {
+    slug: bundleCartSlug(bundle.slug),
+    title: `Комплект «${bundle.title}»`,
+    price: bundle.price,
+    qty,
+    bundle: {
+      slug: bundle.slug,
+      title: bundle.title,
+      discountPercent: bundle.discountPercent,
+      fullPrice: bundle.fullPrice,
+      saving: bundle.saving,
+      items: [...grouped.values()],
+    },
+  };
+}
 
 export async function loadOzonPickupMap(payload: {
   viewport: OzonMapViewport;
@@ -95,14 +134,20 @@ export async function checkPromo(
 > {
   const products = getProducts();
   const productMap = new Map(products.map((product) => [product.slug, product]));
+  const bundleMap = new Map(getBundles().map((bundle) => [bundle.slug, bundle]));
   const items = requestedItems
     .slice(0, 200)
     .map((item) => {
-      const product = productMap.get(typeof item?.slug === "string" ? item.slug : "");
+      const slug = typeof item?.slug === "string" ? item.slug : "";
+      const product = productMap.get(slug);
+      const bundleSlug = bundleSlugFromCart(slug);
+      const bundle = bundleSlug ? bundleMap.get(bundleSlug) : undefined;
       const qty = Number(item?.qty);
-      return product && Number.isSafeInteger(qty) && qty > 0
-        ? { slug: product.slug, price: product.price, qty: Math.min(qty, 99) }
-        : null;
+      if (!Number.isSafeInteger(qty) || qty <= 0) return null;
+      if (product) {
+        return { slug: product.slug, price: product.price, qty: Math.min(qty, 99) };
+      }
+      return bundle ? bundleOrderItem(bundle, Math.min(qty, 99)) : null;
     })
     .filter((item): item is Pick<OrderItem, "slug" | "price" | "qty"> => item !== null);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -243,6 +288,8 @@ export async function submitOrder(payload: {
   }
 
   const catalog = new Map(getProducts().map((p) => [p.slug, p]));
+  const bundles = new Map(getBundles().map((bundle) => [bundle.slug, bundle]));
+  const rawBundles = new Map(getRawBundles().map((bundle) => [bundle.slug, bundle]));
 
   /*
     Складываем повторы одного товара. Корзина такого не присылает, но
@@ -265,6 +312,42 @@ export async function submitOrder(payload: {
   const items: OrderItem[] = [];
   let missing = false;
   for (const [slug, requested] of wanted) {
+    const requestedBundleSlug = bundleSlugFromCart(slug);
+    if (requestedBundleSlug) {
+      const bundle = bundles.get(requestedBundleSlug);
+      const rawBundle = rawBundles.get(requestedBundleSlug);
+      if (
+        !bundle ||
+        !rawBundle ||
+        bundle.products.length !== rawBundle.items.length ||
+        bundle.products.length === 0
+      ) {
+        missing = true;
+        continue;
+      }
+
+      const counts = new Map<string, number>();
+      for (const product of bundle.products) {
+        counts.set(product.slug, (counts.get(product.slug) ?? 0) + 1);
+      }
+      let cap = MAX_QTY;
+      for (const [productSlug, perBundle] of counts) {
+        const product = catalog.get(productSlug);
+        if (!product || isInStock(product) === false) {
+          cap = 0;
+          break;
+        }
+        const productCap = Math.min(stockLimit(product) ?? MAX_QTY, MAX_QTY);
+        cap = Math.min(cap, Math.floor(productCap / perBundle));
+      }
+      if (cap < 1) {
+        missing = true;
+        continue;
+      }
+      items.push(bundleOrderItem(bundle, Math.max(1, Math.min(requested, cap))));
+      continue;
+    }
+
     const product = catalog.get(slug);
     if (!product) continue; // товар успели снять с витрины
 
@@ -316,6 +399,19 @@ export async function submitOrder(payload: {
       if (discount <= 0) return { ok: false, error: "Промокод не действует на товары в корзине." };
       total = subtotal - discount;
       promo = { code: valid.code, percent: valid.percent, discount };
+    }
+  }
+
+  // Один товар может одновременно входить в комплект и лежать отдельной
+  // строкой. Проверяем общий запрос, а не каждую строку изолированно.
+  for (const line of orderItemsForFulfillment(items)) {
+    const product = catalog.get(line.slug);
+    const cap = product ? Math.min(stockLimit(product) ?? MAX_QTY, MAX_QTY) : 0;
+    if (!product || isInStock(product) === false || line.qty > cap) {
+      return {
+        ok: false,
+        error: `Недостаточно товара «${line.title}» для выбранного количества комплектов.`,
+      };
     }
   }
 

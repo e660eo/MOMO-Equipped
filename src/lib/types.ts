@@ -254,6 +254,24 @@ export interface OrderItem {
   title: string;
   price: number;
   qty: number;
+  /**
+   * Снимок готового комплекта на момент заказа. В корзине и чеке это одна
+   * позиция с пакетной ценой, а состав нужен складу и Ozon для поштучной
+   * отгрузки реальных товаров.
+   */
+  bundle?: {
+    slug: string;
+    title: string;
+    discountPercent: number;
+    fullPrice: number;
+    saving: number;
+    items: Array<{
+      slug: string;
+      title: string;
+      price: number;
+      qty: number;
+    }>;
+  };
 }
 
 export type OrderStatus = "new" | "in_work" | "done" | "canceled";

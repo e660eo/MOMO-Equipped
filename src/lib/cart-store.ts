@@ -16,6 +16,21 @@ export interface CartItem {
    * Не задан — учёта по этому товару нет, ограничения тоже.
    */
   stock?: number;
+  /** Готовый комплект остаётся одной строкой корзины с пакетной ценой. */
+  bundle?: {
+    slug: string;
+    title: string;
+    discountPercent: number;
+    fullPrice: number;
+    saving: number;
+    items: Array<{
+      slug: string;
+      title: string;
+      price: number;
+      image: string;
+      qty?: number;
+    }>;
+  };
 }
 
 interface CartState {
@@ -25,6 +40,7 @@ interface CartState {
     items: Omit<CartItem, "qty">[],
     toast?: { title?: string; description?: string },
   ) => void;
+  addBundle: (item: Omit<CartItem, "qty"> & { bundle: NonNullable<CartItem["bundle"]> }) => void;
   remove: (slug: string) => void;
   setQty: (slug: string, qty: number) => void;
   clear: () => void;
@@ -75,6 +91,51 @@ export const useCart = create<CartState>()(
         useToast.getState().push({
           title: toast?.title ?? "Сборка добавлена в корзину",
           description: toast?.description,
+          actionLabel: "Корзина",
+          onAction: () => useCart.getState().openCart(),
+        });
+      },
+      addBundle: (item) => {
+        set((state) => {
+          /*
+            До появления строки «Комплект» старая кнопка добавляла компоненты
+            по одному. При повторном добавлении снимаем по одной такой позиции,
+            чтобы старая корзина автоматически превратилась в комплект и не
+            задублировала состав.
+          */
+          let next = [...state.items];
+          const required = new Map<string, number>();
+          for (const component of item.bundle.items) {
+            required.set(
+              component.slug,
+              (required.get(component.slug) ?? 0) + Math.max(1, component.qty ?? 1),
+            );
+          }
+          const available = new Map<string, number>();
+          for (const line of next) {
+            if (line.bundle) continue;
+            available.set(line.slug, (available.get(line.slug) ?? 0) + line.qty);
+          }
+          const canConvertLegacy = [...required].every(
+            ([slug, qty]) => (available.get(slug) ?? 0) >= qty,
+          );
+
+          if (canConvertLegacy) {
+            for (const [slug, requiredQty] of required) {
+              let remaining = requiredQty;
+              next = next.flatMap((line) => {
+                if (line.bundle || line.slug !== slug || remaining <= 0) return [line];
+                const consumed = Math.min(line.qty, remaining);
+                remaining -= consumed;
+                return line.qty === consumed ? [] : [{ ...line, qty: line.qty - consumed }];
+              });
+            }
+          }
+          return { items: mergeInto(next, item) };
+        });
+        useToast.getState().push({
+          title: "Комплект добавлен в корзину",
+          description: `${item.bundle.title} · скидка ${item.bundle.discountPercent}%`,
           actionLabel: "Корзина",
           onAction: () => useCart.getState().openCart(),
         });

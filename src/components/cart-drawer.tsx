@@ -14,6 +14,7 @@ import {
   LocateFixed,
   Search,
   Gift,
+  Package,
 } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
@@ -49,6 +50,7 @@ import { cn } from "@/lib/utils";
 import { YandexSplitBadge } from "./yandex-split-badge";
 import type { MapTarget, MapView } from "./ozon-pickup-map";
 import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
+import { cartItemsForFulfillment } from "@/lib/bundle-cart";
 
 const OzonPickupMap = dynamic(
   () => import("./ozon-pickup-map").then((module) => module.OzonPickupMap),
@@ -297,7 +299,7 @@ export function CartPageClient() {
     const result = await selectOzonPickup({
       phone,
       pointId: selectedPoint.id,
-      items: items.map((item) => ({ slug: item.slug, qty: item.qty })),
+      items: cartItemsForFulfillment(items),
     });
     setDeliveryBusy(false);
     if (!result.ok) {
@@ -570,9 +572,20 @@ export function CartPageClient() {
                     />
                   </span>
                   <span className="min-w-0">
+                    {i.bundle && (
+                      <span className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-signal/10 px-2 py-1 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-[var(--signal-text)]">
+                        <Package size={11} aria-hidden="true" />
+                        Комплект · скидка {i.bundle.discountPercent}%
+                      </span>
+                    )}
                     <span className="block text-[0.84rem] font-medium leading-snug">
                       {i.title}
                     </span>
+                    {i.bundle && (
+                      <span className="mt-1 block text-[0.72rem] leading-relaxed text-muted-foreground">
+                        {i.bundle.items.map((item) => item.title).join(" · ")}
+                      </span>
+                    )}
                     {/*
                       Кружки были по 24px — попасть пальцем можно только со
                       второго раза. Видимый размер оставляем прежним, а область
@@ -610,6 +623,11 @@ export function CartPageClient() {
                     </span>
                   </span>
                   <span className="col-start-2 justify-self-end whitespace-nowrap font-display text-sm font-semibold min-[430px]:col-auto">
+                    {i.bundle && (
+                      <span className="mr-2 font-mono text-[0.68rem] font-normal text-muted-foreground line-through">
+                        {formatPrice(i.bundle.fullPrice * i.qty)}
+                      </span>
+                    )}
                     {formatPrice(i.price * i.qty)}
                   </span>
                 </li>
