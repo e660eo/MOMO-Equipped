@@ -12,8 +12,8 @@ export interface AdminAlert {
 
 export function getAdminAlerts(now = Date.now()): AdminAlert[] {
   const products = getAllProducts();
-  const orders = getAdminOrders();
-  const allOrders = getOrders();
+  const orders = getAdminOrders().filter((order) => !order.archivedAt);
+  const allOrders = getOrders().filter((order) => !order.archivedAt);
   const jobs = getIntegrationJobs(500);
   const unknown = products.filter((p) => typeof p.stock !== "number" && p.inStock === undefined).length;
   const out = products.filter((p) => p.stock === 0).length;
@@ -32,4 +32,3 @@ export function getAdminAlerts(now = Date.now()): AdminAlert[] {
   if (failedPayments) alerts.push({ id: "payment-failed", level: "info", title: `Неудачных оплат: ${failedPayments}`, detail: "Проверьте, нужна ли помощь покупателям.", href: "/admin/orders?payment=failed" });
   return alerts;
 }
-

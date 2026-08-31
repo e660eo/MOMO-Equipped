@@ -386,6 +386,8 @@ export interface Order {
   /** Короткий номер для разговора с покупателем: 2607-014. */
   id: string;
   createdAt: string;
+  /** Заказ скрыт из рабочего списка, но полностью сохранён для истории. */
+  archivedAt?: string;
   status: OrderStatus;
   customer: {
     name: string;

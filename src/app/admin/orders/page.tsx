@@ -4,14 +4,14 @@ import { getAdminOrders, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { plural, cn } from "@/lib/utils";
-import { bulkSetOrderStatus } from "./actions";
+import { bulkManageOrders } from "./actions";
 import type { OrderStatus } from "@/lib/types";
 
 const PAGE_SIZE = 25;
 const TABS = [{ value: "", label: "Все" }, { value: "new", label: "Новые" }, { value: "in_work", label: "В работе" }, { value: "done", label: "Выполненные" }, { value: "canceled", label: "Отменённые" }];
 const STATUS_STYLE: Record<OrderStatus, string> = { new: "border-signal text-signal", in_work: "border-border text-foreground", done: "border-border text-muted-foreground", canceled: "border-border text-muted-foreground line-through" };
 
-type Params = { status?: string; customer?: string; q?: string; payment?: string; delivery?: string; from?: string; to?: string; page?: string };
+type Params = { status?: string; archived?: string; customer?: string; q?: string; payment?: string; delivery?: string; from?: string; to?: string; page?: string };
 
 function withParams(params: Params, patch: Record<string, string>): string {
   const query = new URLSearchParams();
@@ -23,9 +23,13 @@ function withParams(params: Params, patch: Record<string, string>): string {
 export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<Params> }) {
   await requireAdminPage();
   const params = await searchParams;
-  const { status = "", customer = "", q = "", payment = "", delivery = "", from = "", to = "" } = params;
+  const { status = "", archived = "", customer = "", q = "", payment = "", delivery = "", from = "", to = "" } = params;
+  const archivedView = archived === "1";
   const query = q.trim().toLowerCase();
-  const source = customer ? getAdminOrders().filter((order) => order.customerId === customer) : getAdminOrders();
+  const customerOrders = customer ? getAdminOrders().filter((order) => order.customerId === customer) : getAdminOrders();
+  const activeOrders = customerOrders.filter((order) => !order.archivedAt);
+  const archivedOrders = customerOrders.filter((order) => order.archivedAt);
+  const source = archivedView ? archivedOrders : activeOrders;
   const filtered = source.filter((order) => {
     if (status && order.status !== status) return false;
     if (query && ![order.id, order.customer.name, order.customer.phone].join(" ").toLowerCase().includes(query)) return false;
@@ -48,20 +52,23 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   return <div>
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="font-display text-xl font-extrabold uppercase">Заказы</h1><p className="mt-1 text-[0.85rem] text-muted-foreground">{filtered.length} {plural(filtered.length, "заказ", "заказа", "заказов")} · по {PAGE_SIZE} на странице</p></div><a href={`/admin/export/orders?${new URLSearchParams(Object.entries(params).filter(([, value]) => value) as [string, string][]).toString()}`} download className="rounded-sm border border-border px-4 py-2 text-[0.82rem] font-medium hover:border-signal hover:text-signal">Скачать выбранные CSV</a></div>
 
-    <div className="mt-5 flex flex-wrap gap-2">{TABS.map((tab) => { const count = tab.value ? source.filter((order) => order.status === tab.value).length : source.length; const active = status === tab.value; return <Link key={tab.value} href={withParams(params, { status: tab.value, page: "" })} className={cn("rounded-sm border px-3.5 py-1.5 text-[0.82rem]", active ? "border-signal bg-signal/10 font-semibold text-signal" : "border-border text-muted-foreground hover:border-signal hover:text-signal")}>{tab.label}<span className="ml-1.5 tabular-nums opacity-70">{count}</span></Link>; })}</div>
+    <div className="mt-5 flex flex-wrap gap-2">
+      {TABS.map((tab) => { const count = tab.value ? activeOrders.filter((order) => order.status === tab.value).length : activeOrders.length; const active = !archivedView && status === tab.value; return <Link key={tab.value} href={withParams(params, { status: tab.value, archived: "", page: "" })} className={cn("rounded-sm border px-3.5 py-1.5 text-[0.82rem]", active ? "border-signal bg-signal/10 font-semibold text-signal" : "border-border text-muted-foreground hover:border-signal hover:text-signal")}>{tab.label}<span className="ml-1.5 tabular-nums opacity-70">{count}</span></Link>; })}
+      <Link href={withParams(params, { status: "", archived: "1", page: "" })} className={cn("rounded-sm border px-3.5 py-1.5 text-[0.82rem]", archivedView ? "border-signal bg-signal/10 font-semibold text-signal" : "border-border text-muted-foreground hover:border-signal hover:text-signal")}>Архив<span className="ml-1.5 tabular-nums opacity-70">{archivedOrders.length}</span></Link>
+    </div>
 
     <form method="get" className="mt-4 grid gap-3 rounded-xl border border-border bg-surface p-4 md:grid-cols-2 xl:grid-cols-6">
-      {status && <input type="hidden" name="status" value={status} />}{customer && <input type="hidden" name="customer" value={customer} />}
+      {!archivedView && status && <input type="hidden" name="status" value={status} />}{archivedView && <input type="hidden" name="archived" value="1" />}{customer && <input type="hidden" name="customer" value={customer} />}
       <input name="q" defaultValue={q} placeholder="Номер, имя или телефон…" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm focus:border-signal focus:outline-none xl:col-span-2" />
       <select name="payment" defaultValue={payment} className="rounded-sm border border-input bg-bg px-3 py-2 text-sm"><option value="">Любая оплата</option><option value="paid">Оплачено</option><option value="unpaid">Не оплачено</option><option value="failed">Ошибка оплаты</option><option value="refunded">Возврат</option></select>
       <select name="delivery" defaultValue={delivery} className="rounded-sm border border-input bg-bg px-3 py-2 text-sm"><option value="">Любая доставка</option><option value="ozon">Ozon</option><option value="error">Ошибка Ozon</option><option value="none">Без Ozon</option></select>
       <input type="date" name="from" defaultValue={from} aria-label="Дата от" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm" />
       <input type="date" name="to" defaultValue={to} aria-label="Дата до" className="rounded-sm border border-input bg-bg px-3 py-2 text-sm" />
-      <div className="flex gap-2 md:col-span-2 xl:col-span-6"><button type="submit" className="rounded-sm bg-foreground px-4 py-2 text-[0.82rem] font-semibold text-bg">Показать</button><Link href={status ? `/admin/orders?status=${status}` : "/admin/orders"} className="rounded-sm border border-border px-4 py-2 text-[0.82rem]">Сбросить</Link></div>
+      <div className="flex gap-2 md:col-span-2 xl:col-span-6"><button type="submit" className="rounded-sm bg-foreground px-4 py-2 text-[0.82rem] font-semibold text-bg">Показать</button><Link href={withParams({}, { status: archivedView ? "" : status, archived: archivedView ? "1" : "", customer })} className="rounded-sm border border-border px-4 py-2 text-[0.82rem]">Сбросить</Link></div>
     </form>
 
-    {orders.length === 0 ? <p className="py-14 text-center text-muted-foreground">Заказов по выбранным условиям нет.</p> : <form action={bulkSetOrderStatus} className="mt-5">
-      <div className="mb-3 flex flex-wrap items-center gap-3 rounded-sm border border-border bg-surface px-4 py-3"><span className="text-[0.8rem] text-muted-foreground">Отметьте заказы ниже</span><select name="status" required className="rounded-sm border border-input bg-bg px-3 py-2 text-[0.82rem]"><option value="">Изменить статус…</option><option value="new">Новый</option><option value="in_work">В работе</option><option value="done">Выполнен</option><option value="canceled">Отменён</option></select><button type="submit" className="rounded-sm bg-foreground px-4 py-2 text-[0.82rem] font-semibold text-bg">Применить</button></div>
+    {orders.length === 0 ? <p className="py-14 text-center text-muted-foreground">{archivedView ? "Архив заказов пока пуст." : "Заказов по выбранным условиям нет."}</p> : <form action={bulkManageOrders} className="mt-5">
+      <div className="mb-3 flex flex-wrap items-center gap-3 rounded-sm border border-border bg-surface px-4 py-3"><span className="text-[0.8rem] text-muted-foreground">Отметьте заказы ниже</span><label className="sr-only" htmlFor="bulk-order-operation">Действие с выбранными заказами</label><select id="bulk-order-operation" name="operation" required className="min-h-11 rounded-sm border border-input bg-bg px-3 py-2 text-[0.82rem]"><option value="">Выберите действие…</option>{archivedView ? <option value="restore">Восстановить из архива</option> : <><option value="status:new">Статус: новый</option><option value="status:in_work">Статус: в работе</option><option value="status:done">Статус: выполнен</option><option value="status:canceled">Статус: отменён</option><option value="archive">Переместить в архив</option></>}</select><button type="submit" className="min-h-11 rounded-sm bg-foreground px-4 py-2 text-[0.82rem] font-semibold text-bg">Применить</button></div>
       <div className="grid gap-3 md:hidden">
         {orders.map((order) => (
           <article key={`mobile-${order.id}`} className="rounded-xl border border-border bg-surface p-4">

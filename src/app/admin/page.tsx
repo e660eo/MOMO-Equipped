@@ -35,7 +35,7 @@ export default async function AdminHomePage() {
   const ozonConfigured = isOzonOAuthConfigured();
   const ozonConnected = ozonConfigured && hasOzonTokens();
   const metrics = [
-    { label: "Заказы сегодня", value: String(todayOrders.length), note: `${orders.filter((order) => order.status === "new").length} ждут обработки`, href: "/admin/orders?status=new" },
+    { label: "Заказы сегодня", value: String(todayOrders.length), note: `${orders.filter((order) => order.status === "new" && !order.archivedAt).length} ждут обработки`, href: "/admin/orders?status=new" },
     { label: "Сумма заказов", value: formatPrice(grossToday), note: "без отменённых", href: "/admin/sales" },
     { label: "Получено оплат", value: formatPrice(paidToday), note: "боевые оплаты на сайте", href: "/admin/orders?payment=paid" },
     { label: "Средний чек", value: formatPrice(average), note: "по заказам сегодня", href: "/admin/sales" },

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Archive, ArchiveRestore } from "lucide-react";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getOrder, STATUS_LABELS } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 import { PAYMENT_LABELS, isPaid } from "@/lib/yandex-pay";
 import { cn } from "@/lib/utils";
-import { retryOrderIntegration, retryOzonShipment, setOrderStatus, setOrderNote } from "../actions";
+import { retryOrderIntegration, retryOzonShipment, setOrderArchivedAction, setOrderStatus, setOrderNote } from "../actions";
 import type { OrderStatus } from "@/lib/types";
 import { getIntegrationJobsForEntity } from "@/lib/job-queue";
 
@@ -33,10 +34,10 @@ export default async function AdminOrderPage({
   return (
     <div className="max-w-[760px]">
       <Link
-        href="/admin/orders"
+        href={order.archivedAt ? "/admin/orders?archived=1" : "/admin/orders"}
         className="text-[0.8rem] text-muted-foreground transition-colors hover:text-signal"
       >
-        ← Ко всем заказам
+        ← {order.archivedAt ? "В архив заказов" : "Ко всем заказам"}
       </Link>
 
       <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -46,6 +47,21 @@ export default async function AdminOrderPage({
         <span className="text-[0.85rem] text-muted-foreground">
           {new Date(order.createdAt).toLocaleString("ru-RU")}
         </span>
+      </div>
+
+      <div className={cn("mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3", order.archivedAt ? "border-signal/40 bg-signal/5" : "border-border bg-surface")}>
+        <div>
+          <p className="text-sm font-semibold">{order.archivedAt ? "Заказ находится в архиве" : "Рабочий список заказов"}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{order.archivedAt ? `Перемещён ${new Date(order.archivedAt).toLocaleString("ru-RU")}. Все данные сохранены.` : "После завершения заказ можно скрыть в архиве и при необходимости восстановить."}</p>
+        </div>
+        <form action={setOrderArchivedAction}>
+          <input type="hidden" name="id" value={order.id} />
+          <input type="hidden" name="archived" value={order.archivedAt ? "false" : "true"} />
+          <button type="submit" className={cn("inline-flex min-h-11 items-center gap-2 rounded-sm border px-4 py-2 text-sm font-semibold transition-colors", order.archivedAt ? "border-signal text-signal hover:bg-signal/10" : "border-border text-muted-foreground hover:border-signal hover:text-signal")}>
+            {order.archivedAt ? <ArchiveRestore size={16} aria-hidden /> : <Archive size={16} aria-hidden />}
+            {order.archivedAt ? "Восстановить" : "Переместить в архив"}
+          </button>
+        </form>
       </div>
 
       {/* Статус */}

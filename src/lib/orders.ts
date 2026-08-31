@@ -293,9 +293,43 @@ export function updateOrder(
   }
 }
 
+/**
+ * Скрыть заказ из рабочего списка или вернуть обратно.
+ *
+ * Архив — только организационный признак: статус, резерв товара, промокод,
+ * оплата и отправление Ozon не меняются. Поэтому даже активный заказ можно
+ * восстановить без потери состояния интеграций.
+ */
+export function setOrderArchived(id: string, archived: boolean): Order | undefined {
+  assertWritable();
+  let result: Order | undefined;
+  updateJson<Order[]>(FILE, (all) =>
+    all.map((order) => {
+      if (order.id !== id) return order;
+      if (Boolean(order.archivedAt) === archived) {
+        result = order;
+        return order;
+      }
+      const archivedAt = archived ? new Date().toISOString() : undefined;
+      const history: OrderHistoryEntry[] = [
+        ...(order.history ?? []),
+        {
+          at: new Date().toISOString(),
+          actor: "Администратор",
+          type: "note",
+          detail: archived ? "Заказ перемещён в архив" : "Заказ восстановлен из архива",
+        },
+      ];
+      result = { ...order, archivedAt, history };
+      return result;
+    }),
+  );
+  return result;
+}
+
 /** Сколько заказов ждут обработки — для счётчика в панели. */
 export function countNewOrders(): number {
-  return getAdminOrders().filter((o) => o.status === "new").length;
+  return getAdminOrders().filter((o) => o.status === "new" && !o.archivedAt).length;
 }
 
 /* -------------------------------- оплата ---------------------------------- */

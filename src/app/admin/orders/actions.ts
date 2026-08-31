@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/admin-auth";
-import { getOrder, updateOrder } from "@/lib/orders";
+import { getOrder, setOrderArchived, updateOrder } from "@/lib/orders";
 import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
+import { audit } from "@/lib/audit-log";
 import type { OrderStatus } from "@/lib/types";
 import type { IntegrationJobType } from "@/lib/types";
 
@@ -33,15 +34,60 @@ export async function setOrderNote(formData: FormData): Promise<void> {
   revalidatePath(`/admin/orders/${id}`);
 }
 
-export async function bulkSetOrderStatus(formData: FormData): Promise<void> {
+export async function bulkManageOrders(formData: FormData): Promise<void> {
   await requireSession();
   const ids = [...new Set(formData.getAll("ids").map(String).filter(Boolean))];
-  const status = String(formData.get("status") ?? "") as OrderStatus;
-  if (!ids.length || !ALLOWED.includes(status)) return;
-  for (const id of ids) updateOrder(id, { status });
+  const operation = String(formData.get("operation") ?? "");
+  if (!ids.length) return;
+
+  if (operation === "archive" || operation === "restore") {
+    const archived = operation === "archive";
+    for (const id of ids) {
+      const before = getOrder(id);
+      if (!before || Boolean(before.archivedAt) === archived) continue;
+      const after = setOrderArchived(id, archived);
+      if (!after) continue;
+      audit({
+        entity: "order",
+        entityId: id,
+        action: archived ? "archived" : "restored",
+        summary: archived ? `Заказ ${id} перемещён в архив` : `Заказ ${id} восстановлен из архива`,
+        before: { archivedAt: before.archivedAt },
+        after: { archivedAt: after.archivedAt },
+      });
+    }
+  } else if (operation.startsWith("status:")) {
+    const status = operation.slice("status:".length) as OrderStatus;
+    if (!ALLOWED.includes(status)) return;
+    for (const id of ids) updateOrder(id, { status });
+  } else {
+    return;
+  }
+
   revalidatePath("/admin/orders");
   revalidatePath("/admin/customers");
   for (const id of ids) revalidatePath(`/admin/orders/${id}`);
+}
+
+export async function setOrderArchivedAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  const archived = formData.get("archived") === "true";
+  const before = getOrder(id);
+  if (!before || Boolean(before.archivedAt) === archived) return;
+  const after = setOrderArchived(id, archived);
+  if (!after) return;
+  audit({
+    entity: "order",
+    entityId: id,
+    action: archived ? "archived" : "restored",
+    summary: archived ? `Заказ ${id} перемещён в архив` : `Заказ ${id} восстановлен из архива`,
+    before: { archivedAt: before.archivedAt },
+    after: { archivedAt: after.archivedAt },
+  });
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/admin/customers");
 }
 
 export async function retryOzonShipment(formData: FormData): Promise<void> {

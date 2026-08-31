@@ -58,9 +58,11 @@ function filteredOrders(url: URL): Order[] {
   const status = url.searchParams.get("status") ?? "";
   const payment = url.searchParams.get("payment") ?? "";
   const delivery = url.searchParams.get("delivery") ?? "";
+  const archived = url.searchParams.get("archived") === "1";
   const from = url.searchParams.get("from") ?? "";
   const to = url.searchParams.get("to") ?? "";
   return getAdminOrders().filter((order) => {
+    if (archived ? !order.archivedAt : Boolean(order.archivedAt)) return false;
     if (status && order.status !== status) return false;
     if (q && ![order.id, order.customer.name, order.customer.phone].join(" ").toLowerCase().includes(q)) return false;
     if (from && order.createdAt.slice(0, 10) < from) return false;

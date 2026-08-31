@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { addOrder, getOrder, setOrderPayment, updateOrder } from "./orders";
+import { addOrder, getOrder, setOrderArchived, setOrderPayment, updateOrder } from "./orders";
 import { getPromos, reservePromo } from "./promos";
 import type { OrderItem, Product, Promo } from "./types";
 
@@ -102,5 +102,33 @@ describe("order resource reservations", () => {
       fs.readFileSync(path.join(tempDir, "products.json"), "utf8"),
     ) as Product[];
     expect(products[0]?.stock).toBe(1);
+  });
+
+  it("archives and restores an order without changing its status or stock reservation", () => {
+    const order = addOrder({
+      customer: { name: "Архив", phone: "+7 999 111-22-36", address: "Москва" },
+      items: [item],
+      total: 1000,
+    });
+    const stockBefore = JSON.parse(
+      fs.readFileSync(path.join(tempDir, "products.json"), "utf8"),
+    ) as Product[];
+
+    const archived = setOrderArchived(order.id, true);
+    expect(archived?.archivedAt).toBeTruthy();
+    expect(archived?.status).toBe("new");
+    expect(archived?.stockDeducted).toBe(true);
+    expect(archived?.history?.at(-1)?.detail).toBe("Заказ перемещён в архив");
+
+    const restored = setOrderArchived(order.id, false);
+    expect(restored?.archivedAt).toBeUndefined();
+    expect(restored?.status).toBe("new");
+    expect(restored?.history?.at(-1)?.detail).toBe("Заказ восстановлен из архива");
+
+    const stockAfter = JSON.parse(
+      fs.readFileSync(path.join(tempDir, "products.json"), "utf8"),
+    ) as Product[];
+    expect(stockAfter[0]?.stock).toBe(stockBefore[0]?.stock);
+    updateOrder(order.id, { status: "canceled" });
   });
 });
