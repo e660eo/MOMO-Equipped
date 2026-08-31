@@ -8,6 +8,7 @@ import type {
   OzonDeliverySplit,
 } from "./types";
 import { orderGoodsFactor } from "./order-totals";
+import { syncOzonStocks } from "./ozon-stock";
 
 const API = "https://api-seller.ozon.ru";
 const MAX_POINT_DETAILS = 100;
@@ -113,8 +114,11 @@ export interface OzonDeliverySelection {
 
 interface CatalogLine {
   slug: string;
+  title: string;
   sku: number;
   offerId?: string;
+  stock?: number;
+  inStock?: boolean;
   quantity: number;
   price: number;
 }
@@ -336,8 +340,11 @@ function catalogLines(items: Array<{ slug: string; qty: number }>): CatalogLine[
     }
     lines.push({
       slug: product.slug,
+      title: product.title,
       sku: product.ozonSku,
       ...(product.ozonOfferId ? { offerId: product.ozonOfferId } : {}),
+      ...(typeof product.stock === "number" ? { stock: product.stock } : {}),
+      ...(typeof product.inStock === "boolean" ? { inStock: product.inStock } : {}),
       quantity: item.qty,
       price: product.price,
     });
@@ -350,9 +357,18 @@ function ozonDeliveryCharge(lines: CatalogLine[]): number {
   return subtotal < OZON_DELIVERY_THRESHOLD ? OZON_DELIVERY_SURCHARGE : 0;
 }
 
-function validSplits(body: CheckoutResponse, lines: CatalogLine[]): OzonDeliverySplit[] {
+function validSplits(body: CheckoutResponse, lines: CatalogLine[]): {
+  splits: OzonDeliverySplit[];
+  missing: CatalogLine[];
+  syncCandidates: CatalogLine[];
+} {
   const bySku = new Map(lines.map((line) => [line.sku, line]));
   const splits: OzonDeliverySplit[] = [];
+  const mentionedByOzon = new Set(
+    (body.splits ?? []).flatMap((split) =>
+      (split.items ?? []).flatMap((item) => (item.sku ? [item.sku] : [])),
+    ),
+  );
   for (const split of body.splits ?? []) {
     const method = split.delivery_method;
     const timeslot = method?.timeslots?.find(
@@ -404,10 +420,33 @@ function validSplits(body: CheckoutResponse, lines: CatalogLine[]): OzonDelivery
   }
 
   const covered = new Set(splits.flatMap((split) => split.items.map((item) => item.sku)));
-  if (lines.some((line) => !covered.has(line.sku))) {
-    throw new Error("Ozon не нашёл маршрут для всех товаров в корзине.");
-  }
-  return splits;
+  const missing = lines.filter((line) => !covered.has(line.sku));
+  return {
+    splits,
+    missing,
+    // Если Ozon уже вернул товар в недоступном маршруте, проблема не в
+    // остатке (например, конкретный ПВЗ не принимает такой груз). Обновлять
+    // склад в этом случае бессмысленно и только расходует лимит API.
+    syncCandidates: missing.filter((line) => !mentionedByOzon.has(line.sku)),
+  };
+}
+
+function routeError(lines: CatalogLine[]): Error {
+  const titles = [...new Set(lines.map((line) => `«${line.title}»`))].join(", ");
+  return new Error(
+    `Ozon пока не построил маршрут для ${titles}. Если остаток только что обновился, повторите через минуту или выберите другой ПВЗ.`,
+  );
+}
+
+async function checkout(phone: string, pointId: number, lines: CatalogLine[]): Promise<CheckoutResponse> {
+  return ozonPost<CheckoutResponse>("/v2/delivery/checkout", {
+    buyer_phone: phone,
+    // Не даём Ozon автоматически выбрать FBO: заказы сайта физически
+    // отправляются только с настроенного склада MOMO.
+    delivery_schema: OZON_DELIVERY_SCHEMA,
+    delivery_type: { pick_up: { map_point_id: pointId } },
+    items: lines.map((line) => ({ sku: line.sku, quantity: line.quantity })),
+  });
 }
 
 export async function quoteOzonPickup(input: {
@@ -419,15 +458,27 @@ export async function quoteOzonPickup(input: {
   if (!/^7\d{10}$/.test(phone)) throw new Error("Проверьте номер телефона.");
   const point = await officialPoint(input.pointId);
   const lines = catalogLines(input.items);
-  const body = await ozonPost<CheckoutResponse>("/v2/delivery/checkout", {
-    buyer_phone: phone,
-    // Не даём Ozon автоматически выбрать FBO: заказы сайта физически
-    // отправляются только с настроенного склада MOMO.
-    delivery_schema: OZON_DELIVERY_SCHEMA,
-    delivery_type: { pick_up: { map_point_id: point.id } },
-    items: lines.map((line) => ({ sku: line.sku, quantity: line.quantity })),
-  });
-  const splits = validSplits(body, lines);
+  let checked = validSplits(await checkout(phone, point.id, lines), lines);
+  if (checked.syncCandidates.length) {
+    let sync: Awaited<ReturnType<typeof syncOzonStocks>>;
+    try {
+      sync = await syncOzonStocks(checked.syncCandidates);
+    } catch (error) {
+      console.error("Ozon Остатки: не удалось подготовить маршрут", error);
+      const titles = [...new Set(checked.syncCandidates.map((line) => `«${line.title}»`))].join(", ");
+      throw new Error(
+        `Не удалось подготовить Ozon Доставку для ${titles}. Попробуйте через минуту или оформите заказ без онлайн-оплаты.`,
+      );
+    }
+    if (sync.configured) {
+      // Ozon применяет остаток асинхронно. Короткая пауза убирает большинство
+      // ложных повторов, не подвешивая оформление на десятки секунд.
+      if (sync.updated > 0) await new Promise((resolve) => setTimeout(resolve, 900));
+      checked = validSplits(await checkout(phone, point.id, lines), lines);
+    }
+  }
+  if (checked.missing.length) throw routeError(checked.missing);
+  const splits = checked.splits;
   if (!splits.length) throw new Error("Ozon Доставка сейчас недоступна для этого ПВЗ.");
 
   const from = splits.map((split) => split.deliveryMethod.logisticFrom).sort()[0];

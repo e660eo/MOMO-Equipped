@@ -13,15 +13,17 @@ import { isFiscalEnabled, payConfig } from "@/lib/yandex-pay";
 import { getHealthReport } from "@/lib/health";
 import { SITE_URL } from "@/lib/site-url";
 import { getIntegrationJobs } from "@/lib/job-queue";
+import { getOzonStockSyncStatus } from "@/lib/ozon-stock";
+import { OzonStockCredentialsForm } from "@/components/admin/ozon-stock-credentials-form";
 
 export default async function AdminSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; ozonSaved?: string }>;
 }) {
   await requireAdminPage();
 
-  const { saved } = await searchParams;
+  const { saved, ozonSaved } = await searchParams;
   const site = getSiteConfig();
 
   // Настройки почты не отдаём в браузер целиком: там логин ящика.
@@ -51,6 +53,7 @@ export default async function AdminSettingsPage({
 
   const health = await getHealthReport();
   const jobs = getIntegrationJobs(20);
+  const ozonStock = getOzonStockSyncStatus();
 
   return (
     <div>
@@ -96,7 +99,27 @@ export default async function AdminSettingsPage({
 
       <section id="integrations" className="mt-6 scroll-mt-24 rounded-xl border border-border bg-surface p-5">
         <h2 className="font-display text-base font-extrabold uppercase">Интеграции и фоновая очередь</h2>
-        <p className="mt-1 text-[0.78rem] text-muted-foreground">Ozon и почта повторяются автоматически при временной ошибке. Последние задачи:</p>
+        <p className="mt-1 text-[0.78rem] text-muted-foreground">Ozon и почта повторяются автоматически при временной ошибке.</p>
+        <div className="mt-4 flex min-h-11 flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-4 py-3">
+          <div>
+            <p className="text-[0.85rem] font-semibold">Остатки склада MOMO → Ozon</p>
+            <p className="mt-1 text-[0.76rem] leading-relaxed text-muted-foreground">
+              {ozonStock.configured
+                ? `Доступ подготовлен (${ozonStock.credentialSource === "encrypted_file" ? "Seller API · ключ зашифрован" : ozonStock.authMode === "api_key" ? "Seller API · окружение сервера" : "OAuth"}); ${ozonStock.warehouseMode === "fixed" ? `склад ${ozonStock.warehouseId}` : "единственный активный FBS-склад определяется автоматически"}.`
+                : "Нет доступа к управлению остатками. Добавьте Seller API-ключ или подключите OAuth Ozon."}
+            </p>
+          </div>
+          <span className={`rounded-full border px-3 py-1 text-[0.75rem] font-semibold ${ozonStock.configured ? "border-green-600/40 text-green-700 dark:text-green-400" : "border-border text-muted-foreground"}`}>
+            {ozonStock.configured ? "Готово к проверке" : "Не настроено"}
+          </span>
+        </div>
+        {ozonSaved && (
+          <p role="status" className="mt-4 rounded-sm border border-green-600/35 px-4 py-3 text-[0.82rem] text-green-700 dark:text-green-400">
+            Ключи Ozon зашифрованы и сохранены. Теперь сайт сможет обновлять остатки перед расчётом доставки.
+          </p>
+        )}
+        <OzonStockCredentialsForm configured={ozonStock.authMode === "api_key"} canSave={ozonStock.canSaveInAdmin} />
+        <p className="mt-5 text-[0.78rem] text-muted-foreground">Последние фоновые задачи:</p>
         {jobs.length === 0 ? <p className="mt-4 text-[0.82rem] text-muted-foreground">Очередь пока не использовалась.</p> : <div className="mt-4 grid gap-2">{jobs.map((job) => <div key={job.id} className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border px-3 py-2 text-[0.78rem]"><span><b>{job.type === "ozon_shipment" ? "Ozon" : "Почта"}</b> · заказ {job.entityId}</span><span className={job.status === "failed" ? "text-signal" : "text-muted-foreground"}>{job.status} · попыток {job.attempts}{job.lastError ? ` · ${job.lastError}` : ""}</span></div>)}</div>}
       </section>
 

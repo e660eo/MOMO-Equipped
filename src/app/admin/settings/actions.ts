@@ -9,6 +9,7 @@ import { SITE_URL } from "@/lib/site-url";
 import { messageFor, isRedirect } from "@/lib/errors";
 import type { SiteConfig } from "@/lib/types";
 import { audit } from "@/lib/audit-log";
+import { saveOzonSellerCredentials } from "@/lib/ozon-stock";
 
 /*
   Контакты и цифры доверия.
@@ -96,6 +97,37 @@ export async function saveSettings(
   }
 
   redirect("/admin/settings?saved=1");
+}
+
+/* ------------------------- доступ к Ozon Seller ------------------------- */
+
+export async function saveOzonSellerAccess(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    await requireSession();
+    const clientId = String(formData.get("ozonClientId") ?? "");
+    const apiKey = String(formData.get("ozonApiKey") ?? "");
+    saveOzonSellerCredentials(clientId, apiKey);
+    audit({
+      entity: "integration",
+      entityId: "ozon-stock",
+      action: "updated",
+      summary: "Обновлён защищённый доступ к остаткам Ozon",
+    });
+    revalidatePath("/admin/settings");
+  } catch (e) {
+    if (isRedirect(e)) throw e;
+    return {
+      error: messageFor(
+        e,
+        "Не удалось сохранить доступ Ozon.",
+        "saveOzonSellerAccess",
+      ),
+    };
+  }
+  redirect("/admin/settings?ozonSaved=1#integrations");
 }
 
 /* --------------------------- проверка почты ------------------------------ */
