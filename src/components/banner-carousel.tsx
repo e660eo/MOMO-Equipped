@@ -317,10 +317,10 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
         }}
         tabIndex={0}
         className={cn(
-          "flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden rounded-[22px] border border-black/10 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.75)] outline-none ring-signal/60 transition-[height,min-height,box-shadow] duration-300 focus-visible:ring-2 motion-reduce:transition-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "flex w-full max-w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden rounded-[22px] border border-black/10 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.75)] outline-none ring-signal/60 transition-[height,box-shadow] duration-300 focus-visible:ring-2 motion-reduce:transition-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           currentIsArtwork
             ? "aspect-[16/7]"
-            : "h-[500px] sm:h-[440px] lg:h-auto lg:aspect-[7/2] lg:min-h-[360px]",
+            : "h-[500px] sm:h-[440px] lg:h-[360px]",
         )}
         style={currentIsArtwork && currentArtworkRatio ? { aspectRatio: currentArtworkRatio } : undefined}
         aria-roledescription="карусель"
