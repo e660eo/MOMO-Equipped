@@ -131,7 +131,6 @@ function BannerSlide({
   const theme = themes[banner.theme];
   const src = `/media/${banner.media}`;
   const artwork = bannerLayout(banner) === "artwork";
-  const artworkRatio = bannerAspectRatio(banner);
   const hasCopy = !artwork && Boolean(banner.eyebrow || banner.heading || banner.description);
   const href = banner.action.href ? safeHref(banner.action.href) : "#";
   const externalProps = banner.action.newTab
@@ -142,13 +141,9 @@ function BannerSlide({
   return (
     <article
       className={cn(
-        "relative w-full shrink-0 snap-start overflow-hidden",
-        artwork
-          ? "aspect-[16/7] min-h-[160px] sm:min-h-0"
-          : "min-h-[500px] sm:min-h-[440px] lg:aspect-[7/2] lg:min-h-[360px]",
+        "relative h-full w-full shrink-0 snap-start overflow-hidden",
         theme.article,
       )}
-      style={artwork && artworkRatio ? { aspectRatio: artworkRatio } : undefined}
       aria-label={`${index + 1} из ${total}: ${banner.name}`}
     >
       {!artwork && <div aria-hidden className={cn("absolute inset-0 [background-size:48px_48px]", theme.grid)} />}
@@ -255,6 +250,9 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
   const [current, setCurrent] = useState(0);
   const [interactionPaused, setInteractionPaused] = useState(false);
   const count = banners.length;
+  const currentBanner = banners[Math.min(current, count - 1)] ?? banners[0];
+  const currentIsArtwork = currentBanner ? bannerLayout(currentBanner) === "artwork" : false;
+  const currentArtworkRatio = currentBanner ? bannerAspectRatio(currentBanner) : undefined;
 
   const goTo = useCallback(
     (index: number) => {
@@ -318,7 +316,13 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
           }
         }}
         tabIndex={0}
-        className="flex snap-x snap-mandatory overflow-x-auto rounded-[22px] border border-black/10 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.75)] outline-none ring-signal/60 transition-shadow focus-visible:ring-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className={cn(
+          "flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden rounded-[22px] border border-black/10 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.75)] outline-none ring-signal/60 transition-[height,min-height,box-shadow] duration-300 focus-visible:ring-2 motion-reduce:transition-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          currentIsArtwork
+            ? "aspect-[16/7] min-h-[160px] sm:min-h-0"
+            : "h-[500px] sm:h-[440px] lg:h-auto lg:aspect-[7/2] lg:min-h-[360px]",
+        )}
+        style={currentIsArtwork && currentArtworkRatio ? { aspectRatio: currentArtworkRatio } : undefined}
         aria-roledescription="карусель"
         aria-label="Баннеры MOMO и ZEUS"
       >
