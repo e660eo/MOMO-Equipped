@@ -319,7 +319,7 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
         className={cn(
           "flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden rounded-[22px] border border-black/10 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.75)] outline-none ring-signal/60 transition-[height,min-height,box-shadow] duration-300 focus-visible:ring-2 motion-reduce:transition-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           currentIsArtwork
-            ? "aspect-[16/7] min-h-[160px] sm:min-h-0"
+            ? "aspect-[16/7]"
             : "h-[500px] sm:h-[440px] lg:h-auto lg:aspect-[7/2] lg:min-h-[360px]",
         )}
         style={currentIsArtwork && currentArtworkRatio ? { aspectRatio: currentArtworkRatio } : undefined}
