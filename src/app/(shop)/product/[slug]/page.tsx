@@ -12,7 +12,7 @@ import {
 } from "@/lib/data";
 import { Headphones } from "lucide-react";
 import { isInStock } from "@/lib/format";
-import { fullSpecs } from "@/lib/specs";
+import { fullSpecs, parseTech } from "@/lib/specs";
 import { ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -25,6 +25,7 @@ import { getPublicProductReviews } from "@/lib/product-reviews";
 import { ProductReviews } from "@/components/product-reviews";
 import { MetrikaGoal } from "@/components/metrika-goal";
 import { METRIKA_GOALS } from "@/lib/metrika";
+import { VehicleFitment } from "@/components/vehicle-fitment";
 
 export function generateStaticParams() {
   return getProducts().map((p) => ({ slug: p.slug }));
@@ -76,6 +77,7 @@ export default async function ProductPage({
 
   const available = isInStock(product);
   const { stats, rows, notes } = fullSpecs(product.title, product.description);
+  const diameterMm = parseTech(product.title, product.description).diameterMm;
   // Обложка + дополнительные снимки из поля images (владелец пополняет сам)
   const gallery = [product.image, ...(product.images ?? [])].map(productImageUrl);
   const reviews = getPublicProductReviews(product.slug);
@@ -196,6 +198,14 @@ export default async function ProductPage({
               Задать вопрос
             </a>
           </div>
+
+          {product.category === "dinamiki-rupora" && (
+            <VehicleFitment
+              productSlug={product.slug}
+              productTitle={product.title}
+              diameterMm={diameterMm}
+            />
+          )}
 
           {/* Ключевые цифры — крупные плашки; мощность всегда первая */}
           {stats.length > 0 && (

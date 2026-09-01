@@ -13,6 +13,7 @@ export const METRIKA_GOALS = {
   supportMessage: "support_message",
   systemBuilderComplete: "system_builder_complete",
   systemBuilderAdd: "system_builder_add",
+  vehicleFitmentCheck: "vehicle_fitment_check",
 } as const;
 
 export const ANALYTICS_CONSENT_KEY = "momo-cookie-consent";
