@@ -601,6 +601,7 @@ export interface PublicSupportConversation {
 export type IntegrationJobType =
   | "ozon_shipment"
   | "order_mail"
+  | "support_message_mail"
   | "customer_payment_mail"
   | "customer_welcome"
   | "customer_email_verification"

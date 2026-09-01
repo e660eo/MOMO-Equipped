@@ -273,7 +273,7 @@ export default async function AdminOrderPage({
       <section className="mt-5 rounded-xl border border-border bg-surface p-5">
         <h2 className="font-display text-base font-extrabold uppercase">Письма и интеграции</h2>
         {integrationJobs.length ? <div className="mt-4 space-y-3">{integrationJobs.map((job) => {
-          const labels = { order_mail: "Письмо администратору", customer_payment_mail: "Письмо покупателю", ozon_shipment: "Отправление Ozon", fiscal_check: "Проверка чека", customer_welcome: "Приветственное письмо", customer_email_verification: "Подтверждение email" } as const;
+          const labels = { order_mail: "Письмо администратору", support_message_mail: "Уведомление о чате", customer_payment_mail: "Письмо покупателю", ozon_shipment: "Отправление Ozon", fiscal_check: "Проверка чека", customer_welcome: "Приветственное письмо", customer_email_verification: "Подтверждение email" } as const;
           return <article key={job.id} className="rounded-lg border border-border p-3 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2"><b>{labels[job.type]}</b><span className={job.status === "done" ? "text-emerald-700" : job.status === "failed" ? "text-red-600" : "text-amber-700"}>{job.status === "done" ? "Выполнено" : job.status === "failed" ? "Ошибка" : job.status === "running" ? "Выполняется" : "В очереди"} · попыток {job.attempts}</span></div>
             <p className="mt-1 text-muted-foreground">Обновлено {new Date(job.updatedAt).toLocaleString("ru-RU")}</p>

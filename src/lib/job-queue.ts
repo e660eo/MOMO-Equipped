@@ -16,6 +16,8 @@ import {
 } from "./orders";
 import { createOzonShipment } from "./ozon-delivery";
 import { notifyCustomerEmailVerification, notifyCustomerWelcome } from "./customer-mail";
+import { getSupportConversation } from "./support-conversations";
+import { notifySupportMessage } from "./support-mail";
 import { readJson, updateJson } from "./store";
 import { fetchPaymentDetails, fetchPaymentStatus } from "./yandex-pay";
 import { isMailerConfigured } from "./mailer";
@@ -129,6 +131,17 @@ async function execute(job: IntegrationJob): Promise<string> {
     if (!isMailerConfigured()) throw new Error("Почтовый ящик не подключён.");
     await notifyCustomerEmailVerification(job.entityId, job.payload?.kind === "welcome");
     return "Письмо подтверждения email принято SMTP-сервером";
+  }
+  if (job.type === "support_message_mail") {
+    if (!isMailerConfigured()) throw new Error("Почтовый ящик не подключён.");
+    const conversation = getSupportConversation(job.entityId);
+    if (!conversation) throw new Error(`Диалог ${job.entityId} не найден.`);
+    const message = conversation.messages.find((item) => item.id === job.payload?.kind);
+    if (!message || message.author !== "visitor") {
+      throw new Error(`Сообщение клиента в диалоге ${job.entityId} не найдено.`);
+    }
+    await notifySupportMessage(conversation, message);
+    return "Уведомление о сообщении клиента принято SMTP-сервером";
   }
   const order = getOrder(job.entityId);
   if (!order) throw new Error(`Заказ ${job.entityId} не найден.`);

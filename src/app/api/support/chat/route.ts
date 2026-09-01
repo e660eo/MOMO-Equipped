@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentCustomer } from "@/lib/customer-auth";
 import { clientIp } from "@/lib/client-ip";
 import { ExpectedError, messageFor } from "@/lib/errors";
+import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import {
   addVisitorSupportMessage,
   findPublicSupportConversation,
@@ -79,6 +80,17 @@ export async function POST(request: Request) {
       text: body.text,
       customerId: customer?.id,
     });
+    const messageId = conversation.messages.at(-1)?.id;
+    if (messageId) {
+      try {
+        enqueueIntegrationJob("support_message_mail", conversation.id, { kind: messageId });
+        void runIntegrationQueue();
+      } catch (notificationError) {
+        // Сообщение уже сохранено: сбой очереди не должен заставлять клиента
+        // отправлять его повторно и создавать дубль в диалоге.
+        console.error(`Диалог ${conversation.id}: не удалось поставить уведомление в очередь`, notificationError);
+      }
+    }
     return json({ ok: true, conversation });
   } catch (error) {
     return json(
