@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart-store";
 import { isInStock, stockLimit } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,12 @@ export function AddToCartButton({
 }) {
   const add = useCart((s) => s.add);
   const items = useCart((s) => s.items);
+  const [interactive, setInteractive] = useState(false);
+
+  // Кнопка приходит в первом HTML раньше, чем React успевает подключить
+  // обработчик. Быстрый клик в этот промежуток раньше выглядел успешным, но
+  // товар не попадал в корзину. Разрешаем действие только после гидратации.
+  useEffect(() => setInteractive(true), []);
 
   const soldOut = isInStock(product as Product) === false;
   const limit = stockLimit(product as Product);
@@ -58,7 +65,7 @@ export function AddToCartButton({
 
   return (
     <button
-      disabled={reachedLimit}
+      disabled={!interactive || reachedLimit}
       onClick={(e) => {
         e.preventDefault();
         add({

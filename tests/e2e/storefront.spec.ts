@@ -41,27 +41,29 @@ test("catalogue keeps service fields out of HTML and serves search results", asy
   }
 });
 
-test("new arrivals are visible with the confirmed prices and specifications", async ({ page }) => {
+test("updated speaker arrivals are visible with the confirmed prices and specifications", async ({ page }) => {
   await page.goto("/");
   const arrivals = page.locator("section").filter({
     has: page.getByRole("heading", { name: "Новинки MOMO" }),
   });
-  await expect(arrivals.getByRole("link", { name: /Моноблок FR-500/ }).first()).toBeVisible();
-  await expect(arrivals.getByText(/4\s000\s₽/)).toBeVisible();
-  await expect(arrivals.getByRole("link", { name: /Моноблок BD-1500.1/ }).first()).toBeVisible();
-  await expect(arrivals.getByText(/9\s184\s₽/)).toBeVisible();
+  await expect(arrivals.getByRole("link", { name: /MOMO HE-810/ }).first()).toBeVisible();
+  await expect(arrivals.getByText(/4\s640\s₽/)).toBeVisible();
+  await expect(arrivals.getByRole("link", { name: /MOMO HE-815/ }).first()).toBeVisible();
+  await expect(arrivals.getByText(/5\s280\s₽/)).toBeVisible();
+  await expect(arrivals.getByRole("link", { name: /ZEUS MR-8.1/ }).first()).toBeVisible();
+  await expect(arrivals.getByText(/2\s201\s₽/)).toBeVisible();
 
   await page.goto("/news/novinki-momo-2026");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Новинки MOMO: FR-500 и BD-1500.1",
+    "Новинки: обновлённые MOMO HE-810, HE-815 и ZEUS MR-8.1",
   );
-  await expect(page.getByText("RMS при 1 Ом: 1450 Вт", { exact: true })).toBeVisible();
+  await expect(page.getByText("Номинальная мощность: 170 Вт", { exact: true })).toBeVisible();
 
-  await page.goto("/product/monoblok-bd-1500-1");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Моноблок BD-1500.1");
-  await expect(page.getByText("1 Ом", { exact: true })).toBeVisible();
+  await page.goto("/product/dinamiki-estradnye-momo-he-815-20sm");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("MOMO HE-815");
+  await expect(page.getByText("210 мм", { exact: true })).toBeVisible();
   await expect(
-    page.getByText("1450 Вт · 2 Ом: 1050 Вт · 4 Ом: 650 Вт", { exact: true }),
+    page.getByText("170 Вт", { exact: true }),
   ).toBeVisible();
 });
 

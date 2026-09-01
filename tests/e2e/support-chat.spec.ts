@@ -15,7 +15,12 @@ test("visitor can open support and send a message without leaving the site", asy
   await dialog.getByLabel("Телефон или email").fill("client@example.com");
   await dialog.getByRole("textbox", { name: "Сообщение", exact: true }).fill("Нужна помощь с подбором усилителя");
   await dialog.getByLabel(/Согласен на обработку/).check();
+  const sent = page.waitForResponse((response) =>
+    response.url().endsWith("/api/support/chat") &&
+    response.request().method() === "POST",
+  );
   await dialog.getByRole("button", { name: "Отправить сообщение" }).click();
+  expect((await sent).ok()).toBeTruthy();
 
   await expect(dialog.getByText("Нужна помощь с подбором усилителя")).toBeVisible();
   await expect(dialog.getByText(/CHAT-\d{6}-[A-F0-9]{6}/)).toBeVisible();

@@ -14,9 +14,10 @@ const nextConfig: NextConfig = {
     BUILD_REVISION: process.env.BUILD_REVISION ?? "dev",
     BUILD_TIME: new Date().toISOString(),
   },
-  // nodemailer — обычный CommonJS-пакет для Node: пусть сборщик его не трогает,
-  // а требует из node_modules как есть.
-  serverExternalPackages: ["nodemailer"],
+  // nodemailer и sharp работают только в Node (sharp в том числе загружает
+  // detect-libc, которому нужен child_process). Оставляем их внешними, чтобы
+  // dev-сборщик не пытался протащить нативные серверные зависимости в бандл.
+  serverExternalPackages: ["nodemailer", "sharp"],
 
   /*
     Картинки товаров.

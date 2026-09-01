@@ -6,6 +6,10 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${port}`;
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  // Next dev компилирует маршруты по требованию. Запуск по одному воркеру на
+  // каждое ядро перегружал Windows-машину и превращал первые переходы в
+  // ложные 30-секундные таймауты.
+  workers: process.env.CI ? 2 : 4,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
