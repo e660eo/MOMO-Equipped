@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CarFront, CheckCircle2, CircleAlert, Ruler, Wrench } from "lucide-react";
+import { CarFront, CheckCircle2, ChevronDown, CircleAlert, Ruler, Wrench } from "lucide-react";
 import {
   compatibleVehicleSlots,
   detectSpeakerMount,
@@ -33,6 +33,7 @@ export function VehicleFitment({
     () => detectSpeakerMount(productTitle, diameterMm),
     [productTitle, diameterMm],
   );
+  const [expanded, setExpanded] = useState(false);
   const [make, setMake] = useState<VehicleMake>("LADA");
   const [vehicleId, setVehicleId] = useState("");
 
@@ -55,22 +56,37 @@ export function VehicleFitment({
   };
 
   return (
-    <section className="mt-8 rounded-2xl border border-border bg-surface p-4 sm:p-5" aria-labelledby="vehicle-fitment-title">
-      <div className="flex items-start gap-3">
+    <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-surface" aria-labelledby="vehicle-fitment-title">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="vehicle-fitment-panel"
+        onClick={() => setExpanded((value) => !value)}
+        className="flex min-h-16 w-full items-center gap-3 p-4 text-left outline-none transition-colors hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-signal sm:p-5"
+      >
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-signal text-white" aria-hidden="true">
           <CarFront size={21} />
         </span>
-        <div className="min-w-0">
-          <h2 id="vehicle-fitment-title" className="font-display text-base font-semibold sm:text-lg">
+        <span className="min-w-0 flex-1">
+          <span id="vehicle-fitment-title" className="block font-display text-base font-semibold sm:text-lg">
             Подойдёт ли к моей машине?
-          </h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Выберите автомобиль — покажем место и способ установки.
-          </p>
-        </div>
-      </div>
+          </span>
+          <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+            {expanded
+              ? "Выберите автомобиль — покажем место и способ установки."
+              : "Нажмите, чтобы проверить совместимость."}
+          </span>
+        </span>
+        <ChevronDown
+          size={22}
+          aria-hidden="true"
+          className={`shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-y border-border py-3 text-sm">
+      {expanded && (
+        <div id="vehicle-fitment-panel" className="border-t border-border px-4 pb-4 sm:px-5 sm:pb-5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border py-3 text-sm">
         <span className="inline-flex items-center gap-2 font-medium">
           <Ruler size={16} className="text-signal" aria-hidden="true" />
           Размер товара: {mount.label}
@@ -191,7 +207,8 @@ export function VehicleFitment({
       <p className="mt-4 text-[0.72rem] leading-relaxed text-muted-foreground">
         База показывает типовой размер. Перед установкой проверьте глубину корзины, крепёж, разъём и комплектацию автомобиля.
       </p>
+        </div>
+      )}
     </section>
   );
 }
-

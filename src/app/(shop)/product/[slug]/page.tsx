@@ -199,14 +199,6 @@ export default async function ProductPage({
             </a>
           </div>
 
-          {product.category === "dinamiki-rupora" && (
-            <VehicleFitment
-              productSlug={product.slug}
-              productTitle={product.title}
-              diameterMm={diameterMm}
-            />
-          )}
-
           {/* Ключевые цифры — крупные плашки; мощность всегда первая */}
           {stats.length > 0 && (
             <div
@@ -259,6 +251,14 @@ export default async function ProductPage({
                 )}
               </dl>
             </div>
+          )}
+
+          {product.category === "dinamiki-rupora" && (
+            <VehicleFitment
+              productSlug={product.slug}
+              productTitle={product.title}
+              diameterMm={diameterMm}
+            />
           )}
 
           {/* Особенности без ключей — остаток описания поставщика */}
