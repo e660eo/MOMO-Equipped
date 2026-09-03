@@ -42,6 +42,11 @@ export type ActionState = { error?: string; ok?: string };
 
 function refreshSite(): void {
   revalidatePath("/", "layout");
+  // Карточки товаров генерируются статически через generateStaticParams.
+  // Явно сбрасываем их page-cache: одной инвалидации корневого layout
+  // недостаточно, и после мгновенных операций с фото витрина могла продолжать
+  // показывать старую обложку до следующего деплоя.
+  revalidatePath("/product/[slug]", "page");
 }
 
 /** Наличие: «есть» / «под заказ» / статус неизвестен. */
