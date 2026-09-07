@@ -15,6 +15,16 @@ export async function registerNodeInstrumentation() {
     console.error("[title-cleanup] пропущено:", err);
   }
 
+  // Фотографии из репозитория должны попасть и в живой каталог,
+  // который в production хранится вне репозитория.
+  try {
+    const { applyPhotoUpdates } = await import("./lib/photo-updates");
+    const { changed } = applyPhotoUpdates();
+    if (changed) console.log(`[фото-каталог] обновлено товаров: ${changed}`);
+  } catch (err) {
+    console.error("[фото-каталог] пропущено:", err);
+  }
+
   // SKU Ozon нужны для передачи оплаченных товаров в Ozon Логистику.
   try {
     const { syncOzonProductMappings } = await import("./lib/ozon-product-map");

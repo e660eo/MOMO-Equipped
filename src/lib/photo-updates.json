@@ -147,10 +147,10 @@
     ]
   },
   "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149": {
-    "image": "ph-293-1549d4dc.webp",
+    "image": "momo-bonnie-new-card-1.webp",
     "images": [
-      "ph-663-2cffd599.webp",
-      "ph-662-51305b92.webp"
+      "momo-bonnie-new-card-2.webp",
+      "momo-bonnie-new-card-3.webp"
     ]
   },
   "monoblok-avtomobilnyy-bm-1-1500-655537": {
@@ -165,6 +165,22 @@
     "images": [
       "ph-864-0782e7d7.webp",
       "ph-865-2da88e3d.webp"
+    ]
+  },
+  "monoblok-avtomobilnyy-bd-5000-1-803288": {
+    "image": "k_43409182797948968e68c9c6b5816152.webp",
+    "images": [
+      "momo-bd-5000-gallery-1.webp",
+      "momo-bd-5000-gallery-2.webp",
+      "momo-bd-5000-gallery-3.webp"
+    ]
+  },
+  "monoblok-avtomobilnyy-d-500-147152": {
+    "image": "k_9eac6eea764c47499960984ffb053489.webp",
+    "images": [
+      "momo-d-500-gallery-1.webp",
+      "momo-d-500-gallery-2.webp",
+      "momo-d-500-gallery-3.webp"
     ]
   },
   "monoblok-avtomobilnyy-fr-500-tovar-ucenennyy-421166": {
@@ -290,11 +306,24 @@
       "ph-956-5be300d2.webp"
     ]
   },
-  "estradnye-kolonki-20sm-v-mashinu-he-810-916179": {
-    "image": "ph-333-71658b59.webp",
+  "usilitel-avtomobilnyy-momo-a-4-80-150092": {
+    "image": "k_6f37fbba61414036b1556cd16cf9b365.webp",
     "images": [
-      "ph-332-31253834.webp",
-      "ph-334-482c3416.webp"
+      "momo-a-4-80-gallery-1.webp",
+      "momo-a-4-80-gallery-2.webp",
+      "momo-a-4-80-gallery-3.webp",
+      "momo-a-4-80-gallery-4.webp"
     ]
+  },
+  "usilitel-avtomobilnyy-p-4-75-147050": {
+    "image": "k_dde104b05b1c49ac8fe62d55699998dd.webp",
+    "images": [
+      "momo-p-4-75-gallery-1.webp",
+      "momo-p-4-75-gallery-2.webp",
+      "momo-p-4-75-gallery-3.webp"
+    ]
+  },
+  "estradnye-kolonki-20sm-v-mashinu-he-810-916179": {
+    "image": "momo-he-810-new.png"
   }
 }

@@ -1177,11 +1177,11 @@
     "brand": "MOMO",
     "category": "dinamiki-rupora",
     "price": 5255,
-    "image": "ph-293-1549d4dc.webp",
+    "image": "momo-bonnie-new-card-1.webp",
     "isClearance": false,
     "images": [
-      "ph-663-2cffd599.webp",
-      "ph-662-51305b92.webp"
+      "momo-bonnie-new-card-2.webp",
+      "momo-bonnie-new-card-3.webp"
     ],
     "ozonSku": 1790534149,
     "ozonOfferId": "Bonnie & Clyde"
@@ -1248,6 +1248,11 @@
     "category": "usiliteli-monobloki",
     "price": 17700,
     "image": "k_43409182797948968e68c9c6b5816152.webp",
+    "images": [
+      "momo-bd-5000-gallery-1.webp",
+      "momo-bd-5000-gallery-2.webp",
+      "momo-bd-5000-gallery-3.webp"
+    ],
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -1330,6 +1335,11 @@
     "category": "usiliteli-monobloki",
     "price": 4785,
     "image": "k_9eac6eea764c47499960984ffb053489.webp",
+    "images": [
+      "momo-d-500-gallery-1.webp",
+      "momo-d-500-gallery-2.webp",
+      "momo-d-500-gallery-3.webp"
+    ],
     "isClearance": false,
     "inStock": true,
     "description": [
@@ -2010,6 +2020,12 @@
     "category": "usiliteli-monobloki",
     "price": 5527,
     "image": "k_6f37fbba61414036b1556cd16cf9b365.webp",
+    "images": [
+      "momo-a-4-80-gallery-1.webp",
+      "momo-a-4-80-gallery-2.webp",
+      "momo-a-4-80-gallery-3.webp",
+      "momo-a-4-80-gallery-4.webp"
+    ],
     "isClearance": false,
     "ozonSku": 250150092,
     "ozonOfferId": "A-4.80"
@@ -2021,6 +2037,11 @@
     "category": "usiliteli-monobloki",
     "price": 4335,
     "image": "k_dde104b05b1c49ac8fe62d55699998dd.webp",
+    "images": [
+      "momo-p-4-75-gallery-1.webp",
+      "momo-p-4-75-gallery-2.webp",
+      "momo-p-4-75-gallery-3.webp"
+    ],
     "isClearance": false,
     "inStock": true,
     "description": [
