@@ -53,7 +53,34 @@ for (const product of products) {
     availabilityFixed += 1;
   }
 }
-if (availabilityFixed) write("products.json", products);
+
+// Фото должны попасть в живой каталог до `next build`: карточки товаров
+// статические, поэтому миграция только при старте уже собранного процесса
+// обновила бы JSON, но не готовую HTML-страницу.
+const photoUpdatesFile = path.join(root, "src", "lib", "photo-updates.json");
+const photoUpdates = fs.existsSync(photoUpdatesFile)
+  ? JSON.parse(fs.readFileSync(photoUpdatesFile, "utf8"))
+  : {};
+const seedUploadsDir = path.join(root, "public", "uploads");
+const liveUploadsDir = path.join(dataDir, "uploads");
+const photoExists = (name) =>
+  fs.existsSync(path.join(seedUploadsDir, name)) ||
+  fs.existsSync(path.join(liveUploadsDir, name));
+let photoUpdatesApplied = 0;
+for (const product of products) {
+  const update = photoUpdates[product.slug];
+  if (!update?.image || !photoExists(update.image)) continue;
+  const gallery = (update.images ?? []).filter(photoExists);
+  const sameImage = product.image === update.image;
+  const sameGallery = JSON.stringify(product.images ?? []) === JSON.stringify(gallery);
+  if (sameImage && sameGallery) continue;
+  product.image = update.image;
+  if (gallery.length) product.images = gallery;
+  else delete product.images;
+  photoUpdatesApplied += 1;
+}
+
+if (availabilityFixed || photoUpdatesApplied) write("products.json", products);
 
 const seedDealersFile = path.join(root, "data", "dealers.json");
 const seedDealers = JSON.parse(fs.readFileSync(seedDealersFile, "utf8"));
@@ -198,4 +225,4 @@ function harden(dir) {
 }
 harden(dataDir);
 
-console.log(`  Миграция данных: наличие ${availabilityFixed}, дилеры +${dealerLocationsAdded}/кабинеты +${dealerAccountsAdded}/типы ${dealerKindsBackfilled}/переименовано ${dealerLocationsRenamed}/скрыто ${dealerLocationsHidden}, прайс ${dealerPriceBookUpdated}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
+console.log(`  Миграция данных: наличие ${availabilityFixed}, фото ${photoUpdatesApplied}, дилеры +${dealerLocationsAdded}/кабинеты +${dealerAccountsAdded}/типы ${dealerKindsBackfilled}/переименовано ${dealerLocationsRenamed}/скрыто ${dealerLocationsHidden}, прайс ${dealerPriceBookUpdated}, заказы ${orderChanges}, чеки ${receiptBackfills}. Права 700/600 применены.`);
