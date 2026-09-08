@@ -27,6 +27,9 @@ export default async function AdminOrderPage({
   const integrationJobs = getIntegrationJobsForEntity(order.id);
 
   const { customer } = order;
+  const paymentConfirmed = Boolean(
+    order.payment && isPaid(order.payment.status) && !order.payment.sandbox,
+  );
   const waText = encodeURIComponent(
     `Здравствуйте! По заказу №${order.id} с сайта MOMO.`,
   );
@@ -166,44 +169,56 @@ export default async function AdminOrderPage({
         </p>
       </section>
 
-      {/* Оплата на сайте — только если её заводили */}
-      {order.payment && (
-        <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+      {/* Оплата — статус виден у каждого заказа */}
+      <section className="mt-5 rounded-xl border border-border bg-surface p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-base font-extrabold uppercase">
-            Оплата на сайте
+            Оплата
           </h2>
-          <p
+          <span
             className={cn(
-              "mt-2 text-[0.9rem] font-semibold",
-              isPaid(order.payment.status)
-                ? "text-[var(--signal-text)]"
-                : "text-foreground",
+              "inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm font-bold",
+              paymentConfirmed
+                ? "border-emerald-600/40 bg-emerald-500/10 text-emerald-700"
+                : "border-red-600/40 bg-red-500/10 text-red-700",
             )}
           >
-            {PAYMENT_LABELS[order.payment.status]} ·{" "}
-            {formatPrice(order.payment.amount)}
-          </p>
-          {order.payment.sandbox && (
-            <p className="mt-1 text-[0.78rem] text-muted-foreground">
-              Тестовый режим — настоящие деньги не списывались.
+            {paymentConfirmed ? "Оплачен" : "Не оплачен"}
+          </span>
+        </div>
+
+        {order.payment ? (
+          <>
+            <p className="mt-3 text-[0.9rem] font-semibold">
+              Статус платёжной системы: {PAYMENT_LABELS[order.payment.status]} ·{" "}
+              {formatPrice(order.payment.amount)}
             </p>
-          )}
-          <p className="mt-2 text-[0.78rem] text-muted-foreground">
-            {order.delivery
-              ? `В сумму включена доставка Ozon: ${order.delivery.customerPrice > 0 ? formatPrice(order.delivery.customerPrice) : "бесплатно"}.`
-              : "Доставку согласуйте отдельно."}
+            {order.payment.sandbox && (
+              <p className="mt-2 rounded-sm border border-amber-500/40 bg-amber-500/10 p-3 text-[0.82rem] text-amber-800">
+                Тестовый режим — настоящие деньги не списывались.
+              </p>
+            )}
+            <p className="mt-2 text-[0.78rem] text-muted-foreground">
+              {order.delivery
+                ? `В сумму включена доставка Ozon: ${order.delivery.customerPrice > 0 ? formatPrice(order.delivery.customerPrice) : "бесплатно"}.`
+                : "Доставку согласуйте отдельно."}
+            </p>
+            <p className="mt-1 text-[0.75rem] text-muted-foreground">
+              Обновлено{" "}
+              {new Date(order.payment.updatedAt).toLocaleString("ru-RU", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </>
+        ) : (
+          <p className="mt-3 text-[0.85rem] text-muted-foreground">
+            Онлайн-оплата для этого заказа не создавалась.
           </p>
-          <p className="mt-1 text-[0.75rem] text-muted-foreground">
-            Обновлено{" "}
-            {new Date(order.payment.updatedAt).toLocaleString("ru-RU", {
-              day: "2-digit",
-              month: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </section>
-      )}
+        )}
+      </section>
 
       {order.payment?.receipt && (
         <section className="mt-5 rounded-xl border border-border bg-surface p-5">
