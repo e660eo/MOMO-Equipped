@@ -22,12 +22,12 @@ export { dataDir, uploadsDir, seedUploadsDir, isRepoData } from "./store-paths";
 */
 
 /*
-  Кэш прочитанных файлов. Живёт в процессе: писатель у данных ровно один
-  (тот же процесс Next под PM2), поэтому сброс при записи достаточен.
-  Если приложение когда-нибудь поднимут в несколько процессов, сюда
-  понадобится общий механизм инвалидации.
+  Next собирает страницы и server actions в разные экземпляры модуля,
+  даже внутри одного процесса. Сброс локального Map при записи не очищает
+  кэш страницы. Поэтому перед чтением проверяем версию файла на диске.
+  inode и время изменения метаданных учитывают и атомарную замену файла.
 */
-const cache = new Map<string, unknown>();
+const cache = new Map<string, { version: string; value: unknown }>();
 
 const PRIVATE_DIR_MODE = 0o700;
 const PRIVATE_FILE_MODE = 0o600;
@@ -75,14 +75,16 @@ function ensureSeeded(): void {
 
 /** Читает JSON-коллекцию из папки данных. Результат кэшируется. */
 export function readJson<T>(file: string): T {
-  const cached = cache.get(file);
-  if (cached !== undefined) return cached as T;
-
   ensureSeeded();
-  const full = path.join(dataDir(), file);
+  const full = path.resolve(dataDir(), file);
+  const stat = fs.statSync(full, { bigint: true });
+  const version = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
+  const cached = cache.get(full);
+  if (cached?.version === version) return cached.value as T;
+
   const raw = fs.readFileSync(full, "utf8");
   const parsed = JSON.parse(raw) as T;
-  cache.set(file, parsed);
+  cache.set(full, { version, value: parsed });
   return parsed;
 }
 
@@ -111,7 +113,7 @@ export function writeJson(file: string, data: unknown): void {
   fs.writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, { encoding: "utf8", mode: PRIVATE_FILE_MODE });
   fs.renameSync(tmp, full);
   makePrivate(full, PRIVATE_FILE_MODE);
-  cache.delete(file);
+  cache.delete(path.resolve(full));
 }
 
 /**

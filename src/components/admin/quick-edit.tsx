@@ -20,6 +20,8 @@ const cell =
   "w-full rounded-sm border bg-surface px-2 py-1.5 text-right text-[0.85rem] tabular-nums transition-colors focus:outline-none";
 
 export function QuickEdit({ product }: { product: Product }) {
+  const serverStock = typeof product.stock === "number" ? product.stock : null;
+  const [source, setSource] = useState({ price: product.price, stock: serverStock });
   const [price, setPrice] = useState(String(product.price));
   const [stock, setStock] = useState(
     typeof product.stock === "number" ? String(product.stock) : "",
@@ -29,13 +31,24 @@ export function QuickEdit({ product }: { product: Product }) {
   const [pending, startTransition] = useTransition();
   const priceRef = useRef<HTMLInputElement>(null);
   const stockRef = useRef<HTMLInputElement>(null);
+  const savingRef = useRef(false);
+
+  // Обновляем нетронутые поля после обновления серверных данных (в том
+  // числе скрытую мобильную/десктопную копию), но не стираем текущий ввод.
+  if (source.price !== product.price || source.stock !== serverStock) {
+    setSource({ price: product.price, stock: serverStock });
+    if (Number(price) === source.price) setPrice(String(product.price));
+    if ((stock === "" ? null : Number(stock)) === source.stock) {
+      setStock(serverStock === null ? "" : String(serverStock));
+    }
+  }
 
   const priceChanged = Number(price) !== product.price;
   const stockChanged =
     (stock === "" ? null : Number(stock)) !==
     (typeof product.stock === "number" ? product.stock : null);
   function save() {
-    if (pending) return;
+    if (savingRef.current) return;
 
     /*
       Значения берём из самих полей, а не из состояния: когда значение
@@ -72,19 +85,29 @@ export function QuickEdit({ product }: { product: Product }) {
     }
 
     setError("");
+    setSaved(false);
+    savingRef.current = true;
     startTransition(async () => {
-      const result = await quickUpdate(
-        product.slug,
-        nextPrice,
-        nextStock,
-        confirmedPriceDrop,
-      );
-      if (result.error) {
-        setError(result.error);
-        return;
+      try {
+        const result = await quickUpdate(
+          product.slug,
+          nextPrice,
+          nextStock,
+          confirmedPriceDrop,
+        );
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        setPrice(String(nextPrice));
+        setStock(nextStock === null ? "" : String(nextStock));
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1800);
+      } catch {
+        setError("Соединение оборвалось. Повторите сохранение.");
+      } finally {
+        savingRef.current = false;
       }
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1800);
     });
   }
 
@@ -151,7 +174,11 @@ export function QuickEdit({ product }: { product: Product }) {
       <span className="w-8 text-[0.72rem] text-muted-foreground">шт</span>
 
       {/* Состояние: сохраняем → сохранено → тишина */}
-      <span className="flex h-5 w-5 items-center justify-center">
+      <span
+        role="status"
+        aria-label={pending ? "Сохраняю" : saved ? "Сохранено" : undefined}
+        className="flex h-5 w-5 items-center justify-center"
+      >
         {pending && <Loader2 size={15} className="animate-spin text-muted-foreground" />}
         {!pending && saved && (
           <Check size={15} className="animate-in-check text-signal" />
@@ -159,7 +186,7 @@ export function QuickEdit({ product }: { product: Product }) {
       </span>
 
       {error && (
-        <span className="max-w-[190px] text-[0.72rem] leading-tight text-[var(--signal-text)]">
+        <span role="alert" className="max-w-[190px] text-[0.72rem] leading-tight text-[var(--signal-text)]">
           {error}
         </span>
       )}
