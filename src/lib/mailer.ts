@@ -21,12 +21,26 @@ export interface MailerConfig {
   host: string;
   port: number;
   user: string;
-  from: string;
+  from: { name: string; address: string };
   to: string[];
 }
 
 function env(name: string): string {
   return process.env[name]?.trim() ?? "";
+}
+
+/**
+ * SMTP_FROM задаёт только видимое имя. Адрес From всегда совпадает с
+ * SMTP_USER: так Яндекс может корректно подписать письмо DKIM и не создаётся
+ * ложная отправка «от имени» другого домена.
+ */
+export function smtpSender(user: string, configured = ""): MailerConfig["from"] {
+  const match = configured.trim().match(/^\s*"?([^"<]+?)"?\s*<[^<>]+>\s*$/);
+  const plainName = configured.includes("@") ? "" : configured.trim();
+  return {
+    name: match?.[1]?.trim() || plainName || "MOMO — сайт",
+    address: user,
+  };
 }
 
 /**
@@ -50,9 +64,9 @@ export function mailerConfig(): MailerConfig | null {
     host: env("SMTP_HOST") || DEFAULT_HOST,
     port: Number(env("SMTP_PORT")) || DEFAULT_PORT,
     user,
-    // Яндекс отвергает письмо, если адрес отправителя не тот, под которым мы
-    // вошли. Поэтому меняем только подпись, адрес оставляем свой.
-    from: env("SMTP_FROM") || `MOMO — сайт <${user}>`,
+    // Яндекс отвергает или хуже доставляет письмо, если From не совпадает с
+    // ящиком авторизации. Из SMTP_FROM берём только отображаемое имя.
+    from: smtpSender(user, env("SMTP_FROM")),
     to,
   };
 }
@@ -111,7 +125,7 @@ function explainMailError(raw: string): string {
 }
 
 export type MailResult =
-  | { ok: true; at: string; to: string[] }
+  | { ok: true; at: string; to: string[]; messageId: string; response: string }
   | { ok: false; at: string; error: string };
 
 /*
@@ -148,7 +162,7 @@ export async function sendMail(letter: Letter): Promise<MailResult> {
   const to = letter.to?.length ? letter.to : config.to;
 
   try {
-    await transporter(config).sendMail({
+    const info = await transporter(config).sendMail({
       from: config.from,
       to,
       subject: letter.subject,
@@ -156,7 +170,23 @@ export async function sendMail(letter: Letter): Promise<MailResult> {
       html: letter.html,
       ...(letter.replyTo ? { replyTo: letter.replyTo } : {}),
     });
-    last = { ok: true, at, to };
+
+    // Promise от Nodemailer означает завершение SMTP-диалога, но отдельные
+    // адреса сервер всё ещё мог отклонить. Не помечаем такую попытку успешной.
+    const accepted = Array.isArray(info.accepted) ? info.accepted : [];
+    const rejected = Array.isArray(info.rejected) ? info.rejected : [];
+    if (accepted.length === 0 || rejected.length > 0) {
+      const rejectedText = rejected.map(String).join(", ") || to.join(", ");
+      throw new Error(`SMTP-сервер не принял адрес получателя: ${rejectedText}. ${info.response ?? ""}`.trim());
+    }
+
+    last = {
+      ok: true,
+      at,
+      to,
+      messageId: String(info.messageId ?? ""),
+      response: String(info.response ?? ""),
+    };
   } catch (e) {
     transport = null;
     const raw = e instanceof Error ? e.message : String(e);

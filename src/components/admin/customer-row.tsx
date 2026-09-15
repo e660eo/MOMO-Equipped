@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { formatPrice } from "@/lib/format";
 import { setOrderStatus } from "@/app/admin/orders/actions";
 import { ResetPasswordButton } from "@/components/admin/reset-password-button";
+import { VerificationEmailButton } from "@/components/admin/verification-email-button";
 import {
   adjustCustomerBonusAction,
   saveCustomerAdmin,
@@ -41,6 +42,7 @@ export type CustomerRowData = {
   address?: string;
   createdAt: string;
   lastLoginAt?: string;
+  emailVerifiedAt?: string;
   bonusBalance: number;
   bonusExpiresAt?: string;
   admin?: { note?: string; tags?: string[]; history?: Array<{ at: string; text: string }> };
@@ -89,6 +91,9 @@ export function CustomerRow({
             {customer.phone}
           </a>
           <span className="block text-[0.75rem]">{customer.email}</span>
+          <span className={`mt-0.5 block text-[0.68rem] ${customer.emailVerifiedAt ? "text-green-700" : "text-amber-700"}`}>
+            {customer.emailVerifiedAt ? "Почта подтверждена" : "Почта не подтверждена"}
+          </span>
         </td>
         <td data-label="Был" className="py-3 pr-3 whitespace-nowrap text-muted-foreground">
           {fmtDate(customer.createdAt)}
@@ -124,6 +129,16 @@ export function CustomerRow({
       {open && (
         <tr className="responsive-expanded border-b border-border">
           <td colSpan={8} className="bg-bg/40 px-3 py-4">
+            <div className="mb-4 rounded-xl border border-border bg-surface p-4">
+              <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                Подтверждение почты
+              </p>
+              <VerificationEmailButton
+                customerId={customer.id}
+                email={customer.email}
+                verifiedAt={customer.emailVerifiedAt}
+              />
+            </div>
             <BonusEditor customer={customer} history={bonusHistory} />
             <form action={saveCustomerAdmin} className="mb-4 grid gap-3 rounded-xl border border-border bg-surface p-4 md:grid-cols-2">
               <input type="hidden" name="id" value={customer.id} />

@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/admin-auth";
 import { findCustomer, resetPassword, updateCustomerAdmin } from "@/lib/customers";
 import { messageFor } from "@/lib/errors";
 import { adjustCustomerBonus, getBonusSummary } from "@/lib/bonus-ledger";
+import { notifyCustomerEmailVerification } from "@/lib/customer-mail";
 
 /*
   Сброс пароля покупателя.
@@ -40,6 +41,34 @@ export async function saveCustomerAdmin(formData: FormData): Promise<void> {
     event: String(formData.get("event") ?? ""),
   });
   revalidatePath("/admin/customers");
+}
+
+export type VerificationEmailActionState = { ok?: string; error?: string };
+
+/** Повторная отправка подтверждения из карточки покупателя в админке. */
+export async function sendCustomerVerificationEmail(
+  customerId: string,
+): Promise<VerificationEmailActionState> {
+  try {
+    await requireSession();
+    const customer = findCustomer(customerId);
+    if (!customer) return { error: "Покупатель не найден." };
+    if (customer.emailVerifiedAt) return { ok: "Почта уже подтверждена." };
+
+    await notifyCustomerEmailVerification(customer.id);
+    revalidatePath("/admin/customers");
+    return {
+      ok: `SMTP-сервер принял письмо для ${customer.email}.`,
+    };
+  } catch (error) {
+    return {
+      error: messageFor(
+        error,
+        "Не удалось отправить письмо подтверждения.",
+        "sendCustomerVerificationEmail",
+      ),
+    };
+  }
 }
 
 export type BonusActionState = { ok?: string; error?: string };
