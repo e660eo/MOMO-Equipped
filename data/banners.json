@@ -40,7 +40,7 @@
       "href": "/product/sabvufer-avtomobilnyy-achilles-12-dyuymov-902295",
       "label": "Открыть ACHILLES 12"
     },
-    "active": true,
+    "active": false,
     "order": 20,
     "createdAt": "2026-08-18T00:00:01.000Z",
     "updatedAt": "2026-08-18T00:00:01.000Z"
@@ -67,5 +67,28 @@
     "order": 30,
     "createdAt": "2026-08-18T00:00:02.000Z",
     "updatedAt": "2026-08-18T00:00:02.000Z"
+  },
+  {
+    "id": "subwoofer-arrivals-2026-09-16",
+    "name": "Поступление B-12.750 и UB-12.350",
+    "media": "ph-466-0c5d2d07.webp",
+    "mediaType": "image",
+    "alt": "Сабвуфер ZEUS B-12.750",
+    "eyebrow": "Новое поступление",
+    "heading": "Бас вернулся",
+    "description": "ZEUS B-12.750 и MOMO UB-12.350 снова на складе. Выберите модель для своей системы.",
+    "layout": "content",
+    "theme": "light",
+    "mediaFit": "contain",
+    "mediaAlign": "right",
+    "action": {
+      "kind": "button",
+      "href": "/news/postuplenie-b-12-750-ub-12-350",
+      "label": "Смотреть поступление"
+    },
+    "active": true,
+    "order": 5,
+    "createdAt": "2026-09-16T12:00:00.000Z",
+    "updatedAt": "2026-09-16T12:00:00.000Z"
   }
 ]

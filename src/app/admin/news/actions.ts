@@ -91,6 +91,7 @@ export async function saveNews(
       // Пустое поле не сохраняем ключом: заметка без статьи и заметка со
       // статьёй из пустой строки — одно и то же, а разное в файле путает.
       ...(body ? { body } : {}),
+      ...(existing?.productSlugs ? { productSlugs: existing.productSlugs } : {}),
     };
 
     updateJson<NewsItem[]>(FILE, (all) => {

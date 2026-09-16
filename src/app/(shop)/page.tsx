@@ -259,12 +259,12 @@ export default function Home() {
 
       {/* NEW ARRIVALS */}
       {newProducts.length > 0 && (
-        <section className="py-14 sm:py-20">
+        <section id="new-arrivals" className="scroll-mt-32 py-14 sm:py-20">
           <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <SectionHead
               eyebrow="Уже на складе"
-              title="Новинки MOMO"
-              linkHref="/news/novinki-momo-2026"
+              title="Новые поступления"
+              linkHref="/news"
               linkLabel="Подробнее →"
             />
             <div className="grid max-w-[590px] grid-cols-1 gap-5 sm:grid-cols-2">
@@ -294,6 +294,7 @@ export default function Home() {
       </section>
 
       {/* BUNDLES — готовые сборки */}
+      {bundles.length > 0 && (
       <section className="border-t border-border bg-surface py-14 sm:py-20">
         <Reveal className="mx-auto max-w-[1200px] px-4 sm:px-6">
           <SectionHead
@@ -314,6 +315,7 @@ export default function Home() {
           </div>
         </Reveal>
       </section>
+      )}
 
       {/* MANIFEST + CONTACT */}
       <section className="border-y border-border bg-surface py-14 sm:py-20">

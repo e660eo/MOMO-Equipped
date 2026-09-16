@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 const nav = [
   { href: "/about", label: "О компании" },
   { href: "/builder", label: "Собрать систему" },
-  { href: "/news/novinki-momo-2026", label: "Новинки" },
+  { href: "/#new-arrivals", label: "Новинки" },
   { href: "/listening-stand", label: "Онлайн-стенд", beta: true },
   { href: "/news", label: "Новости" },
   { href: "/support", label: "Поддержка" },

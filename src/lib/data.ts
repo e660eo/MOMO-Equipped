@@ -1,4 +1,5 @@
 import { readJson } from "./store";
+import { isInStock } from "./format";
 import type {
   Product,
   Category,
@@ -71,18 +72,21 @@ export function getNewProducts(): Product[] {
 
 /**
  * Готовые сборки с подтянутыми товарами и пакетной ценой.
- * Товары с несуществующим slug молча отбрасываются, чтобы правка данных
- * не роняла страницу.
+ * Неполные комплекты и комплекты с закончившимся товаром доступны только
+ * в панели: покупатель должен получать весь обещанный состав.
  */
-export function getBundles(): ResolvedBundle[] {
-  return readJson<Bundle[]>("bundles.json").map((b) => {
+export function getBundles({ includeUnavailable = false } = {}): ResolvedBundle[] {
+  return readJson<Bundle[]>("bundles.json").flatMap((b) => {
     const products = b.items
       .map((slug) => getProduct(slug))
       .filter((p): p is Product => Boolean(p));
+    const available = products.length > 0 && products.length === b.items.length
+      && products.every((p) => isInStock(p) === true);
+    if (!includeUnavailable && !available) return [];
     const fullPrice = products.reduce((sum, p) => sum + p.price, 0);
     const price =
       Math.round((fullPrice * (100 - b.discountPercent)) / 100 / 10) * 10;
-    return { ...b, products, fullPrice, price, saving: fullPrice - price };
+    return [{ ...b, products, fullPrice, price, saving: fullPrice - price }];
   });
 }
 

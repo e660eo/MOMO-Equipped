@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/cart-store";
 import { formatPrice, productImageUrl } from "@/lib/format";
+import { OZON_DELIVERY_SURCHARGE } from "@/lib/delivery-pricing";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { notifyCustomerSessionChanged, useCustomer } from "@/components/customer-provider";
 import { useAccount } from "@/lib/account-store";
@@ -928,7 +929,7 @@ export function CartPageClient() {
                 <div className="rounded-xl border border-border bg-bg p-4 text-[0.8rem] leading-relaxed text-muted-foreground">
                   Онлайн-доставка с Ozon доступна для любого чека: если сумма заказа ниже{" "}
                   <b className="text-foreground">{formatPrice(freeFrom)}</b>, к оплате добавляется{" "}
-                  300 ₽ за доставку до пункта выдачи Ozon.
+                  {formatPrice(OZON_DELIVERY_SURCHARGE)} за доставку до пункта выдачи Ozon.
                 </div>
               )}
             </div>
@@ -1105,7 +1106,7 @@ export function CartPageClient() {
                   {paySandbox
                     ? "Оплата работает в тестовом режиме: настоящие деньги не списываются."
                     : customer
-                      ? "Карта берётся из текущего Яндекс ID на странице Яндекс Pay — проверьте аккаунт и последние 4 цифры. Заказ увидит менеджер только после оплаты."
+                      ? "При онлайн-оплате заказ передаётся менеджеру после успешного платежа. Если выберете заказ без онлайн-оплаты, менеджер свяжется с вами для согласования."
                       : "Оплата доступна после входа или регистрации. Магазин не хранит карты: их показывает Яндекс Pay из текущего Яндекс ID."}
                 </p>
               </>

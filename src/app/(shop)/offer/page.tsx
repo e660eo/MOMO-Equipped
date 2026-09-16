@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig, formatPrice } from "@/lib/data";
 import { publicPageMetadata } from "@/lib/seo-metadata";
+import { OZON_DELIVERY_SURCHARGE } from "@/lib/delivery-pricing";
 
 export const metadata: Metadata = publicPageMetadata(
   "Публичная оферта",
@@ -178,8 +179,9 @@ export default function OfferPage() {
         />
         <p>
           Заказы на сумму от {formatPrice(trust.freeShippingFrom)} доставляются
-          бесплатно. Для меньшей суммы стоимость доставки согласовывается с
-          менеджером до оплаты. Право собственности и риск случайной гибели Товара переходят
+          бесплатно. Для меньшей суммы доставка до пункта выдачи Ozon стоит{" "}
+          {formatPrice(OZON_DELIVERY_SURCHARGE)} и включается в итоговую сумму до
+          оплаты. Право собственности и риск случайной гибели Товара переходят
           к Покупателю с момента получения Товара им или его представителем.
         </p>
       </Section>

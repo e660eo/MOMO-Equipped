@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getNewProducts, getNews } from "@/lib/data";
+import { getNewProducts, getNews, getProducts } from "@/lib/data";
 import { ArticleBody } from "@/components/article-body";
 import { ProductCard } from "@/components/product-card";
 import { JsonLd } from "@/components/json-ld";
@@ -63,7 +63,9 @@ export default async function NewsItemPage({
   if (!item) notFound();
 
   const full = hasArticle(item.body);
-  const newProducts = item.slug === "novinki-momo-2026" ? getNewProducts() : [];
+  const newProducts = item.productSlugs
+    ? getProducts().filter((product) => item.productSlugs!.includes(product.slug))
+    : item.slug === "novinki-momo-2026" ? getNewProducts() : [];
   // Соседние заметки — чтобы со статьи было куда пойти, кроме как назад.
   const others = news.filter((n) => n.slug !== item.slug).slice(0, 2);
 
@@ -112,10 +114,10 @@ export default async function NewsItemPage({
       {newProducts.length > 0 && (
         <section id="new-products" className="mt-12 border-t border-border pt-10">
           <p className="font-mono text-[0.72rem] uppercase tracking-wider text-signal">
-            Уже в наличии
+            В каталоге
           </p>
           <h2 className="mt-2 font-display text-[clamp(1.35rem,2.5vw,1.8rem)] font-semibold">
-            Новые моноблоки MOMO
+            Товары из публикации
           </h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             {newProducts.map((product) => (

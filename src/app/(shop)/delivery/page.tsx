@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Store, Truck, CreditCard, Undo2 } from "lucide-react";
 import { siteConfig, formatPrice } from "@/lib/data";
 import { publicPageMetadata } from "@/lib/seo-metadata";
+import { OZON_DELIVERY_SURCHARGE } from "@/lib/delivery-pricing";
 
 export const metadata: Metadata = publicPageMetadata(
   "Доставка и оплата",
@@ -22,10 +23,10 @@ export default function DeliveryPage() {
         Доставка и оплата
       </h1>
       <p className="mt-4 max-w-[60ch] text-[1.02rem] leading-relaxed text-muted-foreground">
-        При сумме от {formatPrice(trust.freeShippingFrom)} выберите в корзине
-        пункт Ozon и оплатите заказ картой или Сплитом. Отправление создаётся
-        автоматически только после успешной оплаты. Заказы меньшей суммы
-        оформляются через WhatsApp с расчётом доставки до оплаты.
+        Выберите в корзине пункт Ozon и оплатите заказ картой или Сплитом.
+        Доставка бесплатна от {formatPrice(trust.freeShippingFrom)}, для заказов
+        меньшей суммы — {formatPrice(OZON_DELIVERY_SURCHARGE)}. Итоговая сумма
+        видна до оплаты. Отправление создаётся только после успешной оплаты.
       </p>
 
       {/* Получение */}
@@ -63,9 +64,8 @@ export default function DeliveryPage() {
               бесплатно.
             </b>{" "}
             <span className="text-muted-foreground">
-              Для заказов меньшей суммы доставка рассчитывается отдельно:
-              оформите корзину через WhatsApp, и менеджер назовёт точную сумму
-              до оплаты.
+              Для заказов меньшей суммы доставка до пункта выдачи Ozon стоит{" "}
+              {formatPrice(OZON_DELIVERY_SURCHARGE)} и добавляется к сумме в корзине.
             </span>
           </p>
         </div>
@@ -83,8 +83,9 @@ export default function DeliveryPage() {
               Картой или через Яндекс Сплит
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Онлайн-оплата доступна в корзине для заказов с бесплатной Ozon
-              Доставкой. Карта открывается на защищённой странице Яндекс Pay,
+              Онлайн-оплата доступна для заказов с доставкой Ozon независимо от
+              суммы. Перед оплатой войдите в аккаунт и подтвердите почту.
+              Оплата проходит на защищённой странице Яндекс Pay,
               а электронный чек формирует подключённая онлайн-касса.
             </p>
           </div>

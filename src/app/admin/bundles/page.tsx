@@ -13,7 +13,8 @@ export default async function AdminBundlesPage({
   await requireAdminPage();
 
   const { saved } = await searchParams;
-  const bundles = getBundles();
+  const bundles = getBundles({ includeUnavailable: true });
+  const available = new Set(getBundles().map((bundle) => bundle.slug));
 
   return (
     <div>
@@ -50,6 +51,11 @@ export default async function AdminBundlesPage({
             >
               {b.title}
             </Link>
+            {!available.has(b.slug) && (
+              <p className="mt-2 text-sm text-amber-700">
+                Скрыта с витрины: один из товаров отсутствует, скрыт или не в наличии.
+              </p>
+            )}
             <p className="mt-2 text-[0.8rem] text-muted-foreground">
               {b.products.length}{" "}
               {plural(b.products.length, "товар", "товара", "товаров")} ·{" "}

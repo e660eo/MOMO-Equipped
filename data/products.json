@@ -1684,7 +1684,11 @@
     "image": "k_df56b42ff4614c3592cf59cf997d866c.webp",
     "isClearance": false,
     "ozonSku": 2923902295,
-    "ozonOfferId": "ACHILLES"
+    "ozonOfferId": "ACHILLES",
+    "stock": 0,
+    "inStock": false,
+    "hidden": true,
+    "isNew": false
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-400-12-dyuymov-064850",
@@ -1708,21 +1712,6 @@
     "inStock": true,
     "ozonSku": 3507839456,
     "ozonOfferId": "B-12.450"
-  },
-  {
-    "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
-    "title": "Сабвуфер B-12.750 12 дюйм",
-    "brand": "ZEUS",
-    "category": "sabvufery",
-    "price": 7198,
-    "image": "ph-466-0c5d2d07.webp",
-    "isClearance": false,
-    "images": [
-      "ph-464-229d7da3.webp",
-      "ph-467-0d54dc6b.webp"
-    ],
-    "ozonSku": 1927986648,
-    "ozonOfferId": "B-12.750 (2Ohm+2Ohm)"
   },
   {
     "slug": "sabvufer-avtomobilnyy-ts-10-600-10-dyuymov-182054",
@@ -1773,21 +1762,6 @@
     ],
     "ozonSku": 4083328303,
     "ozonOfferId": "UB-10.250"
-  },
-  {
-    "slug": "sabvufer-avtomobilnyy-ub-12-350-12-dyuymov-041105",
-    "title": "Сабвуфер UB-12.350 12 дюйм",
-    "brand": "MOMO",
-    "category": "sabvufery",
-    "price": 4761,
-    "image": "ph-943-c887085e.webp",
-    "isClearance": false,
-    "images": [
-      "ph-942-1c3f9f82.webp",
-      "ph-941-01e44efe.webp"
-    ],
-    "ozonSku": 1860041105,
-    "ozonOfferId": "UB-12.350"
   },
   {
     "slug": "sabvufer-v-korobe-lyuks-s-truboy-dlya-avtomobilya-12-b-12-75-734390",
@@ -2219,5 +2193,43 @@
       "HE-815 звучит увереннее, насыщеннее и детальнее во всём рабочем диапазоне."
     ],
     "ozonOfferId": "HE-815"
+  },
+  {
+    "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
+    "title": "Сабвуфер B-12.750 12 дюйм",
+    "brand": "ZEUS",
+    "category": "sabvufery",
+    "price": 7198,
+    "image": "ph-466-0c5d2d07.webp",
+    "isClearance": false,
+    "images": [
+      "ph-464-229d7da3.webp",
+      "ph-467-0d54dc6b.webp"
+    ],
+    "ozonSku": 1927986648,
+    "ozonOfferId": "B-12.750 (2Ohm+2Ohm)",
+    "stock": 1000,
+    "inStock": true,
+    "hidden": false,
+    "isNew": true
+  },
+  {
+    "slug": "sabvufer-avtomobilnyy-ub-12-350-12-dyuymov-041105",
+    "title": "Сабвуфер UB-12.350 12 дюйм",
+    "brand": "MOMO",
+    "category": "sabvufery",
+    "price": 4761,
+    "image": "ph-943-c887085e.webp",
+    "isClearance": false,
+    "images": [
+      "ph-942-1c3f9f82.webp",
+      "ph-941-01e44efe.webp"
+    ],
+    "ozonSku": 1860041105,
+    "ozonOfferId": "UB-12.350",
+    "stock": 1200,
+    "inStock": true,
+    "hidden": false,
+    "isNew": true
   }
 ]

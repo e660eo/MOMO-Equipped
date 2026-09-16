@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import { OZON_DELIVERY_SURCHARGE } from "./delivery-pricing";
+export { OZON_DELIVERY_SURCHARGE } from "./delivery-pricing";
 import { getProducts, siteConfig } from "./data";
 import { getOzonAccessToken, refreshOzonAccessToken } from "./ozon-auth";
 import type {
@@ -155,7 +157,6 @@ function makeRoomForSelection(): void {
   }
 }
 const OZON_DELIVERY_THRESHOLD = siteConfig.trust.freeShippingFrom;
-export const OZON_DELIVERY_SURCHARGE = 300;
 
 function cleanPhone(value: string): string {
   const digits = value.replace(/\D/g, "").replace(/^8/, "7");

@@ -32,6 +32,7 @@ npm ci --no-audit --no-fund
 echo "→ Применяем обновления каталога…"
 node scripts/apply-catalog-update.mjs
 node scripts/migrate-live-data.mjs
+node scripts/update-subwoofer-arrivals.mjs
 
 echo "→ Собираем прод-версию отдельно от работающего сайта…"
 # Версия уезжает в мета-теги страниц: по ней снаружи видно, какая сборка
