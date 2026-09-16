@@ -38,9 +38,7 @@ const cols = [
 ];
 
 /*
-  Соцсети: только реально существующие каналы (из site.json). VK/YouTube
-  и прочие НЕ добавляем, пока владелец не даст настоящие ссылки — битая
-  или чужая соцсеть хуже её отсутствия.
+  Соцсети: контакты из site.json и профиль ВК, предоставленный владельцем.
 */
 
 // Нижняя строка футера: обязательные по 152-ФЗ и обычаю оборота документы.
@@ -149,6 +147,15 @@ export function SiteFooter() {
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden>
                   <path d="M21.9 4.6 18.9 19c-.23 1-.83 1.26-1.68.78l-4.65-3.43-2.24 2.16c-.25.25-.46.46-.94.46l.33-4.73 8.6-7.77c.37-.33-.08-.52-.58-.19L7.1 12.97l-4.58-1.43c-1-.31-1.02-1 .2-1.47L20.6 3.2c.83-.31 1.55.19 1.3 1.4Z" />
                 </svg>
+              </a>
+              <a
+                href="https://vk.ru/momo_orig"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="MOMO ВКонтакте (откроется в новой вкладке)"
+                className="tap-44 relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-xs font-bold text-white/70 transition-colors hover:border-signal hover:text-signal"
+              >
+                ВК
               </a>
             </div>
           </div>
