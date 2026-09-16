@@ -69,7 +69,7 @@ describe("parseAudioProductSpec", () => {
     expect(spec.kind).toBe("other");
   });
 
-  it("uses the subwoofer model code as RMS only when the description is empty", () => {
+  it("does not invent RMS from the model number", () => {
     const spec = parseAudioProductSpec(product(
       "b-12-450",
       "Сабвуфер B-12.450 12 дюйм",
@@ -78,7 +78,7 @@ describe("parseAudioProductSpec", () => {
     ));
 
     expect(spec.kind).toBe("subwoofer");
-    expect(spec.rmsW).toBe(450);
+    expect(spec.rmsW).toBeUndefined();
     expect(spec.diameterMm).toBe(305);
   });
 });
@@ -96,7 +96,7 @@ const automaticCatalog: AudioBuilderProduct[] = [
   product("amp-60", "Усилитель AB-4.60", "usiliteli-monobloki", 3_000, [
     "Количество каналов: 4", "4 Ом: 4 × 60 Вт · 2 Ом: 4 × 90 Вт",
   ]),
-  product("sub", "Сабвуфер B-12.450 12 дюйм", "sabvufery", 5_000),
+  product("sub", "Сабвуфер B-12.450 12 дюйм", "sabvufery", 5_000, ["Мощность RMS — 450 Вт", "Импеданс — 2+2 Ом"]),
   product("mono", "Моноблок M-600", "usiliteli-monobloki", 5_300, [
     "Количество каналов: 1", "4 Ом: 260 Вт · 2 Ом: 450 Вт · 1 Ом: 600 Вт",
   ]),
@@ -122,7 +122,7 @@ describe("buildAutomaticRecommendation", () => {
     expect(result?.items.map((item) => item.product.slug)).toContain("kit-8");
   });
 
-  it("finds a subwoofer load and warns when the coil impedance is missing", () => {
+  it("uses a supported dual-coil load and explains the wiring", () => {
     const result = buildAutomaticRecommendation(automaticCatalog, {
       goal: "bass",
       size: "165",
@@ -136,6 +136,21 @@ describe("buildAutomaticRecommendation", () => {
       expect.objectContaining({ label: "Подключение катушек", status: "warning" }),
       expect.objectContaining({ label: "Разводка питания", status: "warning" }),
     ]));
+    expect(result?.technicalChecks.find((c) => c.label === "Сабвуфер и моноблок")?.value).toContain("при 1 Ом");
+    expect(result?.technicalChecks.find((c) => c.label === "Подключение катушек")?.value).toContain("параллельное");
+  });
+
+  it("does not pair a 2+2 ohm sub with an amplifier rated only at 2 ohm", () => {
+    const incompatible = automaticCatalog.map((p) => p.slug === "mono"
+      ? { ...p, description: ["Количество каналов: 1", "2 Ом: 450 Вт"] } : p);
+    expect(buildAutomaticRecommendation(incompatible, { goal: "bass", size: "165", budget: 30_000 })).toBeNull();
+  });
+
+  it("requires explicit coil data and never maps generic RMS to minimum impedance", () => {
+    const unknown = automaticCatalog.map((p) => p.slug === "sub" ? { ...p, description: ["RMS 450 Вт"] } : p);
+    expect(buildAutomaticRecommendation(unknown, { goal: "bass", size: "165", budget: 30_000 })).toBeNull();
+    expect(parseAudioProductSpec(product("amp", "Моноблок M-1000", "usiliteli-monobloki", 5000,
+      ["Номинальная мощность (RMS): 700 Вт", "Минимальное сопротивление: 1 Ом"])).outputs).toEqual([]);
   });
 
   it("does not add a second RCA when the selected wiring kit already includes it", () => {
@@ -182,7 +197,6 @@ const liveCatalog: AudioBuilderProduct[] = (catalog as unknown as Array<AudioBui
 describe("automatic recommendations on the current catalog", () => {
   it.each([
     { goal: "loud" as const, size: "165" as const, budget: 20_000 },
-    { goal: "bass" as const, size: "165" as const, budget: 30_000 },
     { goal: "balanced" as const, size: "200" as const, budget: 35_000 },
   ])("builds a technical system for $goal / $size mm", (selection) => {
     const result = buildAutomaticRecommendation(liveCatalog, selection);
@@ -190,5 +204,8 @@ describe("automatic recommendations on the current catalog", () => {
     expect(result?.mode).toBe("automatic");
     expect(result?.items.length).toBeGreaterThanOrEqual(2);
     expect(result?.technicalChecks.length).toBeGreaterThanOrEqual(3);
+  });
+  it("does not claim a compatible bass system when current load/power data is insufficient", () => {
+    expect(buildAutomaticRecommendation(liveCatalog, { goal: "bass", size: "165", budget: 30_000 })).toBeNull();
   });
 });

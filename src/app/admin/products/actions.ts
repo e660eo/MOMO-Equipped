@@ -184,6 +184,10 @@ export async function saveProduct(
         products.map((p) => p.slug),
       );
 
+    const packageRaw = formData.has("packageQuantity") ? String(formData.get("packageQuantity") ?? "").trim() : String(existing?.packageQuantity ?? "");
+    const packageQuantity = packageRaw ? Number(packageRaw) : undefined;
+    if (packageQuantity !== undefined && (!Number.isSafeInteger(packageQuantity) || packageQuantity < 1 || packageQuantity > 10000)) return { error: "Укажите целое количество штук в упаковке от 1 до 10000." };
+    const packageContents = formData.has("packageContents") ? String(formData.get("packageContents") ?? "").trim().slice(0, 500) : existing?.packageContents;
     const product: Product = {
       slug,
       title,
@@ -195,6 +199,8 @@ export async function saveProduct(
       ...(formData.get("isNew") === "on" ? { isNew: true } : {}),
       ...(photos.length > 1 ? { images: photos.slice(1) } : {}),
       ...(description.length ? { description } : {}),
+      ...(packageQuantity ? { packageQuantity } : {}),
+      ...(packageContents ? { packageContents } : {}),
       ...(formData.get("hidden") === "on" ? { hidden: true } : {}),
       ...(ozonSku ? { ozonSku } : {}),
       ...(ozonOfferId ? { ozonOfferId } : {}),

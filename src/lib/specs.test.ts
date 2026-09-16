@@ -3,11 +3,15 @@ import { diameterBucket, parseTech, powerBucket } from "./specs";
 
 describe("catalogue technical filters", () => {
   it("extracts diameter, power and impedance", () => {
-    expect(parseTech("Сабвуфер 12 дюймов 1200 Вт 2 Ом")).toMatchObject({
+    expect(parseTech("Сабвуфер 12 дюймов MAX 1200 Вт 2 Ом")).toMatchObject({
       diameterMm: 305,
       powerMaxW: 1200,
       impedanceOhm: 2,
     });
+  });
+
+  it("does not classify RMS or unlabelled watts as MAX", () => {
+    expect(parseTech("Сабвуфер 1200 Вт", ["RMS 650 Вт"]).powerMaxW).toBeUndefined();
   });
 
   it("maps values to stable filter buckets", () => {

@@ -19,6 +19,7 @@ import {
   REFERENCE_TRACK_URL,
 } from "@/lib/listening-stand";
 import type { Product } from "@/lib/types";
+import { matchesSearch } from "@/lib/search-normalize";
 
 const wave = [28, 52, 38, 76, 44, 90, 58, 34, 68, 48, 82, 40, 62, 96, 54, 72, 36, 84, 46, 66, 32, 74, 50, 88, 42, 64, 30, 78, 56, 92, 48, 70, 36, 86, 52, 68, 40, 80, 46, 60];
 
@@ -47,8 +48,9 @@ function Score({ label, value }: { label: string; value?: number }) {
   );
 }
 
-export function ListeningStand({ products }: { products: Product[] }) {
-  const [selectedSlug, setSelectedSlug] = useState(products[0]?.slug ?? "");
+export function ListeningStand({ products, initialSlug }: { products: Product[]; initialSlug?: string }) {
+  const [selectedSlug, setSelectedSlug] = useState(products.find((p) => p.slug === initialSlug)?.slug ?? products[0]?.slug ?? "");
+  const [playbackError, setPlaybackError] = useState("");
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState("all");
   const [onlyRecorded, setOnlyRecorded] = useState(false);
@@ -62,11 +64,10 @@ export function ListeningStand({ products }: { products: Product[] }) {
   const audioSource = ownRecording ?? REFERENCE_TRACK_URL;
 
   const filtered = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase("ru-RU");
     return products.filter((product) => {
       if (brand !== "all" && product.brand.toUpperCase() !== brand) return false;
       if (onlyRecorded && !hasPublishedListeningAudio(product)) return false;
-      return !normalized || `${product.brand} ${product.title}`.toLocaleLowerCase("ru-RU").includes(normalized);
+      return matchesSearch(product.title, product.brand, query);
     });
   }, [brand, onlyRecorded, products, query]);
 
@@ -78,6 +79,7 @@ export function ListeningStand({ products }: { products: Product[] }) {
     setPlaying(false);
     setCurrentTime(0);
     setDuration(0);
+    setPlaybackError("");
   }, [audioSource, selectedSlug]);
 
   async function togglePlayback() {
@@ -85,9 +87,11 @@ export function ListeningStand({ products }: { products: Product[] }) {
     if (!audio) return;
     if (audio.paused) {
       try {
+        setPlaybackError("");
         await audio.play();
       } catch {
         setPlaying(false);
+        setPlaybackError("Запись не удалось воспроизвести. Проверьте соединение и попробуйте ещё раз.");
       }
     } else {
       audio.pause();
@@ -99,7 +103,7 @@ export function ListeningStand({ products }: { products: Product[] }) {
 
   return (
     <div className="mt-9 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_390px] xl:grid-cols-[minmax(0,1fr)_420px]">
-      <section className="min-w-0 rounded-[22px] border border-border bg-surface p-4 sm:p-6">
+      <section className="order-2 min-w-0 rounded-[22px] border border-border bg-surface p-4 sm:p-6 lg:order-1">
         <div className="flex flex-col gap-3 md:flex-row">
           <label className="relative flex-1">
             <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -207,8 +211,9 @@ export function ListeningStand({ products }: { products: Product[] }) {
         )}
       </section>
 
-      <aside className="overflow-hidden rounded-[22px] bg-[#111214] text-white shadow-[0_24px_70px_-34px_rgba(0,0,0,.7)] lg:sticky lg:top-32">
+      <aside className="order-1 overflow-hidden rounded-[22px] bg-[#111214] text-white shadow-[0_24px_70px_-34px_rgba(0,0,0,.7)] lg:order-2 lg:sticky lg:top-32">
         <div className="relative border-b border-white/10 p-4 sm:p-5">
+          <label className="mb-5 block text-sm lg:hidden">Выберите модель<select className="mt-2 min-h-11 w-full rounded border border-white/20 bg-[#181a1e] px-3 text-base" value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value)}>{products.map((p) => <option value={p.slug} key={p.slug}>{p.title}</option>)}</select></label>
           <div aria-hidden className="absolute right-5 top-5 flex gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-signal shadow-[0_0_10px_#ff5500]" />
             <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
@@ -254,6 +259,7 @@ export function ListeningStand({ products }: { products: Product[] }) {
             ref={audioRef}
             src={audioSource}
             preload="metadata"
+            onError={() => { setPlaying(false); setPlaybackError("Аудиофайл недоступен. Попробуйте открыть стенд позже."); }}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onEnded={() => setPlaying(false)}
@@ -265,7 +271,7 @@ export function ListeningStand({ products }: { products: Product[] }) {
             <button
               type="button"
               onClick={togglePlayback}
-              aria-label={playing ? "Пауза" : "Слушать"}
+              aria-label={playing ? "Пауза" : ownRecording ? "Слушать запись модели" : "Слушать демонстрационный трек"}
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-signal text-white transition hover:scale-105 hover:bg-[#ff6a1f] active:scale-95"
             >
               {playing ? <Pause size={19} fill="currentColor" /> : <Play size={19} fill="currentColor" className="translate-x-px" />}
@@ -307,6 +313,8 @@ export function ListeningStand({ products }: { products: Product[] }) {
             </label>
           </div>
 
+          {playbackError && <p role="alert" className="mt-3 text-sm text-amber-200">{playbackError}</p>}
+          {!ownRecording && <p className="mt-4 text-sm font-semibold text-amber-200">Демо: запись этой модели ещё не опубликована</p>}
           <div className={`mt-4 rounded-[12px] border p-3 text-[0.7rem] leading-relaxed ${ownRecording ? "border-signal/25 bg-signal/[0.08] text-white/66" : "border-white/10 bg-white/[0.035] text-white/55"}`}>
             <span className="flex items-start gap-2">
               <Headphones size={15} className="mt-0.5 shrink-0 text-signal" />

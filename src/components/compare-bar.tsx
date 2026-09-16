@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Scale, X } from "lucide-react";
 import { useCompare } from "@/lib/compare-store";
 
@@ -14,12 +15,13 @@ import { useCompare } from "@/lib/compare-store";
   разметка совпадают и React не ругается на расхождение.
 */
 export function CompareBar() {
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const count = useCompare((s) => s.items.length);
   const clear = useCompare((s) => s.clear);
 
   useEffect(() => setMounted(true), []);
-  if (!mounted || count < 1) return null;
+  if (!mounted || count < 1 || pathname === "/compare") return null;
 
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)_+_5rem)] left-3 z-40 flex max-w-[calc(100vw-5.75rem)] items-center gap-1 rounded-full border border-border bg-surface p-1 pl-1.5 shadow-[var(--card-shadow)] sm:bottom-4 sm:left-1/2 sm:max-w-none sm:-translate-x-1/2">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 import type { Category, Brand } from "@/lib/types";
@@ -18,6 +19,7 @@ import { cn, plural } from "@/lib/utils";
 import { cleanQuery } from "@/lib/sanitize";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import { METRIKA_GOALS, reachMetrikaGoal } from "@/lib/metrika";
+import { matchesSearch } from "@/lib/search-normalize";
 
 // «Популярное» намеренно нет: статистики продаж и просмотров у нас не собирается,
 // а прежний пункт «Сначала популярные» просто отдавал порядок строк в JSON.
@@ -139,14 +141,14 @@ export function CatalogView({
   const techMap = useMemo(() => {
     const m = new Map<
       string,
-      { dia: string | null; pow: string | null; imp: number | null; lcTitle: string }
+      { dia: string | null; pow: string | null; imp: string | null; lcTitle: string }
     >();
     for (const p of products) {
       const t = p.tech;
       m.set(p.slug, {
         dia: t.diameterMm ? diameterBucket(t.diameterMm) : null,
         pow: t.powerMaxW ? powerBucket(t.powerMaxW) : null,
-        imp: t.impedanceOhm ?? null,
+        imp: t.impedanceLabel ?? (t.impedanceOhm ? String(t.impedanceOhm) : null),
         lcTitle: p.title.toLowerCase(),
       });
     }
@@ -161,7 +163,7 @@ export function CatalogView({
   const techOptions = useMemo(() => {
     const dia = new Map<string, number>();
     const pow = new Map<string, number>();
-    const imp = new Map<number, number>();
+    const imp = new Map<string, number>();
     for (const p of products) {
       const t = techMap.get(p.slug)!;
       if (t.dia) dia.set(t.dia, (dia.get(t.dia) ?? 0) + 1);
@@ -171,7 +173,7 @@ export function CatalogView({
     return {
       dia: DIAMETER_ORDER.map((b) => ({ v: b, n: dia.get(b) ?? 0 })).filter((o) => o.n > 0),
       pow: POWER_ORDER.map((b) => ({ v: b, n: pow.get(b) ?? 0 })).filter((o) => o.n > 0),
-      imp: [1, 2, 4]
+      imp: ["1", "2", "4", "8", "1+1", "2+2", "4+4", "8+8"]
         .map((v) => ({ v: String(v), n: imp.get(v) ?? 0 }))
         .filter((o) => o.n > 0),
     };
@@ -223,6 +225,14 @@ export function CatalogView({
     остаются обычной колонкой слева: разметка одна, меняется только обёртка.
   */
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersRef = useRef<HTMLElement>(null);
+  useDialogFocus(filtersOpen, filtersRef);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setFiltersOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   useEffect(() => {
     if (!filtersOpen) return;
@@ -343,7 +353,7 @@ export function CatalogView({
       return (
         (!category || p.category === category) &&
         (!brand || p.brand === brand) &&
-        (!q || t.lcTitle.includes(q)) &&
+        (!q || matchesSearch(p.title, p.brand, q)) &&
         (!inStockOnly || isInStock(p) === true) &&
         (!diaFilter || t.dia === diaFilter) &&
         (!powFilter || t.pow === powFilter) &&
@@ -509,6 +519,7 @@ export function CatalogView({
       </div>
 
       {/* Вызов шторки фильтров — только на узком экране */}
+      <label className="mt-5 block lg:hidden"><span className="sr-only">Поиск модели в каталоге</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Модель или название товара" className={selectCls} /></label>
       <button
         onClick={() => setFiltersOpen(true)}
         className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-sm border border-border bg-surface py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal lg:hidden"
@@ -539,13 +550,17 @@ export function CatalogView({
 
         {/* Фильтры: шторка снизу на мобильном, колонка слева на десктопе */}
         <aside
+          ref={filtersRef}
+          tabIndex={-1}
+          role={filtersOpen ? "dialog" : undefined}
+          aria-modal={filtersOpen || undefined}
           aria-label="Фильтры каталога"
           className={cn(
             "flex flex-col gap-4",
             "fixed inset-x-0 bottom-0 z-[101] max-h-[88vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface p-5 pb-8 transition-transform duration-300",
             "lg:static lg:z-auto lg:max-h-none lg:translate-y-0 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:transition-none",
             "lg:sticky lg:top-24 lg:h-fit",
-            filtersOpen ? "translate-y-0" : "translate-y-full",
+            filtersOpen ? "visible translate-y-0" : "invisible translate-y-full lg:visible",
           )}
         >
           {/* Шапка шторки */}

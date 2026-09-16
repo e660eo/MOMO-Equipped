@@ -83,14 +83,7 @@ export function productSchema(
     url: `${BASE}/product/${product.slug}`,
     priceCurrency: "RUB",
     price: product.price,
-    // Дата держится примерно на год вперёд от сборки — это ориентир для
-    // поисковика, а не обязательство: рекомендуемое поле, без него Search
-    // Console предупреждает.
-    priceValidUntil: (() => {
-      const d = new Date();
-      d.setFullYear(d.getFullYear() + 1);
-      return d.toISOString().slice(0, 10);
-    })(),
+    // A validity deadline is omitted until the store actually specifies one.
     seller: { "@type": "Organization", name: "Modern Original Music Organization" },
   };
 

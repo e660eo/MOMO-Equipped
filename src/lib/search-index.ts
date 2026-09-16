@@ -1,4 +1,5 @@
 import type { Product } from "./types";
+import { matchesSearch } from "./search-normalize";
 
 /*
   Поиск по каталогу для живых подсказок в шапке.
@@ -85,8 +86,6 @@ export function searchIndex(
   const q = norm(query);
   if (q.length < 2) return { hits: [], total: 0 };
 
-  const words = q.split(/\s+/).filter(Boolean);
-
   const scored: { hit: SearchHit; score: number }[] = [];
   let total = 0;
 
@@ -94,14 +93,7 @@ export function searchIndex(
     const { nTitle, nBrand } = item;
 
     // Все слова запроса должны найтись — иначе это не наш товар
-    let ok = true;
-    for (const w of words) {
-      if (!nTitle.includes(w) && !nBrand.includes(w)) {
-        ok = false;
-        break;
-      }
-    }
-    if (!ok) continue;
+    if (!matchesSearch(item.title, item.brand, q)) continue;
 
     total++;
     // Дальше считаем вес только для верхушки — остальным он не нужен

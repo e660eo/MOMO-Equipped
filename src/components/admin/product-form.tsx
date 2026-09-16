@@ -388,7 +388,16 @@ export function ProductForm({
         </div>
 
         <div>
-          <label className={label} htmlFor="ozonSku">
+            <label className={label} htmlFor="packageQuantity">Штук в одной продаваемой упаковке</label>
+            <input id="packageQuantity" name="packageQuantity" type="number" min="1" max="10000" defaultValue={product?.packageQuantity ?? ""} className={`${field} mt-1.5`} />
+            <p className="mt-1 text-xs text-muted-foreground">Указывайте только подтверждённое количество. Пустое поле означает «уточняется».</p>
+          </div>
+          <div>
+            <label className={label} htmlFor="packageContents">Состав упаковки</label>
+            <input id="packageContents" name="packageContents" defaultValue={product?.packageContents ?? ""} maxLength={500} className={`${field} mt-1.5`} />
+          </div>
+          <div>
+            <label className={label} htmlFor="ozonSku">
             SKU Ozon
           </label>
           <input

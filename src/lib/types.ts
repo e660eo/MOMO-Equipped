@@ -20,6 +20,9 @@ export interface Product {
   stock?: number;
   /** Описание из прайса поставщика, построчно. */
   description?: string[];
+  /** Confirmed contents of one sale unit; never infer a pair from a photo. */
+  packageQuantity?: number;
+  packageContents?: string;
   /**
    * Дополнительные фото для галереи (image остаётся обложкой).
    * Файлы лежат в папке данных (uploads/), загружаются через админку.

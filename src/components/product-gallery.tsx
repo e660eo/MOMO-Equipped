@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight, ZoomIn, Plus, Minus } from "lucide-react"
 import { ProductImage } from "./product-image";
 import { cn } from "@/lib/utils";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 
 /*
   Галерея фото товара: обложка, миниатюры и крупный просмотр.
@@ -32,6 +33,8 @@ export function ProductGallery({
 }) {
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(open, dialogRef);
   const [mounted, setMounted] = useState(false);
   const many = images.length > 1;
 
@@ -194,12 +197,16 @@ export function ProductGallery({
 
   const lightbox = (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
-      aria-modal="true"
+      aria-modal={open || undefined}
+      aria-hidden={!open}
+      inert={!open}
       aria-label="Просмотр фото"
       className={cn(
         "fixed inset-0 z-[300] flex flex-col bg-black/90 backdrop-blur-sm transition-opacity",
-        open ? "opacity-100" : "pointer-events-none opacity-0",
+        open ? "visible opacity-100" : "invisible pointer-events-none opacity-0",
       )}
     >
       {/* Верхняя полоса: счётчик и выход */}

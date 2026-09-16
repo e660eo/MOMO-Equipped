@@ -199,6 +199,7 @@ function ProductCardImpl({
         <span className="font-display text-[1.05rem] font-semibold whitespace-nowrap">
           {formatPrice(product.price)}
         </span>
+        {product.packageQuantity && <p className="mt-1 text-xs text-muted-foreground">{product.packageQuantity === 1 ? "Цена за 1 шт." : product.packageQuantity === 2 ? "Цена за пару · 2 шт." : `Цена за упаковку · ${product.packageQuantity} шт.`}</p>}
         <YandexSplitBadge
           amount={product.price}
           size="s"

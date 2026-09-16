@@ -173,6 +173,7 @@ export default async function ProductPage({
             )}
           </div>
 
+          <p className="mt-3 text-sm text-muted-foreground">{product.packageQuantity ? `Цена за ${product.packageQuantity === 1 ? "1 штуку" : product.packageQuantity === 2 ? "пару — 2 штуки в коробке" : `упаковку из ${product.packageQuantity} шт.`}. ${product.packageContents ?? ""}` : "Комплектность упаковки уточните перед покупкой."}</p>
           <YandexSplitBadge
             amount={product.price}
             size="l"
@@ -185,7 +186,7 @@ export default async function ProductPage({
             <AddToCartButton product={product} size="lg" />
             {isListeningStandProduct(product) && (
               <Link
-                href="/listening-stand"
+                href={`/listening-stand?product=${encodeURIComponent(product.slug)}`}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-border px-5 py-3.5 text-center text-sm font-semibold transition-colors hover:border-signal hover:text-signal"
               >
                 <Headphones size={17} /> Слушать в стенде

@@ -10,6 +10,7 @@ export interface CartItem {
   price: number;
   image: string;
   qty: number;
+  packageQuantity?: number;
   /**
    * Остаток на складе на момент добавления. Ограничивает количество в
    * корзине: узнавать о нехватке от менеджера после оформления — плохо.
@@ -44,6 +45,7 @@ interface CartState {
   remove: (slug: string) => void;
   setQty: (slug: string, qty: number) => void;
   clear: () => void;
+  replace: (items: CartItem[]) => void;
   openCart: () => void;
 }
 
@@ -154,6 +156,7 @@ export const useCart = create<CartState>()(
                 ),
         })),
       clear: () => set({ items: [] }),
+      replace: (items) => set({ items }),
       openCart: () => {
         if (typeof window !== "undefined") window.location.assign("/cart");
       },

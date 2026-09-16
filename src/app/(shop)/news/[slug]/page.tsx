@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getNewProducts, getNews, getProducts } from "@/lib/data";
+import { getNews, getProducts } from "@/lib/data";
 import { ArticleBody } from "@/components/article-body";
 import { ProductCard } from "@/components/product-card";
 import { JsonLd } from "@/components/json-ld";
@@ -65,7 +65,7 @@ export default async function NewsItemPage({
   const full = hasArticle(item.body);
   const newProducts = item.productSlugs
     ? getProducts().filter((product) => item.productSlugs!.includes(product.slug))
-    : item.slug === "novinki-momo-2026" ? getNewProducts() : [];
+    : [];
   // Соседние заметки — чтобы со статьи было куда пойти, кроме как назад.
   const others = news.filter((n) => n.slug !== item.slug).slice(0, 2);
 

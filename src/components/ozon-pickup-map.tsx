@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { loadYandexMaps, type YandexMap } from "@/lib/yandex-maps-client";
+import { groupMapMarkers } from "@/lib/map-marker-groups";
 import type {
   OzonMapViewport,
   PublicOzonCluster,
@@ -157,6 +158,7 @@ export function OzonPickupMap({
     const ymaps = window.ymaps;
     if (!map || !ymaps) return;
     map.geoObjects.removeAll();
+    const grouped = groupMapMarkers({ points, clusters }, map.getZoom(), selectedPointId);
 
     const clusterLayout = ymaps.templateLayoutFactory.createClass(
       '<button type="button" class="momo-yandex-cluster" aria-label="{{ properties.hintContent }}"><span class="momo-map-cluster"><b>{{ properties.iconContent }}</b><small>OZON</small></span></button>',
@@ -168,7 +170,7 @@ export function OzonPickupMap({
       '<button type="button" class="momo-yandex-point is-selected" aria-label="{{ properties.hintContent }}"><span class="momo-map-marker is-selected"><span>OZON</span></span></button>',
     );
 
-    for (const cluster of clusters) {
+    for (const cluster of grouped.clusters) {
       const label = `${cluster.pointsCount} ${pointWord(cluster.pointsCount)} Ozon`;
       const placemark = new ymaps.Placemark(
         [cluster.lat, cluster.long],
@@ -201,7 +203,7 @@ export function OzonPickupMap({
       map.geoObjects.add(placemark);
     }
 
-    for (const point of points) {
+    for (const point of grouped.points) {
       const selected = point.id === selectedPointId;
       const placemark = new ymaps.Placemark(
         [point.lat, point.long],
@@ -227,7 +229,7 @@ export function OzonPickupMap({
       placemark.events.add("click", () => selectHandlerRef.current(point));
       map.geoObjects.add(placemark);
     }
-  }, [clusters, points, selectedPointId]);
+  }, [clusters, points, selectedPointId, target.zoom]);
 
   return (
     <div className="relative h-[390px] w-full bg-[#eceff3] sm:h-[500px]">

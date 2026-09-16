@@ -6,6 +6,9 @@ import type {
   AudioGoal,
 } from "./audio-builder";
 import { parseTech } from "./specs";
+import { coilSpec, nominalRms } from "./electrical-specs";
+import { isInStock } from "./format";
+import type { Product } from "./types";
 
 export type AudioProductKind = "speaker" | "subwoofer" | "amplifier" | "wiring" | "other";
 
@@ -20,6 +23,9 @@ export interface ParsedAudioSpec {
   diameterMm?: number;
   rmsW?: number;
   impedanceOhm?: number;
+  loadOptions: number[];
+  coilLabel?: string;
+  coilCount?: number;
   sensitivityDb?: number;
   channels?: number;
   outputs: AmplifierOutput[];
@@ -39,19 +45,6 @@ function productKind(product: AudioBuilderProduct): AudioProductKind {
   return "other";
 }
 
-function nominalPower(text: string): number | undefined {
-  const patterns = [
-    /(?:мощност[а-яё]*\s*)?RMS\s*[:\-–—]?\s*(\d{2,5})\s*(?:вт|w|bt)/i,
-    /номинальн[а-яё]*\s+мощност[а-яё]*(?:\s*\(RMS\))?\s*[:\-–—]?\s*(\d{2,5})\s*(?:вт|w|bt)/i,
-    /RMS[^\d]{0,18}(\d{2,5})\s*(?:вт|w|bt)/i,
-  ];
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return Number(match[1]);
-  }
-  return undefined;
-}
-
 function modelCode(product: AudioBuilderProduct): { first: number; second: number } | null {
   const match = product.title.match(/(?:^|[\s+(])[A-Za-zА-Яа-я]{1,3}-(\d{1,2})\.(\d{2,4})(?!\d)/);
   return match ? { first: Number(match[1]), second: Number(match[2]) } : null;
@@ -66,7 +59,7 @@ function amplifierChannels(text: string, title: string): number | undefined {
   return modelCode({ title } as AudioBuilderProduct)?.first;
 }
 
-function amplifierOutputs(product: AudioBuilderProduct, text: string, channels?: number): AmplifierOutput[] {
+function amplifierOutputs(text: string, channels?: number): AmplifierOutput[] {
   const outputs: AmplifierOutput[] = [];
   const add = (ohm: number, count: number, watts: number) => {
     if (![1, 2, 4].includes(ohm) || count < 1 || watts < 20 || watts > 10_000) return;
@@ -85,19 +78,7 @@ function amplifierOutputs(product: AudioBuilderProduct, text: string, channels?:
     add(Number(match[1]), channels ?? 1, Number(match[2]));
   }
 
-  const minimum = text.match(/минимальн[а-яё]*\s+сопротивлен[а-яё]*(?:\s+нагрузки(?:\s+на\s+канал)?)?\s*[:\-,]?\s*([124])\s*ом/i);
-  const genericRms = text.match(/номинальн[а-яё]*\s+(?:выходн[а-яё]*\s+)?мощност[а-яё]*\s*\(RMS[^)]*\)\s*[:\-–—]?\s*(\d{2,5})\s*вт/i);
-  if (outputs.length === 0 && genericRms) {
-    add(minimum ? Number(minimum[1]) : 4, channels ?? 1, Number(genericRms[1]));
-  }
-
-  const code = modelCode(product);
-  if (outputs.length === 0 && code && channels) {
-    add(channels === 1 ? (minimum ? Number(minimum[1]) : 1) : 4, channels, code.second);
-  }
-
-  const brazil = product.title.match(/\b[A-Za-z]{1,3}-(\d{3,4})\.(\d)\b/);
-  if (outputs.length === 0 && brazil) add(1, Number(brazil[2]), Number(brazil[1]));
+  // Minimum supported load does not establish the load at which RMS was measured.
   return outputs.sort((a, b) => a.ohm - b.ohm);
 }
 
@@ -105,22 +86,22 @@ export function parseAudioProductSpec(product: AudioBuilderProduct): ParsedAudio
   const text = source(product);
   const kind = productKind(product);
   const tech = parseTech(product.title, product.description);
-  const impedance = text.match(/(?:импеданс|сопротивлен[а-яё]*)\s*[:\-–—]?\s*([124])\s*(?:ом|ohm|om)/i)
-    ?? text.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
+  const impedance = coilSpec(text);
   const sensitivity = text.match(/(?:чувствительност[а-яё]*|SPL)\s*[:\-–—]?\s*(\d{2,3}(?:[.,]\d+)?)/i)
     ?? text.match(/(?<![\d.,])(\d{2,3}(?:[.,]\d+)?)\s*(?:дб|db)(?![а-яёa-z])/i);
   const channels = kind === "amplifier" ? amplifierChannels(text, product.title) : undefined;
-  const outputs = kind === "amplifier" ? amplifierOutputs(product, text, channels) : [];
+  const outputs = kind === "amplifier" ? amplifierOutputs(text, channels) : [];
   const minimum = text.match(/минимальн[а-яё]*\s+сопротивлен[а-яё]*(?:\s+нагрузки(?:\s+на\s+канал)?)?\s*[:\-,]?\s*([124])\s*ом/i);
-  const code = modelCode(product);
-  let rmsW = kind === "speaker" || kind === "subwoofer" ? nominalPower(text) : undefined;
-  if (!rmsW && kind === "subwoofer" && code) rmsW = code.second;
+  const rmsW = kind === "speaker" || kind === "subwoofer" ? nominalRms(text) : undefined;
 
   return {
     kind,
     diameterMm: kind === "speaker" || kind === "subwoofer" ? tech.diameterMm : undefined,
     rmsW,
-    impedanceOhm: impedance ? Number(impedance[1]) : undefined,
+    impedanceOhm: impedance?.count === 1 ? impedance.coilOhm : undefined,
+    loadOptions: impedance?.loads ?? [],
+    coilLabel: impedance?.label,
+    coilCount: impedance?.count,
     sensitivityDb: sensitivity ? number(sensitivity[1]) : undefined,
     channels,
     outputs,
@@ -202,7 +183,7 @@ export function buildAutomaticRecommendation(
   const assumedSize = selection.size === "unknown" ? "165" : selection.size;
   const diameter = targetDiameter(assumedSize);
   const parsed = products
-    .filter((product) => product.stock !== 0 && product.inStock !== false)
+    .filter((product) => isInStock(product as Product) === true)
     .map((product) => ({ product, spec: parseAudioProductSpec(product) }));
 
   const speakers = parsed.filter(({ spec }) =>
@@ -235,15 +216,13 @@ export function buildAutomaticRecommendation(
   }
   if (frontMatches.length === 0) return null;
 
-  const subwoofers = parsed.filter(({ spec }) => spec.kind === "subwoofer" && spec.rmsW);
+  const subwoofers = parsed.filter(({ spec }) => spec.kind === "subwoofer" && spec.rmsW && spec.loadOptions.length);
   const monoblocks = parsed.filter(({ spec }) => spec.kind === "amplifier" && spec.channels === 1);
   const bassMatches: BassMatch[] = [];
   for (const subwoofer of subwoofers) {
     for (const amplifier of monoblocks) {
       if (!subwoofer.spec.rmsW) continue;
-      const possibleOutputs = subwoofer.spec.impedanceOhm
-        ? amplifier.spec.outputs.filter(({ ohm }) => ohm === subwoofer.spec.impedanceOhm)
-        : amplifier.spec.outputs;
+      const possibleOutputs = amplifier.spec.outputs.filter(({ ohm }) => subwoofer.spec.loadOptions.includes(ohm));
       for (const output of possibleOutputs) {
         const ratio = output.wattsPerChannel / subwoofer.spec.rmsW;
         if (ratio < 0.75 || ratio > 1.35) continue;
@@ -339,10 +318,10 @@ export function buildAutomaticRecommendation(
       value: `${bass.subwoofer.spec.rmsW} Вт RMS · моноблок ${bass.output.wattsPerChannel} Вт при ${bass.output.ohm} Ом`,
       status: "ok",
     });
-    if (!bass.subwoofer.spec.impedanceOhm) {
+    if (bass.subwoofer.spec.coilCount === 2) {
       checks.push({
         label: "Подключение катушек",
-        value: `Схема должна дать ${bass.output.ohm} Ом — подтвердить перед монтажом`,
+        value: `${bass.subwoofer.spec.coilLabel} Ом: ${bass.output.ohm === bass.subwoofer.spec.loadOptions[0] ? "параллельное" : "последовательное"} соединение обеих катушек даёт ${bass.output.ohm} Ом. Подтвердите схему перед монтажом.`,
         status: "warning",
       });
     }
@@ -363,16 +342,14 @@ export function buildAutomaticRecommendation(
   }
 
   const difference = Math.abs(budget - chosen.total);
-  const confidence = Math.max(
-    62,
-    94 - (selection.size === "unknown" ? 10 : 0) - (bass && !bass.subwoofer.spec.impedanceOhm ? 10 : 0),
-  );
+  if (!chosen.items.some((item) => item.role === "Базовое подключение")) checks.push({ label: "В комплект не входит", value: "Силовая проводка и предохранители: комплект подходящего сечения не найден в наличии. Их стоимость не включена в итог.", status: "warning" });
+  checks.push({ label: "Монтаж и комплектность", value: "Количество динамиков в упаковке, крепёж и монтаж подтвердите до покупки. Корпус сабвуфера и работы в стоимость оборудования не входят.", status: "warning" });
   const goalTitle = selection.goal === "loud" ? "Громкий фронт" : selection.goal === "bass" ? "Система с басом" : "Сбалансированная система";
 
   return {
     id: `auto-${selection.goal}-${assumedSize}-${front.speaker.product.slug}-${bass?.subwoofer.product.slug ?? "front"}`,
     title: `${goalTitle} ${assumedSize === "130" ? "13" : assumedSize === "165" ? "16" : "20"}`,
-    summary: `Компоненты рассчитаны автоматически по RMS, сопротивлению и числу каналов. Полнота технических данных — ${confidence}%.`,
+    summary: "Предварительный подбор по указанным в карточках RMS, сопротивлению и каналам. Ниже перечислены проверки и вопросы для установщика.",
     items: chosen.items,
     total: chosen.total,
     budget,
@@ -381,7 +358,7 @@ export function buildAutomaticRecommendation(
     assumedSize,
     needsSizeCheck: selection.size === "unknown",
     mode: "automatic",
-    confidence,
+    confidence: 0,
     technicalChecks: checks,
   };
 }

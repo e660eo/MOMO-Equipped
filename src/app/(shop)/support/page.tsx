@@ -8,7 +8,7 @@ import { publicPageMetadata } from "@/lib/seo-metadata";
 
 export const metadata: Metadata = publicPageMetadata(
   "Центр поддержки MOMO и ZEUS",
-  "Инструкции, схемы подключения, сертификаты, гарантийные условия и техническая поддержка по автоакустике MOMO и ZEUS.",
+  "Помощь с подбором и установкой автоакустики MOMO и ZEUS, полезные руководства, гарантийные условия и контакты поддержки.",
   "/support",
 );
 
@@ -22,7 +22,8 @@ const category: Record<SupportDocumentCategory, { label: string; icon: typeof Bo
 };
 
 const faq = [
-  ["Какая гарантия действует на оборудование?", `Стандартная гарантия — ${siteConfig.trust.warrantyMonths} месяцев. При установке в авторизованном центре действует ${siteConfig.trust.extendedWarrantyMonths} месяца, если это предусмотрено действующими условиями для товара и установки.`],
+  ["Что делать, если письмо подтверждения не пришло?", "Проверьте папки «Спам» и «Все письма», а также адрес в личном кабинете. В корзине можно повторно запросить письмо и нажать «Я подтвердил почту — проверить» после перехода по ссылке. Если письмо не появляется, обратитесь в поддержку. Заказ без онлайн-оплаты можно согласовать с менеджером."],
+  ["Какая гарантия действует на оборудование?", `Стандартная гарантия — ${siteConfig.trust.warrantyMonths} месяцев. При установке в авторизованном центре MOMO/ZEUS — ${siteConfig.trust.extendedWarrantyMonths} месяца. Сохраните документы о покупке и установке.`],
   ["Как подобрать усилитель и акустику?", "Отправьте модели компонентов, автомобиль и задачу по звуку. Техническая поддержка проверит мощность, сопротивление и совместимость."],
   ["Где найти ближайшего официального партнёра?", "Откройте раздел «Купить рядом», выберите город или разрешите определить ближайшую опубликованную точку."],
   ["Что подготовить перед обращением по гарантии?", "Название модели, серийный номер, документ о покупке, дату и место установки, а также краткое описание неисправности."],
@@ -36,7 +37,7 @@ export default function SupportPage() {
   const documents = getSupportDocuments("public").filter((document) => document.audience === "public");
   return <main>
     <section className="border-b border-border">
-      <div className="mx-auto grid max-w-[1120px] gap-8 px-4 py-12 sm:px-6 sm:py-18 md:grid-cols-[1fr_.7fr] md:items-end"><div><p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">Техническая поддержка</p><h1 className="mt-4 font-display text-[clamp(2.1rem,4.8vw,4.2rem)] font-black uppercase leading-[0.95]">Всё для <span className="text-signal">правильного звука</span></h1><p className="mt-6 max-w-[62ch] text-base leading-relaxed text-muted-foreground">Инструкции, схемы, сертификаты, гарантия и помощь с подбором — в одном месте.</p></div><div className="rounded-xl border border-signal/25 bg-signal/5 p-5"><LifeBuoy size={24} className="text-signal" /><p className="mt-3 font-display font-bold">Нужен ответ по конкретной системе?</p><p className="mt-1 text-sm text-muted-foreground">Пришлите модели компонентов и автомобиль — проверим совместимость.</p><a href={siteConfig.contacts.whatsapp} className="mt-4 inline-flex min-h-11 items-center rounded-sm bg-signal px-4 text-sm font-semibold text-white">Написать в поддержку</a></div></div>
+      <div className="mx-auto grid max-w-[1120px] gap-8 px-4 py-12 sm:px-6 sm:py-18 md:grid-cols-[1fr_.7fr] md:items-end"><div><p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">Техническая поддержка</p><h1 className="mt-4 font-display text-[clamp(2.1rem,4.8vw,4.2rem)] font-black uppercase leading-[0.95]">Всё для <span className="text-signal">правильного звука</span></h1><p className="mt-6 max-w-[62ch] text-base leading-relaxed text-muted-foreground">Помощь с подбором и установкой, гарантийные условия и полезные руководства — в одном месте.</p></div><div className="rounded-xl border border-signal/25 bg-signal/5 p-5"><LifeBuoy size={24} className="text-signal" /><p className="mt-3 font-display font-bold">Нужен ответ по конкретной системе?</p><p className="mt-1 text-sm text-muted-foreground">Пришлите модели компонентов и автомобиль — проверим совместимость.</p><a href={siteConfig.contacts.whatsapp} className="mt-4 inline-flex min-h-11 items-center rounded-sm bg-signal px-4 text-sm font-semibold text-white">Написать в поддержку</a></div></div>
     </section>
 
     <section className="mx-auto max-w-[1120px] px-4 py-12 sm:px-6 sm:py-16">
@@ -51,6 +52,10 @@ export default function SupportPage() {
         {documents.length ? <div className="mt-6 grid gap-3 md:grid-cols-2">{documents.map((document) => { const meta = category[document.category]; const Icon = meta.icon; return <a key={document.id} href={`/media/${document.file}`} download={document.originalName} className="group flex items-start gap-4 rounded-xl border border-border bg-surface p-5 hover:border-signal"><span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-signal/10 text-signal"><Icon size={20} /></span><span className="min-w-0"><span className="block text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">{meta.label} · {fileSize(document.size)}</span><span className="mt-1 block font-display font-bold group-hover:text-signal">{document.title}</span>{document.description && <span className="mt-1 block text-sm text-muted-foreground">{document.description}</span>}<span className="mt-2 block text-xs text-signal">Скачать {document.originalName} ↓</span></span></a>; })}</div> : <div className="mt-6 rounded-xl border border-dashed border-border p-7"><p className="font-medium">Загружаемые файлы пока не опубликованы</p><p className="mt-1 text-sm text-muted-foreground">Гарантийные условия, контакты и помощь уже доступны выше. Инструкции и сертификаты появятся здесь после проверки и загрузки администратором.</p></div>}
       </section>
 
+      <section className="mt-12"><h2 className="font-display text-2xl font-black uppercase">Полезные руководства</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <Link className="rounded-xl border border-border p-5 hover:border-signal" href="/news/kak-vybrat-sabvufer">Как выбрать сабвуфер: RMS, катушки и короб →</Link>
+        <Link className="rounded-xl border border-border p-5 hover:border-signal" href="/news/gramotnaya-akustika-v-mashine">Как собрать систему: размеры, комплектность и подключение →</Link>
+      </div><p className="mt-4 text-sm text-muted-foreground">Эти руководства не заменяют паспорт конкретной модели. Если нужного документа нет в списке, сообщите поддержке точное название модели — поможем его запросить.</p></section>
       <section className="mt-16"><p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">Короткие ответы</p><h2 className="mt-2 font-display text-2xl font-black uppercase">Частые вопросы</h2><div className="mt-6 border-t border-border">{faq.map(([question, answer]) => <details key={question} className="group border-b border-border"><summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium">{question}<span className="text-xl text-signal transition-transform group-open:rotate-45">+</span></summary><p className="max-w-[72ch] pb-5 text-sm leading-relaxed text-muted-foreground">{answer}</p></details>)}</div></section>
     </section>
   </main>;

@@ -51,11 +51,41 @@ function Row({
 
 export function CompareView() {
   const [mounted, setMounted] = useState(false);
-  const items = useCompare((s) => s.items);
+  const selection = useCompare((s) => s.items);
+  const selectionKey = JSON.stringify(selection.map((p) => p.slug));
+  const [resolved, setResolved] = useState<{ key: string; products: Product[] } | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [retry, setRetry] = useState(0);
+  const items = resolved?.key === selectionKey ? resolved.products : [];
   const remove = useCompare((s) => s.remove);
   const clear = useCompare((s) => s.clear);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const slugs: string[] = JSON.parse(selectionKey);
+    if (!slugs.length) return;
+    const controller = new AbortController();
+    const refresh = async () => {
+      try {
+        const params = new URLSearchParams();
+        slugs.forEach((slug) => params.append("slug", slug));
+        const response = await fetch(`/api/catalog/selection?${params}`, { cache: "no-store", signal: controller.signal });
+        if (!response.ok) throw new Error("Не удалось обновить сравнение. Попробуйте ещё раз.");
+        const data: { products: Product[] } = await response.json();
+        if (controller.signal.aborted) return;
+        setResolved({ key: selectionKey, products: slugs.flatMap((slug) => data.products.filter((p) => p.slug === slug)) });
+        setLoadError("");
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setResolved(null);
+          setLoadError(error instanceof Error ? error.message : "Не удалось обновить сравнение.");
+        }
+      }
+    };
+    void refresh();
+    window.addEventListener("focus", refresh);
+    return () => { controller.abort(); window.removeEventListener("focus", refresh); };
+  }, [selectionKey, retry]);
 
   /*
     Характеристики каждого товара сводим в карту «метка → значение», а затем
@@ -88,7 +118,7 @@ export function CompareView() {
         <h1 className="font-display text-[clamp(1.6rem,3vw,2.2rem)] font-extrabold uppercase">
           Сравнение
         </h1>
-        {mounted && items.length > 0 && (
+        {mounted && selection.length > 0 && (
           <button
             type="button"
             onClick={clear}
@@ -99,7 +129,12 @@ export function CompareView() {
         )}
       </div>
 
-      {!mounted ? null : items.length === 0 ? (
+      {mounted && selection.length > 0 && resolved?.key === selectionKey && items.length < selection.length && (
+        <p role="status" className="mt-4 text-sm text-muted-foreground">Часть выбранных товаров снята с продажи и не показана в таблице.</p>
+      )}
+      {!mounted ? null : selection.length > 0 && resolved?.key !== selectionKey ? (
+        <div className="mt-8" role="status"><p>{loadError || "Обновляем цены и характеристики…"}</p>{loadError && <button className="mt-3 min-h-11 underline" onClick={() => setRetry((value) => value + 1)}>Повторить</button>}</div>
+      ) : items.length === 0 ? (
         <div className="mt-10 flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
           <Scale size={28} className="text-muted-foreground" />
           <p className="mt-4 font-display text-lg font-semibold">
@@ -117,7 +152,9 @@ export function CompareView() {
           </Link>
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto">
+        <div className="mt-8">
+          <p className="mb-3 text-sm text-muted-foreground sm:hidden">Прокрутите таблицу вбок, чтобы увидеть остальные модели.</p>
+          <div className="overflow-x-auto" tabIndex={0} aria-label="Таблица сравнения товаров">
           <table className="w-full border-collapse">
             <thead>
               <tr>
@@ -132,7 +169,7 @@ export function CompareView() {
                         type="button"
                         onClick={() => remove(p.slug)}
                         aria-label={`Убрать «${p.title}» из сравнения`}
-                        className="absolute -right-1 -top-1 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:border-signal hover:text-signal"
+                        className="absolute -right-1 -top-1 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:border-signal hover:text-signal"
                       >
                         <X size={13} />
                       </button>
@@ -158,6 +195,7 @@ export function CompareView() {
             <tbody>
               <Row label="Бренд" values={items.map((p) => p.brand)} striped />
               <Row label="Наличие" values={items.map(stockLabel)} />
+              <Row label="В упаковке" values={items.map((p) => p.packageQuantity ? `${p.packageQuantity} шт. ${p.packageContents ?? ""}` : "Уточняется")} />
               {labels.map((label, ri) => (
                 <Row
                   key={label}
@@ -168,6 +206,7 @@ export function CompareView() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </main>

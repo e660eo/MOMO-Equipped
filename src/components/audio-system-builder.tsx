@@ -390,7 +390,7 @@ export function AudioSystemBuilder({
                     {recommendation.mode === "automatic" ? "Расчёт по характеристикам" : "Проверенная сборка"}
                   </span>
                   <span className="rounded-full border border-border px-3 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.1em] text-muted-foreground">
-                    Данные {recommendation.confidence}%
+                    Предварительный подбор
                   </span>
                 </div>
               )}
@@ -443,7 +443,7 @@ export function AudioSystemBuilder({
                   Техническая проверка
                 </p>
                 <span className="font-display text-sm font-bold text-signal">
-                  {recommendation.confidence}%
+                  {recommendation.technicalChecks.filter((check) => check.status === "warning").length} уточнений
                 </span>
               </div>
               <ul className="mt-3 space-y-3">

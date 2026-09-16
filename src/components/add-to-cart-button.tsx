@@ -21,7 +21,7 @@ export function AddToCartButton({
   product,
   size = "sm",
 }: {
-  product: Pick<Product, "slug" | "title" | "price" | "image" | "inStock" | "stock">;
+  product: Pick<Product, "slug" | "title" | "price" | "image" | "inStock" | "stock" | "packageQuantity">;
   size?: "sm" | "lg";
 }) {
   const add = useCart((s) => s.add);
@@ -73,6 +73,7 @@ export function AddToCartButton({
           title: product.title,
           price: product.price,
           image: product.image,
+          packageQuantity: product.packageQuantity,
           ...(limit !== null ? { stock: limit } : {}),
         });
         reachMetrikaGoal(METRIKA_GOALS.addToCart, { product: product.slug });

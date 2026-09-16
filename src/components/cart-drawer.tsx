@@ -16,7 +16,9 @@ import {
   Gift,
   Package,
 } from "lucide-react";
-import { useCart, cartTotal } from "@/lib/cart-store";
+import { useCart, cartTotal, type CartItem } from "@/lib/cart-store";
+import { cartSnapshot } from "@/lib/cart-review";
+import { EmailVerificationNotice } from "./email-verification-notice";
 import { formatPrice, productImageUrl } from "@/lib/format";
 import { OZON_DELIVERY_SURCHARGE } from "@/lib/delivery-pricing";
 import { useSiteConfig } from "@/components/site-config-provider";
@@ -25,6 +27,7 @@ import { useAccount } from "@/lib/account-store";
 import { isPhoneComplete } from "@/lib/phone";
 import {
   submitOrder,
+  refreshCart,
   checkPromo,
   loadOzonPickupMap,
   searchPickupPlace,
@@ -80,7 +83,11 @@ const russiaMapTarget: MapTarget = { lat: 61.2, long: 89.2, zoom: 2 };
 type CheckoutField = "name" | "phone" | "address" | "consent" | "delivery";
 
 export function CartPageClient() {
-  const { items, setQty, remove, clear } = useCart();
+  const { items, setQty, remove, clear, replace } = useCart();
+  const [proposedCart, setProposedCart] = useState<CartItem[] | null>(null);
+  useEffect(() => setProposedCart(null), [items]);
+  const recipientTouched = useRef(false);
+  const prefilledCustomer = useRef<string | null>(null);
   const customer = useCustomer();
   const openAuth = useAccount((s) => s.openModal);
   const [name, setName] = useState("");
@@ -162,6 +169,14 @@ export function CartPageClient() {
     return () => window.removeEventListener(CITY_CHANGE_EVENT, onCityChange);
   }, []);
 
+  useEffect(() => {
+    if (!customer || recipientTouched.current || prefilledCustomer.current === customer.id) return;
+    prefilledCustomer.current = customer.id;
+    setName(customer.name);
+    setPhone(customer.phone);
+    setAddress(customer.address ?? "");
+  }, [customer]);
+
   const { trust, payEnabled, paySandbox } = useSiteConfig();
   const total = cartTotal(items);
   const freeFrom = trust.freeShippingFrom;
@@ -175,11 +190,11 @@ export function CartPageClient() {
     : 0;
   const bonusSpent = Math.min(Math.max(0, bonusAmount), bonusLimit);
   const goodsPayable = payable - bonusSpent;
-  const deliveryCharge = delivery?.customerPrice ?? 0;
+  const deliveryCharge = delivery && total < freeFrom ? OZON_DELIVERY_SURCHARGE : 0;
   const payableWithDelivery = goodsPayable + deliveryCharge;
-  // Бесплатная онлайн-доставка считается от суммы, которую реально заплатят.
-  const remaining = Math.max(0, freeFrom - goodsPayable);
-  const shippingPct = Math.min(100, (goodsPayable / freeFrom) * 100);
+  // The threshold uses goods before promo codes and bonuses, consistently with the server.
+  const remaining = Math.max(0, freeFrom - total);
+  const shippingPct = Math.min(100, (total / freeFrom) * 100);
 
   useEffect(() => {
     setBonusAmount((value) => Math.min(value, bonusLimit));
@@ -375,9 +390,26 @@ export function CartPageClient() {
       requestAnimationFrame(() => errorSummaryRef.current?.focus());
       return;
     }
+    if (pay && customer && !customer.emailVerifiedAt) {
+      setError("Подтвердите почту. Кнопка повторной отправки находится над данными получателя.");
+      return;
+    }
     setFieldErrors({});
     setError("");
     setSending(true);
+    try {
+      const refreshed = await refreshCart(items.map((i) => ({ slug: i.slug, qty: i.qty })));
+      if (cartSnapshot(refreshed) !== cartSnapshot(items)) {
+        setProposedCart(refreshed);
+        setSending(false);
+        setError("Корзина изменилась. Подтвердите обновления ниже — заказ ещё не создан.");
+        return;
+      }
+    } catch {
+      setSending(false);
+      setError("Не удалось проверить цены и наличие. Попробуйте ещё раз.");
+      return;
+    }
     reachMetrikaGoal(METRIKA_GOALS.checkoutStart, { payment: pay ? "online" : "manager" });
 
     /*
@@ -385,18 +417,31 @@ export function CartPageClient() {
       панели; онлайн-запись остаётся скрытой до подтверждённой оплаты.
       Без серверной записи заказ не считаем оформленным.
     */
-    const saved = await submitOrder({
+    let saved: Awaited<ReturnType<typeof submitOrder>>;
+    try { saved = await submitOrder({
       name: name.trim(),
       phone: phone.trim(),
       address: address.trim(),
       comment: comment.trim(),
       items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+      snapshot: cartSnapshot(items),
+      expectedTotal: goodsPayable + (pay ? deliveryCharge : 0),
       pay,
       ...(promo ? { promoCode: promo.code } : {}),
       ...(bonusSpent > 0 ? { bonusAmount: bonusSpent } : {}),
       ...(pay && delivery ? { deliveryToken: delivery.token } : {}),
-    });
+    }); } catch {
+      setSending(false);
+      setError("Связь с сервером прервалась. Проверьте заказы в личном кабинете перед повторной попыткой.");
+      return;
+    }
     setSending(false);
+    if (!saved.ok && saved.cartChanged) {
+      try { setProposedCart(await refreshCart(items.map((i) => ({ slug: i.slug, qty: i.qty })))); }
+      catch { setError("Не удалось обновить корзину. Попробуйте ещё раз."); return; }
+      setError(saved.error);
+      return;
+    }
     const orderNumber = saved.ok ? saved.id : null;
     if (saved.ok) {
       reachMetrikaGoal(METRIKA_GOALS.orderCreated, { payment: pay ? "online" : "manager" });
@@ -579,9 +624,8 @@ export function CartPageClient() {
                         Комплект · скидка {i.bundle.discountPercent}%
                       </span>
                     )}
-                    <span className="block text-[0.84rem] font-medium leading-snug">
-                      {i.title}
-                    </span>
+                    {i.bundle ? <span className="block text-[0.84rem] font-medium leading-snug">{i.title}</span> : <Link href={`/product/${i.slug}`} className="block text-[0.84rem] font-medium leading-snug hover:text-signal">{i.title}</Link>}
+                    {!i.bundle && <span className="mt-1 block text-xs text-muted-foreground">{i.packageQuantity ? `${i.packageQuantity} шт. в упаковке · в корзине ${i.qty} уп.` : "Комплектность — в карточке товара"}</span>}
                     {i.bundle && (
                       <span className="mt-1 block text-[0.72rem] leading-relaxed text-muted-foreground">
                         {i.bundle.items.map((item) => item.title).join(" · ")}
@@ -665,6 +709,21 @@ export function CartPageClient() {
               </div>
             </div>
 
+            {proposedCart && <section className="my-5 rounded-xl border border-amber-500 p-4" aria-label="Изменения корзины">
+              <h2 className="font-semibold">Проверьте изменения перед оформлением</h2>
+              <ul className="mt-3 space-y-2 text-sm">{items.map((old) => {
+                const fresh = proposedCart.find((p) => p.slug === old.slug);
+                return <li key={old.slug}>{old.title}: {old.qty} шт. × {formatPrice(old.price)} → {fresh ? `${fresh.qty} шт. × ${formatPrice(fresh.price)}` : "больше не доступен"}
+                  {old.bundle && fresh?.bundle && <div className="mt-1 text-xs text-muted-foreground">
+                    <p>Было в комплекте: {old.bundle.items.map((p) => `${p.title} × ${p.qty ?? 1}`).join("; ")}.</p>
+                    <p>Теперь: {fresh.bundle.items.map((p) => `${p.title} × ${p.qty ?? 1}`).join("; ")}.</p>
+                  </div>}
+                </li>;
+              })}</ul>
+              <p className="mt-3 text-sm">После обновления проверьте состав комплектов и повторно примените промокод. Пункт выдачи потребуется подтвердить заново.</p>
+              <button type="button" className="mt-3 min-h-11 rounded bg-signal px-4 font-semibold text-white" onClick={() => { replace(proposedCart); setProposedCart(null); setPromo(null); setDelivery(null); setError(""); }}>Принять изменения корзины</button>
+            </section>}
+            {customer && !customer.emailVerifiedAt && <EmailVerificationNotice email={customer.email} />}
             <p className="mb-4 mt-6 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground">
               Данные получателя
             </p>
@@ -678,6 +737,7 @@ export function CartPageClient() {
                   required
                   value={name}
                   onChange={(e) => {
+                    recipientTouched.current = true;
                     setName(e.target.value);
                     setFieldErrors((current) => ({ ...current, name: undefined }));
                   }}
@@ -697,6 +757,7 @@ export function CartPageClient() {
                   id="rc-phone"
                   value={phone}
                   onChange={(value) => {
+                    recipientTouched.current = true;
                     setPhone(value);
                     setFieldErrors((current) => ({ ...current, phone: undefined }));
                   }}
@@ -716,6 +777,7 @@ export function CartPageClient() {
                   required
                   value={address}
                   onChange={(e) => {
+                    recipientTouched.current = true;
                     setAddress(e.target.value);
                     setFieldErrors((current) => ({ ...current, address: undefined }));
                   }}
@@ -746,7 +808,7 @@ export function CartPageClient() {
                   id="rc-delivery"
                   ref={deliveryPickerRef}
                   aria-describedby={fieldErrors.delivery ? "rc-delivery-error" : undefined}
-                  className="overflow-hidden rounded-2xl border border-signal/50 bg-signal/5"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-signal/50 bg-signal/5"
                 >
                   <div className="border-b border-border bg-surface p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -756,7 +818,7 @@ export function CartPageClient() {
                           Пункты Ozon по всей России
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Найдите город или адрес либо приблизьте нужную область карты.
+                          Найдите город или адрес и выберите пункт из списка. Карту можно посмотреть ниже.
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -834,7 +896,7 @@ export function CartPageClient() {
                       </div>
                     )}
                   </div>
-                  <div className="relative">
+                  <div className="relative order-2 sm:order-none">
                     <OzonPickupMap
                       target={mapTarget}
                       points={points}
@@ -860,6 +922,7 @@ export function CartPageClient() {
                     </div>
                   </div>
                   <div className="bg-surface p-4">
+                    <p className="mb-3 text-sm font-semibold">Пункты рядом с центром выбранной области</p>
                     {points.length > 0 && (
                       <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                         {points.map((point) => (
@@ -894,7 +957,7 @@ export function CartPageClient() {
                         </span>
                         {delivery && (
                           <span className="mt-1 block font-semibold text-[var(--signal-text)]">
-                            ПВЗ подтверждён · доставка бесплатно
+                            ПВЗ подтверждён · {deliveryCharge ? `доставка ${formatPrice(deliveryCharge)}` : "доставка бесплатно"}
                           </span>
                         )}
                       </div>

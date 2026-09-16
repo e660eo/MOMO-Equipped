@@ -6,6 +6,7 @@
 */
 
 import { plural } from "./utils";
+import { coilSpec, nominalRms } from "./electrical-specs";
 
 export interface Spec {
   label: string;
@@ -91,8 +92,8 @@ export function parseSpecs(title: string): Spec[] {
   }
 
   // Сопротивление
-  const ohm = title.match(/([\d.,]+)\s*ом(?![а-яё])/i);
-  if (ohm) add("Сопротивление", `${ohm[1]} Ом`);
+  const ohm = coilSpec(title);
+  if (ohm) add("Сопротивление", `${ohm.label} Ом`);
 
   // Калибр провода
   const ga = title.match(/(\d+)\s*GA\b/i);
@@ -137,6 +138,7 @@ export function shortSpecs(title: string, limit = 2): string[] {
 /* ------------------------------------------------------------------ */
 
 export interface TechSpec {
+  impedanceLabel?: string;
   diameterMm?: number;
   powerMaxW?: number;
   impedanceOhm?: number;
@@ -323,16 +325,15 @@ export function parseTech(title: string, description?: string[]): TechSpec {
     diameterFrom(title) ??
     diameterFrom((description ?? []).join(" · "));
 
-  // Мощность: подписанный максимум приоритетнее случайного числа с «Вт».
-  const pAny = src.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
-  const anyW = pAny ? parseInt(pAny[1], 10) : undefined;
-  out.powerMaxW =
-    powerMaxFrom(src) ??
-    (anyW !== undefined && anyW <= POWER_SANITY_W ? anyW : undefined);
+  // Фильтр MAX не должен принимать RMS или неподписанную мощность за максимум.
+  out.powerMaxW = powerMaxFrom(src);
 
   // Сопротивление: 1/2/4 Ом (диапазон реальный для автозвука)
-  const ohm = src.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
-  if (ohm) out.impedanceOhm = parseInt(ohm[1], 10);
+  const ohm = coilSpec(src);
+  if (ohm) {
+    out.impedanceLabel = ohm.label;
+    if (ohm.count === 1) out.impedanceOhm = ohm.coilOhm;
+  }
 
   return out;
 }
@@ -408,8 +409,9 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
   */
   const code = modelCode(title);
   const amp = isAmplifier(title);
-  // Мощность из кода — у сабвуфера и усилителя; у усилителя это RMS на канал.
-  const codeW = code && (isSubwoofer(title) || amp) ? code.power : undefined;
+  // RMS — только явно указанное значение, независимо от названия модели.
+  const rmsW = !amp ? nominalRms(src) : undefined;
+  if (rmsW !== undefined) stats.push({ label: "Мощность RMS", value: `${rmsW} Вт` });
 
   const maxW = powerMaxFrom(src);
   const pTitle = title.match(/(\d{2,5})\s*(?:Вт(?![а-яё])|W\b|BT\b)/i);
@@ -424,9 +426,6 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
     stats.push({ label: "Мощность", value: `${nameAmp.power} Вт` });
   } else if (maxW !== undefined) {
     stats.push({ label: "Мощность MAX", value: `${maxW} Вт` });
-  } else if (codeW !== undefined) {
-    // Номинал из кода модели — подпись честная: это RMS, а не пиковая.
-    stats.push({ label: "Мощность RMS", value: `${codeW} Вт` });
   } else if (titleW !== undefined && titleW <= POWER_SANITY_W) {
     stats.push({ label: "Мощность", value: `${titleW} Вт` });
   }
@@ -454,7 +453,7 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
   const tech = amp ? {} : parseTech(title, description);
   const bucket = tech.diameterMm ? diameterBucket(tech.diameterMm) : null;
   if (bucket) {
-    stats.push({ label: "Диаметр", value: bucket });
+    stats.push({ label: "Типоразмер", value: bucket });
   } else if (!amp && /овал/i.test(title) && /\b690\b|6\s*[x×х]\s*9/i.test(src)) {
     /*
       Овалы. У поставщика на них нет ни диаметра, ни размера: в описании
@@ -476,8 +475,8 @@ export function fullSpecs(title: string, description?: string[]): ProductSpecs {
     */
     stats.push({ label: "Размер", value: "6×9″ (16×23 см)" });
   }
-  const ohmTitle = title.match(/(?<![\d.,])([124])\s*(?:ом|ohm|om)(?![а-яёa-z])/i);
-  if (ohmTitle) stats.push({ label: "Сопротивление", value: `${ohmTitle[1]} Ом` });
+  const ohmTitle = !amp ? coilSpec(src) : undefined;
+  if (ohmTitle) stats.push({ label: "Сопротивление", value: `${ohmTitle.label} Ом` });
 
   // «300 W» и прайсовая опечатка «300 BT» — приводим к «300 Вт»
   const clean = (s: string) =>

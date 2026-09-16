@@ -8,8 +8,7 @@ export const metadata: Metadata = {
 };
 
 /*
-  Сравнение целиком клиентское: выбранные товары лежат в localStorage
-  (compare-store), поэтому серверу данные передавать не нужно.
+  Выбор хранится в браузере, характеристики запрашиваются из текущего каталога.
 */
 export default function ComparePage() {
   return <CompareView />;

@@ -176,7 +176,7 @@ const PRESETS: Preset[] = [
 ];
 
 function available(product: AudioBuilderProduct): boolean {
-  return isInStock(product as Product) !== false;
+  return isInStock(product as Product) === true;
 }
 
 export function buildAudioRecommendation(
@@ -226,7 +226,7 @@ export function buildAudioRecommendation(
     technicalChecks: [
       {
         label: "Режим подбора",
-        value: "Проверенная редакторская сборка — в карточках не хватает данных для полного расчёта",
+        value: "Предварительная подборка. В карточках не хватает данных для расчёта: совместимость, количество динамиков, схему подключения и стоимость монтажа нужно подтвердить со специалистом до покупки.",
         status: "warning",
       },
     ],

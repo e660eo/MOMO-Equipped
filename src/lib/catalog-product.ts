@@ -19,6 +19,8 @@ export function toCatalogProduct(product: Product): CatalogProduct {
     isNew: product.isNew,
     inStock: product.inStock,
     stock: product.stock,
+    packageQuantity: product.packageQuantity,
+    packageContents: product.packageContents,
     tech: parseTech(product.title, product.description),
   };
 }

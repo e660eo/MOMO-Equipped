@@ -41,6 +41,14 @@ import {
   orderItemsForFulfillment,
 } from "@/lib/bundle-cart";
 import type { ResolvedBundle } from "@/lib/types";
+import { cartSnapshot, reviewCart } from "@/lib/cart-review";
+import { OZON_DELIVERY_SURCHARGE } from "@/lib/delivery-pricing";
+import { siteConfig } from "@/lib/data";
+
+export async function refreshCart(lines: Array<{ slug: string; qty: number }>) {
+  if (!Array.isArray(lines) || lines.length > 99) throw new Error("Некорректная корзина.");
+  return reviewCart(lines, getProducts(), getBundles());
+}
 
 function bundleOrderItem(bundle: ResolvedBundle, qty: number): OrderItem {
   const grouped = new Map<
@@ -261,7 +269,7 @@ function tooManyFrom(ip: string): boolean {
 
 export type OrderResult =
   | { ok: true; id: string; paymentUrl?: string }
-  | { ok: false; error: string; requiresAuth?: boolean; requiresEmailVerification?: boolean };
+  | { ok: false; error: string; requiresAuth?: boolean; requiresEmailVerification?: boolean; cartChanged?: boolean };
 
 export async function submitOrder(payload: {
   name: string;
@@ -269,6 +277,8 @@ export async function submitOrder(payload: {
   address: string;
   comment?: string;
   items: { slug: string; qty: number }[];
+  snapshot?: string;
+  expectedTotal?: number;
   /** Покупатель выбрал оплату на сайте, а не переписку с менеджером. */
   pay?: boolean;
   /** Промокод из корзины — проверяем и применяем ЗДЕСЬ, на сервере. */
@@ -396,7 +406,7 @@ export async function submitOrder(payload: {
     }
 
     const product = catalog.get(slug);
-    if (!product) continue; // товар успели снять с витрины
+    if (!product) { missing = true; continue; }
 
     /*
       Наличие и остаток проверяем здесь. Раньше это жило только в браузере
@@ -421,12 +431,11 @@ export async function submitOrder(payload: {
     });
   }
 
-  if (!items.length) {
+  if (missing || !items.length || !payload.snapshot || payload.snapshot !== cartSnapshot(items)) {
     return {
       ok: false,
-      error: missing
-        ? "Этих товаров сейчас нет в наличии — напишите нам, привезём под заказ."
-        : "Товары из корзины больше не продаются — обновите страницу.",
+      cartChanged: true,
+      error: "Цена, количество или состав корзины изменились. Проверьте обновления перед оформлением.",
     };
   }
 
@@ -482,6 +491,11 @@ export async function submitOrder(payload: {
     };
   }
 
+  const currentDeliveryCharge = payload.pay && subtotal < siteConfig.trust.freeShippingFrom ? OZON_DELIVERY_SURCHARGE : 0;
+  if (payload.expectedTotal !== total - requestedBonus + currentDeliveryCharge) {
+    return { ok: false, cartChanged: true, error: "Итоговая сумма изменилась. Проверьте корзину и скидки перед оформлением." };
+  }
+
   let bonusReservation: ReturnType<typeof reserveOrderBonus> | undefined;
   let bonusAttached = false;
   let promoRedemptionId: string | undefined;
@@ -495,7 +509,8 @@ export async function submitOrder(payload: {
       }
       try {
         delivery = consumeOzonSelection(payload.deliveryToken, phone, items);
-        deliveryCharge = delivery.customerPrice;
+        deliveryCharge = currentDeliveryCharge;
+        delivery.customerPrice = currentDeliveryCharge;
       } catch (error) {
         return {
           ok: false,

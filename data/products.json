@@ -1,7 +1,7 @@
 [
   {
     "slug": "hid-ksenonovaya-lampa-h4-3000-3200lm-5000-6000k-23000vt-zeus-857896",
-    "title": "HID Ксеноновая лампа H4 3000-3200Лм 5000-6000K 23000Вт Zeus черный комплект 2 шт.",
+    "title": "HID Ксеноновая лампа H4 3000-3200Лм 5000-6000K Zeus черный комплект 2 шт.",
     "brand": "ZEUS",
     "category": "avtosvet",
     "price": 2786,
@@ -2192,7 +2192,9 @@
       "Увеличенная площадь диффузора повысила чувствительность и расширила диапазон воспроизводимых частот.",
       "HE-815 звучит увереннее, насыщеннее и детальнее во всём рабочем диапазоне."
     ],
-    "ozonOfferId": "HE-815"
+    "ozonOfferId": "HE-815",
+    "packageQuantity": 2,
+    "packageContents": "Два динамика HE-815 (пара)."
   },
   {
     "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
@@ -2211,7 +2213,9 @@
     "stock": 1000,
     "inStock": true,
     "hidden": false,
-    "isNew": true
+    "isNew": true,
+    "packageQuantity": 1,
+    "packageContents": "Один сабвуфер B-12.750."
   },
   {
     "slug": "sabvufer-avtomobilnyy-ub-12-350-12-dyuymov-041105",
@@ -2230,6 +2234,8 @@
     "stock": 1200,
     "inStock": true,
     "hidden": false,
-    "isNew": true
+    "isNew": true,
+    "packageQuantity": 1,
+    "packageContents": "Один сабвуфер UB-12.350."
   }
 ]
