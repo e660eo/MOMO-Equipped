@@ -41,18 +41,30 @@ test("catalogue keeps service fields out of HTML and serves search results", asy
   }
 });
 
-test("updated speaker arrivals are visible with the confirmed prices and specifications", async ({ page }) => {
+test("current arrivals link to products with matching prices", async ({ page, request }) => {
   await page.goto("/");
-  const arrivals = page.locator("section").filter({
-    has: page.getByRole("heading", { name: "Новинки MOMO" }),
-  });
-  await expect(arrivals.getByRole("link", { name: /MOMO HE-810/ }).first()).toBeVisible();
-  await expect(arrivals.getByText(/4\s640\s₽/)).toBeVisible();
-  await expect(arrivals.getByRole("link", { name: /MOMO HE-815/ }).first()).toBeVisible();
-  await expect(arrivals.getByText(/5\s280\s₽/)).toBeVisible();
-  await expect(arrivals.getByRole("link", { name: /ZEUS MR-8.1/ }).first()).toBeVisible();
-  await expect(arrivals.getByText(/2\s201\s₽/)).toBeVisible();
+  const arrivals = page.locator("#new-arrivals");
+  await expect(arrivals.getByRole("heading", { name: "Новые поступления", exact: true })).toBeVisible();
+  const slugs = await arrivals.locator('a[href^="/product/"]').evaluateAll((links) =>
+    [...new Set(links.map((link) => link.getAttribute("href")!.split("/").pop()!))],
+  );
+  expect(slugs.length).toBeGreaterThan(0);
+  expect(slugs.length).toBeLessThanOrEqual(4);
+  const params = new URLSearchParams();
+  slugs.forEach((slug) => params.append("slug", slug));
+  const response = await request.get(`/api/catalog/selection?${params}`);
+  expect(response.ok()).toBeTruthy();
+  const { products } = await response.json();
+  expect(products).toHaveLength(slugs.length);
+  for (const product of products) {
+    const card = arrivals.locator(".product-tile").filter({ has: page.locator(`a[href="/product/${product.slug}"]`) });
+    await expect(card.getByRole("heading")).toHaveText(product.title);
+    await expect(card).toContainText(`${product.price.toLocaleString("ru-RU")} ₽`);
+    await expect(card.getByRole("button", { name: "В корзину", exact: true })).toBeEnabled();
+  }
+});
 
+test("speaker news and product preserve confirmed specifications", async ({ page }) => {
   await page.goto("/news/novinki-momo-2026");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Новинки: обновлённые MOMO HE-810, HE-815 и ZEUS MR-8.1",
@@ -62,9 +74,7 @@ test("updated speaker arrivals are visible with the confirmed prices and specifi
   await page.goto("/product/dinamiki-estradnye-momo-he-815-20sm");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("MOMO HE-815");
   await expect(page.getByText("210 мм", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("170 Вт", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("170 Вт", { exact: true }).first()).toBeVisible();
 });
 
 test("product page exposes Product structured data", async ({ page }) => {
@@ -94,7 +104,7 @@ test("checkout uses native form semantics and field-linked errors", async ({ pag
   await expect(page.locator("#rc-phone")).toHaveAttribute("required", "");
   await expect(page.locator("#rc-address")).toHaveAttribute("required", "");
 
-  await form.getByRole("button", { name: "Оформить заказ" }).click();
+  await form.getByRole("button", { name: /^(Оформить заказ|Заказать без онлайн-оплаты)$/ }).click();
   const summary = page.getByRole("alert", { name: "Не удалось продолжить" });
   await expect(summary).toContainText("Проверьте отмеченные поля");
   await expect(summary).toBeFocused();
@@ -113,18 +123,27 @@ test("catalogue stores interactive filters in the URL", async ({ page, isMobile 
   await expect(page).toHaveURL(/sort=price_asc/);
   await expect(page).toHaveURL(/stock=1/);
   await page.reload();
+  if (isMobile) await page.getByRole("button", { name: /Фильтры и сортировка/ }).click();
   await expect(page.getByLabel("Поиск по товарам")).toHaveValue("сабвуфер");
   await expect(page.getByLabel("Сортировка")).toHaveValue("price_asc");
 });
 
-test("category HTML links every product without JavaScript", async ({ request }) => {
-  const response = await request.get("/catalog/aksessuary");
-  expect(response.ok()).toBeTruthy();
-  const html = await response.text();
-  const links = new Set(
-    [...html.matchAll(/href="\/product\/([^"]+)"/g)].map((match) => match[1]),
-  );
-  expect(links.size).toBeGreaterThanOrEqual(64);
+test("category HTML links every advertised product without JavaScript", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+  try {
+    const page = await context.newPage();
+    const response = await page.goto("/catalog/aksessuary");
+    expect(response?.ok()).toBeTruthy();
+    const countLabel = await page.getByText(/^\d+ позици[яий]$/).innerText();
+    const advertised = Number.parseInt(countLabel, 10);
+    const hrefs = await page.locator('main a[href^="/product/"]').evaluateAll((links) =>
+      [...new Set(links.map((link) => link.getAttribute("href")))],
+    );
+    expect(advertised).toBeGreaterThan(24);
+    expect(hrefs).toHaveLength(advertised);
+  } finally {
+    await context.close();
+  }
 });
 
 test("analytics is gated by an explicit consent choice", async ({ page }) => {

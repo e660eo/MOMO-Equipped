@@ -248,7 +248,12 @@ function BannerSlide({
 export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
-  const [interactionPaused, setInteractionPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [rotationChoice, setRotationChoice] = useState<"auto" | "play" | "pause">("auto");
+  const [reducedMotion, setReducedMotion] = useState(true);
+  const rotationEnabled = rotationChoice === "play" || (rotationChoice === "auto" && !reducedMotion);
+  const interactionPaused = hovered || focused;
   const count = banners.length;
   const currentBanner = banners[Math.min(current, count - 1)] ?? banners[0];
   const currentIsArtwork = currentBanner ? bannerLayout(currentBanner) === "artwork" : false;
@@ -273,28 +278,36 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
   }, [count, current]);
 
   useEffect(() => {
-    if (interactionPaused || count <= 1 || prefersReducedMotion()) return;
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (interactionPaused || count <= 1 || !rotationEnabled) return;
     const timer = window.setInterval(() => {
       setCurrent((active) => {
         const next = (active + 1) % count;
         const track = trackRef.current;
-        track?.scrollTo({ left: track.clientWidth * next, behavior: "smooth" });
+        track?.scrollTo({ left: track.clientWidth * next, behavior: reducedMotion ? "auto" : "smooth" });
         return next;
       });
     }, 7000);
     return () => window.clearInterval(timer);
-  }, [count, interactionPaused]);
+  }, [count, interactionPaused, rotationEnabled, reducedMotion]);
 
   if (count === 0) return null;
 
   return (
     <div
       className="group/banner relative"
-      onPointerEnter={() => setInteractionPaused(true)}
-      onPointerLeave={() => setInteractionPaused(false)}
-      onFocusCapture={() => setInteractionPaused(true)}
+      onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
+      onPointerLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
       onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setInteractionPaused(false);
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
     >
       <div
@@ -350,6 +363,15 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
             →
           </button>
           <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-black/65 px-3 py-2 shadow-lg backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setRotationChoice(rotationEnabled ? "pause" : "play")}
+              aria-label={rotationEnabled ? "Остановить смену баннеров" : "Включить смену баннеров"}
+              title={rotationEnabled ? "Остановить смену баннеров" : "Включить смену баннеров"}
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              {rotationEnabled ? <Pause size={17} aria-hidden /> : <Play size={17} aria-hidden />}
+            </button>
             {banners.map((banner, index) => (
               <button
                 key={banner.id}
@@ -366,7 +388,7 @@ export function BannerCarousel({ banners }: { banners: SiteBanner[] }) {
         </>
       )}
 
-      <p className="sr-only" aria-live="polite">
+      <p className="sr-only" aria-live={rotationEnabled && !interactionPaused ? "off" : "polite"}>
         Показан баннер {current + 1} из {count}
       </p>
     </div>

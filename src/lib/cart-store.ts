@@ -98,43 +98,9 @@ export const useCart = create<CartState>()(
         });
       },
       addBundle: (item) => {
-        set((state) => {
-          /*
-            До появления строки «Комплект» старая кнопка добавляла компоненты
-            по одному. При повторном добавлении снимаем по одной такой позиции,
-            чтобы старая корзина автоматически превратилась в комплект и не
-            задублировала состав.
-          */
-          let next = [...state.items];
-          const required = new Map<string, number>();
-          for (const component of item.bundle.items) {
-            required.set(
-              component.slug,
-              (required.get(component.slug) ?? 0) + Math.max(1, component.qty ?? 1),
-            );
-          }
-          const available = new Map<string, number>();
-          for (const line of next) {
-            if (line.bundle) continue;
-            available.set(line.slug, (available.get(line.slug) ?? 0) + line.qty);
-          }
-          const canConvertLegacy = [...required].every(
-            ([slug, qty]) => (available.get(slug) ?? 0) >= qty,
-          );
-
-          if (canConvertLegacy) {
-            for (const [slug, requiredQty] of required) {
-              let remaining = requiredQty;
-              next = next.flatMap((line) => {
-                if (line.bundle || line.slug !== slug || remaining <= 0) return [line];
-                const consumed = Math.min(line.qty, remaining);
-                remaining -= consumed;
-                return line.qty === consumed ? [] : [{ ...line, qty: line.qty - consumed }];
-              });
-            }
-          }
-          return { items: mergeInto(next, item) };
-        });
+        // Комплект — дополнительная покупка. Совпадение состава не означает,
+        // что отдельно выбранные товары можно заменить или удалить.
+        set((state) => ({ items: mergeInto(state.items, item) }));
         useToast.getState().push({
           title: "Комплект добавлен в корзину",
           description: `${item.bundle.title} · скидка ${item.bundle.discountPercent}%`,

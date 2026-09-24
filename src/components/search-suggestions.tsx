@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { formatPrice, productImageUrl } from "@/lib/format";
@@ -38,34 +38,41 @@ export function SearchSuggestions({
     Буква в поле появляется сразу, запрос начинается после короткой паузы,
     а предыдущий отменяется при следующем нажатии.
   */
-  const deferred = useDeferredValue(query);
-  const [{ hits, total }, setResult] = useState<SearchResult>({ hits: [], total: 0 });
-  const [loading, setLoading] = useState(false);
+  const searchQuery = query.trim();
+  const [retry, setRetry] = useState(0);
+  const requestKey = JSON.stringify([searchQuery, limit, retry]);
+  const [responseState, setResponseState] = useState<
+    { key: string; result: SearchResult } | { key: string; error: true } | null
+  >(null);
+  // До ответа именно на текущий запрос показываем ожидание, а не пустую
+  // выдачу или результаты предыдущей модели (в том числе во время debounce).
+  const current = responseState?.key === requestKey ? responseState : null;
+  const loading = current === null;
+  const failed = current !== null && "error" in current;
+  const { hits, total } = current && "result" in current
+    ? current.result : { hits: [], total: 0 };
 
   useEffect(() => {
-    const q = deferred.trim();
+    const q = searchQuery;
+    setResponseState(null);
     if (!open || q.length < 2) {
-      setResult({ hits: [], total: 0 });
-      setLoading(false);
       return;
     }
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
-      setLoading(true);
       try {
         const response = await fetch(
           `/api/search?q=${encodeURIComponent(q)}&limit=${limit}`,
           { cache: "no-store", signal: controller.signal },
         );
         if (!response.ok) throw new Error("search unavailable");
-        setResult((await response.json()) as SearchResult);
-      } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
-          setResult({ hits: [], total: 0 });
+        const result = (await response.json()) as SearchResult;
+        if (!controller.signal.aborted) setResponseState({ key: requestKey, result });
+      } catch {
+        if (!controller.signal.aborted) {
+          setResponseState({ key: requestKey, error: true });
         }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
       }
     }, 120);
 
@@ -73,7 +80,7 @@ export function SearchSuggestions({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [deferred, limit, open]);
+  }, [searchQuery, limit, open, requestKey]);
 
   useEffect(() => {
     if (!open) return;
@@ -117,13 +124,21 @@ export function SearchSuggestions({
             "mt-2 animate-[hints-in_.22s_cubic-bezier(0.16,1,0.3,1)]",
       )}
     >
-      {loading && hits.length === 0 ? (
-        <p className="px-4 py-5 text-center text-sm text-muted-foreground">
+      {loading ? (
+        <p role="status" className="px-4 py-5 text-center text-sm text-muted-foreground">
           Ищем…
         </p>
+      ) : failed ? (
+        <div className="px-4 py-3 text-sm">
+          <p role="status" className="text-muted-foreground">Не удалось загрузить подсказки. Попробуйте ещё раз или откройте каталог.</p>
+          <div className="mt-2 flex flex-wrap gap-x-4">
+            <button type="button" onClick={() => setRetry((value) => value + 1)} className="min-h-11 underline underline-offset-4">Повторить поиск</button>
+            <Link href={`/catalog?search=${encodeURIComponent(searchQuery)}`} onClick={leave} className="inline-flex min-h-11 items-center underline underline-offset-4">Открыть каталог</Link>
+          </div>
+        </div>
       ) : hits.length === 0 ? (
-        <p className="px-4 py-5 text-center text-sm text-muted-foreground">
-          Ничего не нашлось по запросу «{deferred.trim()}»
+        <p role="status" className="px-4 py-5 text-center text-sm text-muted-foreground">
+          Ничего не нашлось по запросу «{searchQuery}»
         </p>
       ) : (
         <>
@@ -157,8 +172,8 @@ export function SearchSuggestions({
           ))}
 
           <Link
-            href={`/catalog?search=${encodeURIComponent(deferred.trim())}`}
-            onClick={onClose}
+            href={`/catalog?search=${encodeURIComponent(searchQuery)}`}
+            onClick={leave}
             className="mt-1 flex items-center gap-2 border-t border-border px-4 py-3 font-mono text-[0.72rem] uppercase tracking-wider text-signal transition-colors hover:bg-muted"
           >
             <Search size={13} />

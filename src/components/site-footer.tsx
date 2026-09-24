@@ -121,7 +121,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <a href={contacts.whatsapp} className={linkCls}>
-                  WhatsApp · Telegram
+                  WhatsApp
                 </a>
               </li>
               <li className="pt-1 text-[0.82rem] text-white/40">
