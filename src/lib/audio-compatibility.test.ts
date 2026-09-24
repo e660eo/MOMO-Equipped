@@ -205,7 +205,18 @@ describe("automatic recommendations on the current catalog", () => {
     expect(result?.items.length).toBeGreaterThanOrEqual(2);
     expect(result?.technicalChecks.length).toBeGreaterThanOrEqual(3);
   });
-  it("does not claim a compatible bass system when current load/power data is insufficient", () => {
-    expect(buildAutomaticRecommendation(liveCatalog, { goal: "bass", size: "165", budget: 30_000 })).toBeNull();
+  it("does not claim a compatible bass system when subwoofer specifications are missing", () => {
+    const incomplete = liveCatalog.map((item) => item.category === "sabvufery"
+      ? { ...item, description: [] } : item);
+    expect(buildAutomaticRecommendation(incomplete, { goal: "bass", size: "165", budget: 30_000 })).toBeNull();
+  });
+  it("uses the confirmed UB-10.250 dual coils and RMS for bass recommendations", () => {
+    const sub = liveCatalog.find((item) => item.slug === "sabvufer-avtomobilnyy-ub-10-250-10-dyuymov-328303")!;
+    expect(parseAudioProductSpec(sub)).toMatchObject({
+      rmsW: 250, coilCount: 2, coilLabel: "2+2", loadOptions: [1, 4], sensitivityDb: 88,
+    });
+    const result = buildAutomaticRecommendation(liveCatalog, { goal: "bass", size: "165", budget: 30_000 });
+    expect(result?.items.some((item) => item.product.slug === sub.slug)).toBe(true);
+    expect(result?.technicalChecks.find((item) => item.label === "Подключение катушек")?.value).toContain("2+2 Ом");
   });
 });

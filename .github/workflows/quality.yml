@@ -16,6 +16,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: node --test scripts/update-ub10250-specs.test.mjs
       - run: npm run build
 
   e2e:
