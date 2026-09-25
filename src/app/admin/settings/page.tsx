@@ -63,6 +63,7 @@ export default async function AdminSettingsPage({
       <p className="mt-1 text-[0.85rem] text-muted-foreground">
         Контакты, условия продажи, интеграции, уведомления и состояние системы.
       </p>
+      <Link href="/admin/notifications" className="mt-3 inline-flex min-h-11 items-center text-sm text-signal underline">Открыть журнал уведомлений и ошибок отправки</Link>
 
       {saved && (
         <p className="mt-4 rounded-sm border border-border bg-surface px-4 py-2.5 text-[0.85rem]">

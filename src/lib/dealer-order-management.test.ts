@@ -16,6 +16,7 @@ beforeEach(() => {
   previousDir = process.env.MOMO_DATA_DIR;
   temporary = fs.mkdtempSync(path.join(os.tmpdir(), "momo-agreement-"));
   process.env.MOMO_DATA_DIR = temporary;
+  fs.writeFileSync(path.join(temporary, "products.json"), JSON.stringify([{ slug: "speaker", title: "Акустика", stock: 10 }, { slug: "wire", title: "Кабель", stock: 10 }]));
   fs.writeFileSync(path.join(temporary, "dealer-orders.json"), JSON.stringify([{ id: "D-test", dealerId: "dealer", accountId: "account", createdAt: "2026-09-25", status: "new", items: [{ slug: "speaker", title: "Акустика", price: 1200.11, qty: 3 }, { slug: "wire", title: "Кабель", price: 100.12, qty: 1 }], total: 3700.45, history: [] }]));
 });
 afterEach(() => {
@@ -35,7 +36,7 @@ describe("dealer order agreements", () => {
 
   it("rejects stale edits and preserves every saved version", () => {
     saveDealerOrderAgreement(input);
-    expect(() => saveDealerOrderAgreement({ ...input, managerMessage: "stale" })).toThrow("Другой менеджер");
+    expect(() => saveDealerOrderAgreement({ ...input, managerMessage: "stale" })).toThrow("в другом окне");
     saveDealerOrderAgreement({ ...input, expectedRevision: 1, paymentStatus: "paid" });
     expect(getDealerOrderAgreementVersions()).toHaveLength(2);
     expect(getDealerOrderAgreement("D-test")?.paymentStatus).toBe("paid");

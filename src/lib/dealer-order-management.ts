@@ -1,7 +1,7 @@
-import { withDataFileLock } from "./data-file-lock";
 import { getDealerOrders } from "./dealers";
 import { ExpectedError } from "./errors";
-import { assertWritable, readJson, writeJson } from "./store";
+import { assertWritable, readJson, writeJson, withStoreTransaction } from "./store";
+import { reconcileDealerStock } from "./dealer-stock";
 import type { OrderItem } from "./types";
 import type { DealerInvoiceFile } from "./dealer-invoices";
 
@@ -104,10 +104,12 @@ export function saveDealerOrderAgreement(input: DealerOrderAgreementInput): Deal
   }
   const subtotal = items.reduce((sum, item) => sum + Math.round(item.price * 100) * item.qty, 0) / 100;
   const deliveryCost = Math.round(input.deliveryCost * 100) / 100;
-  return withDataFileLock(FILE, () => {
+  return withStoreTransaction(() => {
+    const currentOrder = getDealerOrders().find((item) => item.id === input.orderId);
+    if (!currentOrder) throw new ExpectedError("Заказ не найден.");
     const book = readAgreements();
     const versions = book[order.id] ?? [];
-    if ((versions.at(-1)?.revision ?? 0) !== input.expectedRevision) throw new ExpectedError("Другой менеджер уже изменил условия. Обновите страницу и проверьте новую версию.");
+    if ((versions.at(-1)?.revision ?? 0) !== input.expectedRevision) throw new ExpectedError("Условия уже изменены в другом окне. Обновите страницу и проверьте новую версию.");
     const agreement: DealerOrderAgreement = {
       orderId: order.id, revision: input.expectedRevision + 1, updatedAt: new Date().toISOString(),
       items, subtotal, deliveryCost, total: Math.round((subtotal + deliveryCost) * 100) / 100,
@@ -115,6 +117,7 @@ export function saveDealerOrderAgreement(input: DealerOrderAgreementInput): Deal
       invoiceReference, trackingNumber, trackingUrl, managerMessage,
       ...((input.invoiceFile ?? versions.at(-1)?.invoiceFile) ? { invoiceFile: input.invoiceFile ?? versions.at(-1)?.invoiceFile } : {}),
     };
+    reconcileDealerStock(order.id, currentOrder.status, agreement.paymentStatus === "paid", agreement.items, ["shipped", "done"].includes(currentOrder.status));
     writeJson(FILE, { ...book, [order.id]: [...versions, agreement] });
     return agreement;
   });

@@ -62,4 +62,35 @@ describe("file store cache", () => {
     fs.unlinkSync(path.join(tempDir, "stock-test.json"));
     expect(() => store.readJson("stock-test.json")).toThrow();
   });
+
+  it("rolls back every staged file and leaves cached values intact on validation failure", async () => {
+    const store = await import("./store");
+    store.writeJson("stock-test.json", [{ stock: 5 }]);
+    expect(() => store.withStoreTransaction(() => {
+      store.updateJson<Array<{ stock: number }>>("stock-test.json", (rows) => { rows[0].stock = 2; return rows; });
+      store.writeJson("agreement-test.json", { paid: true });
+      expect(store.readJson("stock-test.json")).toEqual([{ stock: 2 }]);
+      throw new Error("abort");
+    })).toThrow("abort");
+    expect(store.readJson("stock-test.json")).toEqual([{ stock: 5 }]);
+    expect(fs.existsSync(path.join(tempDir, "agreement-test.json"))).toBe(false);
+  });
+
+  it("recovers a prepared multi-file commit before serving a read", async () => {
+    const store = await import("./store");
+    store.writeJson("stock-test.json", [{ stock: 5 }]);
+    fs.writeFileSync(path.join(tempDir, "store-transaction.pending.json"), JSON.stringify([
+      ["stock-test.json", [{ stock: 2 }]], ["agreement-test.json", { paid: true }],
+    ]));
+    expect(store.readJson("stock-test.json")).toEqual([{ stock: 2 }]);
+    expect(store.readJson("agreement-test.json")).toEqual({ paid: true });
+    expect(fs.existsSync(path.join(tempDir, "store-transaction.pending.json"))).toBe(false);
+  });
+
+  it("does not replace corrupt collections with an empty array", async () => {
+    const store = await import("./store");
+    fs.writeFileSync(path.join(tempDir, "corrupt.json"), "{");
+    expect(() => store.updateJson("corrupt.json", () => [])).toThrow();
+    expect(fs.readFileSync(path.join(tempDir, "corrupt.json"), "utf8")).toBe("{");
+  });
 });

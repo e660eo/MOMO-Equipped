@@ -94,6 +94,7 @@ export function QuickEdit({ product }: { product: Product }) {
           nextPrice,
           nextStock,
           confirmedPriceDrop,
+          serverStock,
         );
         if (result.error) {
           setError(result.error);
@@ -150,7 +151,7 @@ export function QuickEdit({ product }: { product: Product }) {
       <span className="text-[0.72rem] text-muted-foreground">₽</span>
 
       <label className="sr-only" htmlFor={`stock-${product.slug}`}>
-        Остаток, шт
+        Доступно без резервов, шт
       </label>
       <input
         id={`stock-${product.slug}`}
@@ -158,7 +159,7 @@ export function QuickEdit({ product }: { product: Product }) {
         value={stock}
         inputMode="numeric"
         placeholder="—"
-        title="Остаток на складе, штук. Пусто — учёт не ведётся, 0 — купить нельзя."
+        title="Доступно без резервов, штук. Пусто — учёт не ведётся, 0 — купить нельзя."
         onChange={(e) => setStock(e.target.value.replace(/[^\d]/g, ""))}
         onBlur={save}
         onKeyDown={onKey}

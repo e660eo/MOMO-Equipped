@@ -429,8 +429,9 @@ export function ProductForm({
 
         <div>
           <label className={label} htmlFor="stock">
-            Остаток, шт
+            Доступный остаток, шт (без резервов)
           </label>
+          {product && <input type="hidden" name="expectedStock" value={product.stock ?? ""} />}
           <input
             id="stock"
             name="stock"

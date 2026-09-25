@@ -3,7 +3,9 @@ import { withDataFileLock } from "./data-file-lock";
 import { ExpectedError } from "./errors";
 import { b2bPriceForSlug, getB2BPriceBook, type B2BPriceBook } from "./b2b-prices";
 import { hashPassword } from "./password";
-import { assertWritable, readJson, updateJson } from "./store";
+import { assertWritable, readJson, updateJson, withStoreTransaction } from "./store";
+import { reconcileDealerStock } from "./dealer-stock";
+import { getDealerOrderAgreement } from "./dealer-order-management";
 import type {
   DealerAccount,
   DealerApplication,
@@ -409,9 +411,13 @@ export function createDealerOrder(input: {
 
 export function updateDealerOrderStatus(id: string, status: DealerOrderStatus, expectedStatus?: DealerOrderStatus): void {
   assertWritable();
-  withDataFileLock(ORDERS, () => {
+  withStoreTransaction(() => {
   const existing = getDealerOrders().find((order) => order.id === id);
   if (expectedStatus && existing?.status !== expectedStatus) throw new ExpectedError("DEALER_STATUS_CONFLICT");
+  if (!existing) throw new ExpectedError("Заказ не найден.");
+  if (existing.status === status) return;
+  const agreement = getDealerOrderAgreement(id);
+  reconcileDealerStock(id, status, agreement?.paymentStatus === "paid", agreement?.items ?? existing.items, ["shipped", "done"].includes(existing.status));
   updateJson<DealerOrder[]>(ORDERS, (all) =>
     all.map((order) => order.id === id && order.status !== status
       ? {

@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import { recordMailAttempt } from "./mail-journal";
 
 /*
   Отправка писем с сайта.
@@ -156,6 +157,7 @@ export async function sendMail(letter: Letter): Promise<MailResult> {
 
   if (!config) {
     last = { ok: false, at, error: "Почтовый ящик не подключён: нет SMTP_USER или SMTP_PASS." };
+    recordMailAttempt({ at, subject: letter.subject, to: letter.to ?? [], status: "failed", error: last.error });
     return last;
   }
 
@@ -193,6 +195,7 @@ export async function sendMail(letter: Letter): Promise<MailResult> {
     last = { ok: false, at, error: explainMailError(raw) };
   }
 
+  recordMailAttempt({ at, subject: letter.subject, to, status: last.ok ? "accepted" : "failed", ...(!last.ok ? { error: last.error } : {}) });
   return last;
 }
 

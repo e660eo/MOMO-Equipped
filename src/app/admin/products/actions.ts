@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
-import { readJson, updateJson, assertWritable } from "@/lib/store";
+import { readJson, updateJson, assertWritable, withStoreTransaction } from "@/lib/store";
 import { uniqueSlug } from "@/lib/slug";
 import { saveProductImage, deleteProductImage } from "@/lib/image-pipeline";
 import {
@@ -11,7 +11,7 @@ import {
   saveProductAudio,
   validateProductAudio,
 } from "@/lib/audio-pipeline";
-import { messageFor, isRedirect } from "@/lib/errors";
+import { messageFor, isRedirect, ExpectedError } from "@/lib/errors";
 import { audit } from "@/lib/audit-log";
 import {
   findDeletedProduct,
@@ -20,6 +20,7 @@ import {
   removeFromTrash,
 } from "@/lib/product-trash";
 import type { Product } from "@/lib/types";
+import { assertDealerReservedProducts } from "@/lib/dealer-stock";
 import profileSpecs from "./profile-specs.json";
 import { parseCsv } from "@/lib/csv";
 import {
@@ -37,6 +38,18 @@ import {
 */
 
 const FILE = "products.json";
+
+function updateProducts(update: (current: Product[]) => Product[]): Product[] {
+  return updateJson<Product[]>(FILE, (current) => {
+    const next = update(current);
+    assertDealerReservedProducts(next);
+    return next;
+  });
+}
+
+function checkStockVersion(product: Product, expected: number | null): void {
+  if ((product.stock ?? null) !== expected) throw new ExpectedError("Остаток изменился после открытия страницы. Обновите страницу и проверьте доступное количество.");
+}
 
 export type ActionState = { error?: string; ok?: string };
 
@@ -230,11 +243,14 @@ export async function saveProduct(
     if (flag !== undefined) product.inStock = flag;
     if (stock !== undefined) product.stock = stock;
 
-    updateJson<Product[]>(FILE, (all) =>
-      existing
-        ? all.map((p) => (p.slug === slug ? product : p))
-        : [product, ...all],
-    );
+    updateProducts((all) => {
+      if (!existing) return [product, ...all];
+      const current = all.find((item) => item.slug === slug);
+      if (!current) throw new ExpectedError("Товар уже удалён. Обновите страницу.");
+      const expected = String(formData.get("expectedStock") ?? "").trim();
+      checkStockVersion(current, formData.has("expectedStock") ? (expected ? Number(expected) : null) : existing.stock ?? null);
+      return all.map((item) => item.slug === slug ? product : item);
+    });
     if (oldAudio && oldAudio !== listeningAudio) await deleteProductAudio(oldAudio);
     audit({
       entity: "product",
@@ -273,7 +289,7 @@ function withPhotos(
   fn: (photos: string[]) => string[],
 ): string[] | undefined {
   let out: string[] | undefined;
-  updateJson<Product[]>(FILE, (all) =>
+  updateProducts((all) =>
     all.map((p) => {
       if (p.slug !== slug) return p;
       const next = fn([p.image, ...(p.images ?? [])]).filter(Boolean);
@@ -416,7 +432,7 @@ export async function createAsClearance(formData: FormData): Promise<void> {
     stock: 1,
   };
 
-  updateJson<Product[]>(FILE, (all) => [copy, ...all]);
+  updateProducts((all) => [copy, ...all]);
   refreshSite();
   redirect(`/admin/products/${newSlug}?copied=1`);
 }
@@ -441,7 +457,7 @@ function applySpecs(data: Record<string, unknown>): {
   let updated = 0;
   const notFound: string[] = [];
 
-  updateJson<Product[]>(FILE, (all) => {
+  updateProducts((all) => {
     const bySlug = new Map(all.map((p) => [p.slug, p]));
     for (const [slug, value] of entries) {
       const p = bySlug.get(slug);
@@ -540,6 +556,7 @@ export async function quickUpdate(
   price: number,
   stock: number | null,
   confirmPriceDrop = false,
+  expectedStock?: number | null,
 ): Promise<ActionState> {
   try {
     await requireSession();
@@ -561,9 +578,10 @@ export async function quickUpdate(
       };
     }
 
-    updateJson<Product[]>(FILE, (all) =>
+    updateProducts((all) =>
       all.map((p) => {
         if (p.slug !== slug) return p;
+        checkStockVersion(p, expectedStock === undefined ? existing.stock ?? null : expectedStock);
         const updated: Product = { ...p, price: Math.round(price) };
         if (stock === null) delete updated.stock;
         else updated.stock = Math.round(stock);
@@ -592,7 +610,7 @@ export async function toggleHidden(formData: FormData): Promise<void> {
 
   const slug = String(formData.get("slug") ?? "");
   const existing = readJson<Product[]>(FILE).find((p) => p.slug === slug);
-  updateJson<Product[]>(FILE, (all) =>
+  updateProducts((all) =>
     all.map((p) => (p.slug === slug ? { ...p, hidden: !p.hidden } : p)),
   );
   if (existing) {
@@ -618,8 +636,15 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   const victim = products.find((p) => p.slug === slug);
 
   if (!victim) return;
-  moveProductToTrash(victim);
-  updateJson<Product[]>(FILE, (all) => all.filter((p) => p.slug !== slug));
+  try {
+    withStoreTransaction(() => {
+      updateProducts((all) => all.filter((p) => p.slug !== slug));
+      moveProductToTrash(victim);
+    });
+  } catch (error) {
+    if (error instanceof ExpectedError) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+    throw error;
+  }
   audit({ entity: "product", entityId: slug, action: "trashed", summary: `Товар «${victim.title}» перемещён в корзину на 30 дней`, before: victim });
 
   refreshSite();
@@ -667,7 +692,7 @@ export async function importCatalogData(_prev: ActionState, formData: FormData):
       changes.set(product.slug, patch);
       updated++;
     }
-    updateJson<Product[]>(FILE, (all) => all.map((product) => changes.has(product.slug) ? { ...product, ...changes.get(product.slug) } : product));
+    updateProducts((all) => all.map((product) => changes.has(product.slug) ? { ...product, ...changes.get(product.slug) } : product));
     audit({ entity: "product", entityId: "catalog-import", action: "catalog_import", summary: `Импортированы цены/остатки: ${updated} товаров`, after: { updated, errors: errors.length } });
     refreshSite();
     revalidatePath("/admin/products");
@@ -701,7 +726,7 @@ export async function restoreProduct(formData: FormData): Promise<void> {
   const record = findDeletedProduct(slug);
   if (!record) return;
   if (readJson<Product[]>(FILE).some((product) => product.slug === slug)) return;
-  updateJson<Product[]>(FILE, (all) => {
+  updateProducts((all) => {
     return [record.product, ...all];
   });
   removeFromTrash(slug);
@@ -737,7 +762,8 @@ export async function bulkUpdateProducts(formData: FormData): Promise<void> {
   const action = String(formData.get("bulkAction") ?? "");
   if (!slugs.length || !BULK_ACTIONS.has(action)) return;
   const selected = new Set(slugs);
-  updateJson<Product[]>(FILE, (all) =>
+  try {
+  updateProducts((all) =>
     all.map((product) => {
       if (!selected.has(product.slug)) return product;
       const next = { ...product };
@@ -751,6 +777,10 @@ export async function bulkUpdateProducts(formData: FormData): Promise<void> {
       return next;
     }),
   );
+  } catch (error) {
+    if (error instanceof ExpectedError) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+    throw error;
+  }
   audit({ entity: "product", entityId: slugs.join(","), action: `bulk_${action}`, summary: `Массово изменено товаров: ${slugs.length}` });
   refreshSite();
   revalidatePath("/admin/products");

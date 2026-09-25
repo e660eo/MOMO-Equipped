@@ -437,6 +437,7 @@ export async function setDealerOrderStatus(formData: FormData): Promise<void> {
   try { updateDealerOrderStatus(id, status, expectedStatus || undefined); }
   catch (error) {
     if (error instanceof ExpectedError && error.message === "DEALER_STATUS_CONFLICT") redirect(`/admin/dealers/orders/${encodeURIComponent(id)}?statusConflict=1`);
+    if (error instanceof ExpectedError) redirect(`/admin/dealers/orders/${encodeURIComponent(id)}?statusError=${encodeURIComponent(error.message)}`);
     throw error;
   }
   const order = getDealerOrders().find((entry) => entry.id === id);
@@ -451,4 +452,5 @@ export async function setDealerOrderStatus(formData: FormData): Promise<void> {
   revalidatePath("/dealer/orders");
   revalidatePath(`/dealer/orders/${id}`);
   revalidatePath(`/admin/dealers/orders/${id}`);
+  revalidatePath("/", "layout");
 }

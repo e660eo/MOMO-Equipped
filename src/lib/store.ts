@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ExpectedError } from "./errors";
 import { SEED_DIR, dataDir, isRepoData } from "./store-paths";
+import { withDataFileLock } from "./data-file-lock";
 
 export { dataDir, uploadsDir, seedUploadsDir, isRepoData } from "./store-paths";
 
@@ -28,6 +29,51 @@ export { dataDir, uploadsDir, seedUploadsDir, isRepoData } from "./store-paths";
   inode и время изменения метаданных учитывают и атомарную замену файла.
 */
 const cache = new Map<string, { version: string; value: unknown }>();
+let lockedDirectory: string | undefined;
+let transaction: Map<string, unknown> | undefined;
+const JOURNAL = "store-transaction.pending.json";
+
+function recoverTransaction(): void {
+  const file = path.join(dataDir(), JOURNAL);
+  if (!fs.existsSync(file)) return;
+  const entries: Array<[string, unknown]> = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (!Array.isArray(entries) || entries.some((entry) => !Array.isArray(entry) || entry.length !== 2 || !/^[a-z0-9][a-z0-9._-]*\.json$/i.test(entry[0]) || entry[0] === JOURNAL)) throw new Error("Invalid store transaction journal");
+  for (const [name, value] of entries) writeJsonFile(name, value);
+  fs.unlinkSync(file);
+}
+
+function withStoreLock<T>(operation: () => T): T {
+  const directory = path.resolve(dataDir());
+  if (lockedDirectory === directory) return operation();
+  return withDataFileLock("store-transaction.json", () => {
+    lockedDirectory = directory;
+    try { recoverTransaction(); return operation(); }
+    finally { lockedDirectory = undefined; }
+  });
+}
+
+/** Synchronous multi-file commit. A durable journal completes interrupted commits on the next read/write. */
+export function withStoreTransaction<T>(operation: () => T): T {
+  assertWritable();
+  ensureSeeded();
+  return withStoreLock(() => {
+    if (transaction) return operation();
+    transaction = new Map();
+    let result: T;
+    let entries: Array<[string, unknown]>;
+    try { result = operation(); entries = [...transaction]; }
+    finally { transaction = undefined; }
+    if (!entries.length) return result;
+    const journal = path.join(dataDir(), JOURNAL);
+    const temporary = `${journal}.tmp`;
+    const descriptor = fs.openSync(temporary, "w", PRIVATE_FILE_MODE);
+    try { fs.writeFileSync(descriptor, JSON.stringify(entries), "utf8"); fs.fsyncSync(descriptor); }
+    finally { fs.closeSync(descriptor); }
+    fs.renameSync(temporary, journal);
+    recoverTransaction();
+    return result;
+  });
+}
 
 const PRIVATE_DIR_MODE = 0o700;
 const PRIVATE_FILE_MODE = 0o600;
@@ -76,16 +122,18 @@ function ensureSeeded(): void {
 /** Читает JSON-коллекцию из папки данных. Результат кэшируется. */
 export function readJson<T>(file: string): T {
   ensureSeeded();
+  if (!lockedDirectory && fs.existsSync(path.join(dataDir(), JOURNAL))) withStoreLock(() => undefined);
+  if (transaction?.has(file)) return structuredClone(transaction.get(file)) as T;
   const full = path.resolve(dataDir(), file);
   const stat = fs.statSync(full, { bigint: true });
   const version = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
   const cached = cache.get(full);
-  if (cached?.version === version) return cached.value as T;
+  if (cached?.version === version) return (transaction ? structuredClone(cached.value) : cached.value) as T;
 
   const raw = fs.readFileSync(full, "utf8");
   const parsed = JSON.parse(raw) as T;
   cache.set(full, { version, value: parsed });
-  return parsed;
+  return transaction ? structuredClone(parsed) : parsed;
 }
 
 /**
@@ -95,6 +143,11 @@ export function readJson<T>(file: string): T {
  */
 export function writeJson(file: string, data: unknown): void {
   ensureSeeded();
+  if (transaction) { transaction.set(file, structuredClone(data)); return; }
+  withStoreLock(() => writeJsonFile(file, data));
+}
+
+function writeJsonFile(file: string, data: unknown): void {
   const dir = dataDir();
   const full = path.join(dir, file);
 
@@ -126,18 +179,14 @@ export function writeJson(file: string, data: unknown): void {
  */
 export function updateJson<T>(file: string, update: (current: T) => T): T {
   ensureSeeded();
-  const full = path.join(dataDir(), file);
-
-  let current: T;
-  try {
-    current = JSON.parse(fs.readFileSync(full, "utf8")) as T;
-  } catch {
-    current = [] as unknown as T;
-  }
-
-  const next = update(current);
-  writeJson(file, next);
-  return next;
+  return withStoreLock(() => {
+    let current: T;
+    try { current = structuredClone(readJson<T>(file)); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; current = [] as unknown as T; }
+    const next = update(current);
+    writeJson(file, next);
+    return next;
+  });
 }
 
 /** Держим последние 20 копий каждого файла — этого хватает для отката. */

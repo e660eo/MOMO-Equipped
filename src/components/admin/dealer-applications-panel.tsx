@@ -61,7 +61,7 @@ export function DealerApplicationsPanel({ applications }: { applications: Dealer
   const archivedApplications = applications.filter((application) => application.archivedAt);
 
   return (
-    <section className="rounded-xl border border-border bg-surface p-4 sm:p-5">
+    <section id="dealer-applications" className="rounded-xl border border-border bg-surface p-4 sm:p-5">
       <div className="flex items-center gap-3">
         <FileCheck2 className="text-signal" size={21} aria-hidden />
         <div>

@@ -19,6 +19,7 @@ import { submitDealerOrder, type DealerOrderState } from "@/app/(shop)/dealer/ac
 import { dealerSubmissionId, finishDealerSubmission, getPendingDealerSubmission, useDealerDraft, usePendingDealerSubmission } from "@/lib/dealer-draft-client";
 import { formatPrice } from "@/lib/format";
 import { plural } from "@/lib/utils";
+import { DealerBulkOrder } from "./dealer-bulk-order";
 
 export type DealerCatalogItem = {
   slug: string;
@@ -142,6 +143,7 @@ export function DealerOrderCatalog({ products: initialProducts, accountId }: { p
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_350px]">
       <section className="min-w-0 rounded-[24px] border border-black/8 bg-white p-4 sm:p-6">
+        <DealerBulkOrder products={products} quantities={quantities} onAdd={draft.addItems} disabled={pending || Boolean(pendingSubmission) || draft.status === "auth"} />
         <div className="flex flex-col gap-4 border-b border-black/7 pb-5">
           <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>

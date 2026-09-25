@@ -15,6 +15,7 @@ export const ADMIN_NAV_GROUPS = [
     { href: "/admin/dealer-prices", label: "Прайс", icon: FileSpreadsheet },
   ] },
   { id: "catalog", label: "Каталог", items: [
+    { href: "/admin/inventory", label: "Остатки и резервы", icon: Boxes },
     { href: "/admin/products", label: "Товары", icon: Package },
     { href: "/admin/bundles", label: "Сборки", icon: Boxes },
     { href: "/admin/listening-stand", label: "Стенд", icon: Headphones },
@@ -29,6 +30,7 @@ export const ADMIN_NAV_GROUPS = [
     { href: "/admin/reviews", label: "Отзывы", icon: Star },
   ] },
   { id: "system", label: "Система", items: [
+    { href: "/admin/notifications", label: "Уведомления", icon: MessageCircle },
     { href: "/admin/settings", label: "Настройки", icon: Settings },
     { href: "/admin/audit", label: "Журнал", icon: FileClock },
   ] },

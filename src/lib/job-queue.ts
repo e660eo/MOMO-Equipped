@@ -18,12 +18,20 @@ import { createOzonShipment } from "./ozon-delivery";
 import { notifyCustomerEmailVerification, notifyCustomerWelcome } from "./customer-mail";
 import { getSupportConversation } from "./support-conversations";
 import { notifySupportMessage } from "./support-mail";
-import { readJson, updateJson } from "./store";
+import { assertWritable, readJson, updateJson } from "./store";
 import { fetchPaymentDetails, fetchPaymentStatus } from "./yandex-pay";
 import { isMailerConfigured } from "./mailer";
 import type { IntegrationJob, IntegrationJobType } from "./types";
 
 const FILE = "integration-jobs.json";
+export const MAIL_JOB_TYPES = ["order_mail", "customer_payment_mail", "customer_welcome", "customer_email_verification", "support_mail"];
+
+export function retryIntegrationMailJob(id: string): void {
+  assertWritable();
+  const now = new Date().toISOString();
+  updateJson<IntegrationJob[]>(FILE, (all) => all.map((job) => job.id === id && MAIL_JOB_TYPES.includes(job.type) && (job.status === "failed" || (job.status === "pending" && job.lastError))
+    ? { ...job, status: "pending", attempts: 0, runAt: now, updatedAt: now, lastError: undefined } : job));
+}
 const MAX_ATTEMPTS = 5;
 const RETRY_DELAYS = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000, 6 * 60 * 60_000];
 let running = false;

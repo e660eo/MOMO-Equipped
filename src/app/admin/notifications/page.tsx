@@ -1,0 +1,36 @@
+import Link from "next/link";
+import { requireSession } from "@/lib/admin-auth";
+import { getAllDealerOrderNotifications } from "@/lib/dealer-order-notifications";
+import { getIntegrationJobs, MAIL_JOB_TYPES } from "@/lib/job-queue";
+import { getMailJournal } from "@/lib/mail-journal";
+import { retryNotification } from "./actions";
+
+export const dynamic = "force-dynamic";
+const labels: Record<string, string> = { pending: "Ожидает отправки", running: "Отправляется", sending: "Отправляется", done: "Принято почтовым сервером", sent: "Принято почтовым сервером", failed: "Ошибка отправки" };
+const kinds: Record<string, string> = { order_mail: "Письмо о заказе", customer_payment_mail: "Подтверждение оплаты", customer_welcome: "Приветственное письмо", customer_email_verification: "Подтверждение email", support_mail: "Обращение в поддержку" };
+
+export default async function NotificationsPage({ searchParams }: { searchParams: Promise<{ q?: string; view?: string; page?: string; tab?: string }> }) {
+  await requireSession();
+  const params = await searchParams;
+  const q = params.q?.trim().toLowerCase() ?? "";
+  const history = params.tab === "history";
+  const queue = [
+    ...getAllDealerOrderNotifications().map((job) => ({ id: job.id, source: "dealer", title: job.letter.subject, detail: `${job.orderId} · ${job.recipient === "manager" ? "Менеджеру" : "Дилеру"}`, at: job.updatedAt, status: job.status as string, error: job.error, attempts: job.attempts, runAt: job.runAt, href: `/admin/dealers/orders/${encodeURIComponent(job.orderId)}`, retry: job.status === "failed" || (job.status === "pending" && Boolean(job.error)) })),
+    ...getIntegrationJobs(1000).filter((job) => MAIL_JOB_TYPES.includes(job.type)).map((job) => ({ id: job.id, source: "shop", title: kinds[job.type] ?? "Письмо", detail: job.entityId, at: job.updatedAt, status: job.status as string, error: job.lastError, attempts: job.attempts, runAt: job.runAt, href: ["order_mail", "customer_payment_mail"].includes(job.type) ? `/admin/orders/${encodeURIComponent(job.entityId)}` : undefined, retry: job.status === "failed" || (job.status === "pending" && Boolean(job.lastError)) })),
+  ];
+  const attempts = getMailJournal().map((entry) => ({ id: entry.id, source: "attempt", title: entry.subject, detail: entry.to.join(", ") || "Получатель не настроен", at: entry.at, status: entry.status === "accepted" ? "done" : "failed", error: entry.error, attempts: 1, runAt: "", href: undefined, retry: false }));
+  const rows = (history ? attempts : queue).filter((item) => (!q || `${item.title} ${item.detail}`.toLowerCase().includes(q)) && (params.view !== "errors" || Boolean(item.error) || item.status === "failed") && (params.view !== "waiting" || ["pending", "running", "sending"].includes(item.status))).sort((a, b) => b.at.localeCompare(a.at));
+  const pages = Math.max(1, Math.ceil(rows.length / 30));
+  const page = Math.min(pages, Math.max(1, Math.floor(Number(params.page) || 1)));
+  const url = (patch: Record<string, string>) => `/admin/notifications?${new URLSearchParams({ q: params.q ?? "", tab: params.tab ?? "", view: params.view ?? "", ...patch })}`;
+  return <div>
+    <h1 className="font-display text-3xl font-extrabold uppercase">Уведомления</h1>
+    <p className="mt-2 max-w-3xl text-sm text-muted-foreground">«Принято почтовым сервером» подтверждает отправку, но не попадание во входящие и не прочтение. История отдельных попыток ведётся с момента включения журнала; хранится до 2000 записей.</p>
+    <nav className="mt-5 flex flex-wrap gap-2" aria-label="Журнал уведомлений">{[{ value: "", label: "Очередь и результаты" }, { value: "history", label: "История отправок" }].map((tab) => <Link key={tab.value} href={url({ tab: tab.value, page: "1", view: "" })} aria-current={(history ? "history" : "") === tab.value ? "page" : undefined} className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm ${history === Boolean(tab.value) ? "border-signal bg-signal/10 font-bold" : "border-border"}`}>{tab.label}</Link>)}</nav>
+    <form className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-4"><input type="hidden" name="tab" value={history ? "history" : ""} /><label className="w-full min-w-0 text-xs font-semibold sm:w-auto sm:flex-1">Поиск<input name="q" defaultValue={params.q} maxLength={200} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-bg px-3 text-sm" /></label><label className="text-xs font-semibold">Состояние<select name="view" defaultValue={params.view} className="mt-1 block min-h-11 rounded-lg border border-border bg-bg px-3 text-sm"><option value="">Все</option><option value="errors">Ошибки</option>{!history && <option value="waiting">В очереди</option>}</select></label><button className="min-h-11 rounded-lg bg-foreground px-4 text-sm font-bold text-bg">Показать</button></form>
+    <p className="mt-4 text-sm text-muted-foreground">Записей: {rows.length}</p>
+    <div className="mt-3 space-y-3">{rows.slice((page - 1) * 30, page * 30).map((item) => <article key={`${item.source}:${item.id}`} className="rounded-xl border border-border bg-surface p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><h2 className="break-words text-sm font-bold">{item.title}</h2><p className="mt-1 break-words text-xs text-muted-foreground">{item.detail}</p></div><span className={`text-xs font-semibold ${item.error || item.status === "failed" ? "text-red-600" : "text-muted-foreground"}`}>{labels[item.status]}</span></div><p className="mt-2 text-xs text-muted-foreground">{new Date(item.at).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })} МСК{!history && ` · попыток: ${item.attempts}`}</p>{item.error && <p className="mt-2 break-words text-sm text-red-600">{item.error}</p>}{item.status === "pending" && <p className="mt-2 text-xs">Следующая попытка: {new Date(item.runAt).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })} МСК</p>}<div className="mt-2 flex flex-wrap items-center gap-4">{item.href && <Link href={item.href} className="inline-flex min-h-11 items-center text-sm underline">Открыть заказ</Link>}{item.retry && <form action={retryNotification}><input type="hidden" name="source" value={item.source} /><input type="hidden" name="id" value={item.id} /><button className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold">Повторить отправку</button></form>}</div></article>)}{!rows.length && <p className="rounded-xl border border-border p-6 text-sm text-muted-foreground">Записей по выбранным условиям нет.</p>}</div>
+    {history && <p className="mt-4 text-xs text-muted-foreground">Для повторной отправки откройте вкладку «Очередь и результаты». Письма с доступом к аккаунту повторно отправляются из карточки аккаунта.</p>}
+    {pages > 1 && <nav className="mt-4 flex items-center gap-4" aria-label="Страницы журнала">{page > 1 && <Link className="inline-flex min-h-11 items-center underline" href={url({ page: String(page - 1) })}>← Назад</Link>}<span>{page} / {pages}</span>{page < pages && <Link className="inline-flex min-h-11 items-center underline" href={url({ page: String(page + 1) })}>Далее →</Link>}</nav>}
+  </div>;
+}

@@ -8,6 +8,19 @@ import { getDealerOrderAgreement, saveDealerOrderAgreement, type DealerPaymentSt
 import { ensureDealerAgreementNotification, ensureDealerOrderNotifications, processDealerOrderNotifications, retryDealerOrderNotifications } from "@/lib/dealer-order-notifications";
 import { ExpectedError, messageFor } from "@/lib/errors";
 import { discardUnsavedDealerInvoice, saveDealerInvoice, type DealerInvoiceFile } from "@/lib/dealer-invoices";
+import { saveDealerOrderNote } from "@/lib/dealer-order-notes";
+
+export async function saveDealerNoteAction(previous: { revision: number; error?: string; ok?: boolean }, form: FormData): Promise<{ revision: number; error?: string; ok?: boolean }> {
+  await requireSession();
+  try {
+    const orderId = String(form.get("orderId") ?? "");
+    const saved = saveDealerOrderNote(orderId, Number(form.get("revision")), String(form.get("note") ?? ""), String(form.get("followUpDate") ?? ""));
+    revalidatePath(`/admin/dealers/orders/${orderId}`);
+    revalidatePath("/admin/dealers/orders");
+    revalidatePath("/admin");
+    return { revision: saved.revision, ok: true };
+  } catch (error) { return { revision: previous.revision, error: messageFor(error, "Не удалось сохранить заметку.", "dealerNote") }; }
+}
 
 export type DealerAgreementState = { error?: string; ok?: boolean; revision?: number; warning?: string };
 
@@ -53,10 +66,15 @@ export async function saveDealerAgreementAction(_state: DealerAgreementState, fo
     revalidatePath(`/dealer/orders/${orderId}`);
     revalidatePath("/dealer/orders");
     revalidatePath("/dealer");
+    revalidatePath("/", "layout");
     return { ok: true, revision: agreement.revision, warning };
   } catch (error) {
     if (uploaded && !saved) {
-      try { discardUnsavedDealerInvoice(uploaded); }
+      try {
+        const agreement = getDealerOrderAgreement(String(formData.get("orderId") ?? ""));
+        // Reading recovers any prepared transaction before checking file ownership.
+        if (agreement?.invoiceFile?.id !== uploaded.id) discardUnsavedDealerInvoice(uploaded);
+      }
       catch (cleanupError) { console.error("[dealer-agreement] invoice cleanup:", cleanupError); }
     }
     const revision = Number(formData.get("revision"));

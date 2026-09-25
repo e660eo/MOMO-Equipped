@@ -37,6 +37,20 @@ function readNotifications(): DealerOrderNotification[] {
   }
 }
 
+export function getAllDealerOrderNotifications(): DealerOrderNotification[] {
+  return readNotifications().slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function retryDealerNotification(id: string): void {
+  assertWritable();
+  withDataFileLock(FILE, () => {
+    const all = readNotifications();
+    const now = new Date().toISOString();
+    writeJson(FILE, all.map((job) => job.id === id && (job.status === "failed" || (job.status === "pending" && job.error))
+      ? { ...job, status: "pending", attempts: 0, runAt: now, updatedAt: now, error: undefined } : job));
+  });
+}
+
 export function getDealerOrderNotifications(orderId: string): DealerOrderNotification[] {
   return readNotifications().filter((job) => job.orderId === orderId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }

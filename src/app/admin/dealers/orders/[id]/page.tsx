@@ -9,15 +9,18 @@ import { formatPrice } from "@/lib/format";
 import { DealerOrderAgreementForm } from "@/components/admin/dealer-order-agreement-form";
 import { setDealerOrderStatus } from "../../actions";
 import { retryDealerOrderMailAction } from "./actions";
+import { getDealerOrderNotes } from "@/lib/dealer-order-notes";
+import { DealerOrderNoteForm } from "@/components/admin/dealer-order-note-form";
+import { getDealerStockReservations } from "@/lib/dealer-stock";
 
 export const dynamic = "force-dynamic";
 
 const mailLabels = { pending: "Ожидает отправки", sending: "Отправляется", sent: "Принято почтовым сервером", failed: "Нужен повтор отправки" };
 
-export default async function AdminDealerOrderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ statusConflict?: string }> }) {
+export default async function AdminDealerOrderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ statusConflict?: string; statusError?: string }> }) {
   await requireSession();
   const { id } = await params;
-  const { statusConflict } = await searchParams;
+  const { statusConflict, statusError } = await searchParams;
   const order = getDealerOrders().find((item) => item.id === id);
   if (!order) notFound();
   const dealer = getDealerLocation(order.dealerId);
@@ -25,9 +28,11 @@ export default async function AdminDealerOrderPage({ params, searchParams }: { p
   const agreement = getDealerOrderAgreement(id);
   const notifications = getDealerOrderNotifications(id);
   const needsRetry = notifications.some((item) => item.status === "failed" || (item.status === "pending" && item.error));
+  const reservation = getDealerStockReservations().find((item) => item.orderId === id);
   return <div className="space-y-5">
     <Link href="/admin/dealers/orders" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted-foreground hover:text-signal">← Заказы дилеров</Link>
-    {statusConflict && <p role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">Статус уже изменён другим менеджером. Показаны актуальные данные; проверьте их перед сохранением.</p>}
+    {statusConflict && <p role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">Статус уже изменён в другом окне. Показаны актуальные данные; проверьте их перед сохранением.</p>}
+    {statusError && <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-950">{statusError}</p>}
     <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div><p className="text-xs font-bold uppercase tracking-wider text-signal">Дилерский заказ</p><h1 className="mt-1 font-display text-3xl font-extrabold">{order.id}</h1><p className="mt-2 text-sm">{dealer?.name ?? "Дилер"} · {dealer?.city}</p><p className="mt-1 text-sm text-muted-foreground">{account?.contactName} {account?.email && <>· <a href={`mailto:${account.email}`} className="hover:text-signal">{account.email}</a></>} {dealer?.phone && <>· <a href={`tel:${dealer.phone}`} className="hover:text-signal">{dealer.phone}</a></>}</p></div>
@@ -37,6 +42,8 @@ export default async function AdminDealerOrderPage({ params, searchParams }: { p
       {agreement && <p className="mt-4 text-sm text-muted-foreground">Условия от {new Date(agreement.updatedAt).toLocaleString("ru-RU")} · версия {agreement.revision} · итого с доставкой <strong className="text-foreground">{formatPrice(agreement.total)}</strong></p>}
     </section>
     <section className="rounded-xl border border-border bg-surface p-5 sm:p-6"><DealerOrderAgreementForm key={order.id} order={order} agreement={agreement} /></section>
+    <section className="rounded-xl border border-border bg-surface p-5"><h2 className="font-bold">Резерв товара</h2><p className="mt-2 text-sm">{reservation?.status === "reserved" ? "Товар зарезервирован после подтверждения полной оплаты и исключён из доступного остатка." : reservation?.status === "shipped" ? "Товар отгружен. Повторного списания при завершении заказа не будет." : "Активного резерва нет. Резерв создаётся при сохранении условий с оплатой «Оплачен»."}</p><p className="mt-2 text-xs text-muted-foreground">Частичная оплата не резервирует товар. Отмена до отгрузки освобождает резерв. Состав отгруженного заказа защищён от изменения.</p><Link href="/admin/inventory" className="mt-2 inline-flex min-h-11 items-center text-sm underline">Остатки и резервы</Link></section>
+    <section className="rounded-xl border border-border bg-surface p-5 sm:p-6"><DealerOrderNoteForm orderId={order.id} saved={getDealerOrderNotes().find((note) => note.orderId === order.id)} /></section>
     <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
       <h2 className="font-display text-xl font-extrabold uppercase">Уведомления по заказу</h2>
       <p className="mt-1 text-xs text-muted-foreground">При временной ошибке письмо отправится повторно. Статус подтверждает приём почтовым сервером, а не прочтение письма.</p>
