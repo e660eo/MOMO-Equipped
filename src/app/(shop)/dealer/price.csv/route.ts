@@ -7,15 +7,17 @@ import { isInStock } from "@/lib/format";
 export async function GET() {
   const session = await currentDealer();
   if (!session) return new Response("Требуется вход", { status: 401 });
-  const rows: (string | number)[][] = [["Артикул", "Товар", "Бренд", "Категория", "РРЦ", "Ваша цена", "Остаток"]];
-  for (const product of getProducts().filter((item) => !item.isClearance)) {
+  const rows: (string | number)[][] = [["Артикул", "Товар", "Бренд", "Категория", "РРЦ", "Дилерская цена", "Остаток"]];
+  for (const product of getProducts().filter((item) => !item.isClearance && !item.hidden)) {
+    const price = dealerPriceFor(product, session.account);
+    if (price === undefined) continue;
     rows.push([
       product.ozonOfferId || product.slug,
       product.title,
       product.brand,
       product.category,
       product.price,
-      dealerPriceFor(product, session.account),
+      price,
       typeof product.stock === "number" ? product.stock : isInStock(product) ? "В наличии" : "Под заказ",
     ]);
   }

@@ -16,24 +16,28 @@ export default async function DealerOrderPage() {
   const categoryLabels = new Map(getCategories().map((category) => [category.slug, category.title]));
   const catalog: DealerCatalogItem[] = getProducts()
     .filter((product) => !product.isClearance && !product.hidden)
-    .map((product) => ({
-      slug: product.slug,
-      title: product.title,
-      brand: product.brand,
-      category: categoryLabels.get(product.category) ?? product.category,
-      image: productImageUrl(product.image),
-      price: dealerPriceFor(product, session.account),
-      retailPrice: product.price,
-      stock: typeof product.stock === "number" ? product.stock : null,
-      available: isInStock(product) !== false,
-      isNew: Boolean(product.isNew),
-      ...(product.ozonOfferId ? { article: product.ozonOfferId } : {}),
-    }));
+    .flatMap((product): DealerCatalogItem[] => {
+      const price = dealerPriceFor(product, session.account);
+      if (price === undefined) return [];
+      return [{
+        slug: product.slug,
+        title: product.title,
+        brand: product.brand,
+        category: categoryLabels.get(product.category) ?? product.category,
+        image: productImageUrl(product.image),
+        price,
+        retailPrice: product.price,
+        stock: typeof product.stock === "number" ? product.stock : null,
+        available: isInStock(product) !== false,
+        isNew: Boolean(product.isNew),
+        ...(product.ozonOfferId ? { article: product.ozonOfferId } : {}),
+      }];
+    });
 
   return (
     <DealerCabinetShell session={session} active="order">
       <div className="mb-6 max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-[.17em] text-[#d94700]">Персональные условия</p>
+        <p className="text-xs font-bold uppercase tracking-[.17em] text-[#d94700]">Единый дилерский прайс</p>
         <h2 className="mt-1 font-display text-3xl font-black uppercase tracking-[-.03em] sm:text-4xl">Новый заказ</h2>
         <p className="mt-2 text-sm leading-6 text-black/55">Выберите товары и количество. Черновик сохраняется на этом устройстве автоматически, поэтому к заказу можно вернуться позже.</p>
       </div>

@@ -283,7 +283,7 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
           {state.error && <p role="alert" className="mt-4 rounded-lg bg-red-500/15 px-3 py-2.5 text-xs text-red-200">{state.error}</p>}
           {state.ok && <p role="status" className="mt-4 flex items-center gap-2 rounded-lg bg-emerald-500/15 px-3 py-2.5 text-xs text-emerald-200"><CheckCircle2 size={16} aria-hidden /> Заказ {state.orderId} отправлен менеджеру.</p>}
           <button disabled={pending || !selected.length} className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ff5500] text-sm font-bold transition-colors hover:bg-[#ff6a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-35">{pending && <LoaderCircle className="animate-spin" size={18} aria-hidden />}{pending ? "Отправляем…" : "Отправить заказ"}</button>
-          <p className="mt-3 text-center text-[10px] leading-4 text-white/40">Менеджер проверит наличие и подтвердит условия отгрузки.</p>
+          <p className="mt-3 text-center text-xs leading-5 text-white/60">Это заявка менеджеру. Наличие, доставку и оплату согласуем после отправки.</p>
         </form>
       </aside>
 

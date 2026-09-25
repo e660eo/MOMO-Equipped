@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Building2, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
 import { DealerCabinetShell } from "@/components/dealer-cabinet-shell";
-import { DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
 import { currentDealer } from "@/lib/dealer-auth";
 import { getSiteConfig } from "@/lib/data";
 
@@ -48,9 +47,8 @@ export default async function DealerProfilePage() {
         <aside className="grid content-start gap-4">
           <div className="rounded-[24px] bg-[#111214] p-5 text-white sm:p-6">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-[#ff6a1f]">Ваши условия</p>
-            <p className="mt-3 font-display text-2xl font-black uppercase">{DEALER_PRICE_TIER_LABELS[session.account.priceTier ?? "dealer"]}</p>
-            <p className="mt-2 text-sm leading-6 text-white/50">Резервная скидка применяется к товарам, которых нет в выбранном закрытом прайсе.</p>
-            <div className="mt-5 flex items-end justify-between border-t border-white/10 pt-4"><span className="text-sm text-white/50">Резервная скидка</span><b className="text-2xl">{session.account.discountPercent}%</b></div>
+            <p className="mt-3 font-display text-2xl font-black uppercase">Единый дилерский прайс</p>
+            <p className="mt-2 text-sm leading-6 text-white/50">В каталоге доступны товары с установленной дилерской ценой. После отправки заявки менеджер согласует наличие, доставку и оплату.</p>
           </div>
 
           <div className="rounded-[24px] border border-black/8 bg-white p-5 sm:p-6">

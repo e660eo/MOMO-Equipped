@@ -11,7 +11,6 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { logoutDealer } from "@/app/(shop)/dealer/actions";
-import { DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
 import { getDealerOrders } from "@/lib/dealers";
 import { isDealerOrderOpen } from "@/lib/dealer-order-ui";
 import type { DealerAccount, DealerLocation } from "@/lib/types";
@@ -68,7 +67,7 @@ export function DealerCabinetShell({
                 <span className="inline-flex items-center gap-2"><MapPin size={15} aria-hidden />{session.dealer.city}</span>
                 <span>{session.account.contactName}</span>
                 <span className="rounded-full border border-white/12 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[.1em] text-white/70">
-                  {DEALER_PRICE_TIER_LABELS[session.account.priceTier ?? "dealer"]}
+                  Единый дилерский прайс
                 </span>
               </div>
             </div>

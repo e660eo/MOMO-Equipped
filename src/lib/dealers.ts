@@ -148,16 +148,11 @@ export function updateDealerAccountProfile(
 
 export function dealerPriceFor(
   product: Product,
-  account: DealerAccount,
+  _account: DealerAccount,
   priceBook: B2BPriceBook = getB2BPriceBook(),
-): number {
-  const override = account.priceOverrides?.[product.slug];
-  if (Number.isFinite(override) && Number(override) > 0) {
-    return Math.round(Number(override) * 100) / 100;
-  }
-  const priceFromBook = b2bPriceForSlug(product.slug, account.priceTier ?? "dealer", priceBook);
-  if (priceFromBook !== undefined) return priceFromBook;
-  return Math.max(1, Math.round(product.price * (100 - account.discountPercent) / 100));
+): number | undefined {
+  // All dealers use the explicit common price. Missing prices are not inferred.
+  return b2bPriceForSlug(product.slug, "dealer", priceBook);
 }
 
 export function getDealerApplications(): DealerApplication[] {

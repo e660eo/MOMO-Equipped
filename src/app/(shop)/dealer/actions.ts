@@ -101,7 +101,7 @@ export async function submitDealerOrder(
       if (!slug || !Number.isSafeInteger(qty) || qty < 1 || qty > 999) throw new ExpectedError("Проверьте количество товаров.");
       requested.set(slug, (requested.get(slug) ?? 0) + qty);
     }
-    const products = new Map(getProducts().filter((product) => !product.isClearance).map((product) => [product.slug, product]));
+    const products = new Map(getProducts().filter((product) => !product.isClearance && !product.hidden).map((product) => [product.slug, product]));
     const items: OrderItem[] = [];
     for (const [slug, qty] of requested) {
       const product = products.get(slug);
@@ -109,7 +109,9 @@ export async function submitDealerOrder(
       if (isInStock(product) === false) throw new ExpectedError(`${product.title}: сейчас нет в наличии.`);
       const limit = stockLimit(product);
       if (limit !== null && qty > limit) throw new ExpectedError(`${product.title}: доступно ${limit} шт.`);
-      items.push({ slug, title: product.title, price: dealerPriceFor(product, session.account), qty });
+      const price = dealerPriceFor(product, session.account);
+      if (price === undefined) throw new ExpectedError(`${product.title}: дилерская цена пока не указана. Уберите товар из заказа.`);
+      items.push({ slug, title: product.title, price, qty });
     }
     const comment = String(formData.get("comment") ?? "").trim().slice(0, 700);
     const order = createDealerOrder({ account: session.account, items, ...(comment ? { comment } : {}) });

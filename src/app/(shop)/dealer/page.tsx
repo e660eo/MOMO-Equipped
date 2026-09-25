@@ -16,7 +16,7 @@ import { DealerDraftSummary } from "@/components/dealer-draft-summary";
 import { DealerOrderProgress } from "@/components/dealer-order-progress";
 import { getB2BPriceBook } from "@/lib/b2b-prices";
 import { currentDealer } from "@/lib/dealer-auth";
-import { getDealerOrders } from "@/lib/dealers";
+import { dealerPriceFor, getDealerOrders } from "@/lib/dealers";
 import {
   DEALER_ORDER_STATUS_LABELS,
   dealerOrderLastUpdated,
@@ -40,7 +40,7 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
   const session = await currentDealer();
   if (!session) redirect("/dealer/login");
 
-  const products = getProducts().filter((product) => !product.isClearance && !product.hidden);
+  const products = getProducts().filter((product) => !product.isClearance && !product.hidden && dealerPriceFor(product, session.account) !== undefined);
   const orders = getDealerOrders(session.account.id);
   const openOrders = orders.filter((order) => isDealerOrderOpen(order.status));
   const documents = getSupportDocuments("dealer");

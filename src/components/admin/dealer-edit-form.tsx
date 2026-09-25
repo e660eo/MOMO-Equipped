@@ -290,18 +290,9 @@ export function DealerEditForm({
             Email для входа
             <input className={input} type="email" name="loginEmail" defaultValue={account.email} autoComplete="username" required />
           </label>
-          <label className="grid gap-1 text-xs text-muted-foreground">
-            Ценовой уровень
-            <select className={input} name="priceTier" defaultValue={account.priceTier ?? "dealer"} required>
-              <option value="dealer">Дилерский прайс</option>
-              <option value="dagestan">Дагестанский прайс</option>
-              <option value="wholesale">Оптовый прайс</option>
-            </select>
-          </label>
-          <label className="grid gap-1 text-xs text-muted-foreground">
-            Резервная скидка от РРЦ, %
-            <input className={input} type="number" min="0" max="80" step="0.1" name="discountPercent" defaultValue={account.discountPercent} required />
-          </label>
+          <input type="hidden" name="priceTier" value={account.priceTier ?? "dealer"} />
+          <input type="hidden" name="discountPercent" value={account.discountPercent} />
+          <p className="col-span-full text-xs text-muted-foreground">Единый дилерский прайс. Индивидуальные скидки и прежние ценовые уровни не применяются.</p>
         </fieldset>
       )}
 

@@ -32,13 +32,13 @@ const priceBook: B2BPriceBook = {
 };
 
 describe("dealerPriceFor", () => {
-  it("calculates the private price from the dealer discount", () => {
-    expect(dealerPriceFor(product, account, { ...priceBook, prices: {} })).toBe(7347);
+  it("does not calculate missing dealer prices from a retail discount", () => {
+    expect(dealerPriceFor(product, account, { ...priceBook, prices: {} })).toBeUndefined();
   });
 
-  it("uses the assigned private price tier", () => {
+  it("uses the same dealer price regardless of a legacy account tier", () => {
     expect(dealerPriceFor(product, account, priceBook)).toBe(6001);
-    expect(dealerPriceFor(product, { ...account, priceTier: "wholesale" }, priceBook)).toBe(6501);
+    expect(dealerPriceFor(product, { ...account, priceTier: "wholesale" }, priceBook)).toBe(6001);
   });
 
   it("preserves kopecks from the private price book", () => {
@@ -49,15 +49,17 @@ describe("dealerPriceFor", () => {
     expect(dealerPriceFor(product, account, bookWithKopecks)).toBe(6001.35);
   });
 
-  it("uses a per-product override before the common discount", () => {
-    expect(dealerPriceFor(product, { ...account, priceOverrides: { "bd-1500-1": 7000 } }, priceBook)).toBe(7000);
+  it("does not override the common dealer price with a legacy individual price", () => {
+    expect(dealerPriceFor(product, { ...account, priceOverrides: { "bd-1500-1": 7000 } }, priceBook)).toBe(6001);
   });
 
   it("ignores invalid overrides", () => {
     expect(dealerPriceFor(product, { ...account, priceOverrides: { "bd-1500-1": 0 } }, priceBook)).toBe(6001);
   });
 
-  it("uses the fallback discount when the selected tier has no product price", () => {
-    expect(dealerPriceFor(product, { ...account, priceTier: "dagestan" }, priceBook)).toBe(7347);
+  it("does not use another tier or an override when a dealer price is missing", () => {
+    expect(dealerPriceFor(product, { ...account, priceOverrides: { "bd-1500-1": 7000 } }, {
+      ...priceBook, prices: { "bd-1500-1": { wholesale: 6501 } },
+    })).toBeUndefined();
   });
 });

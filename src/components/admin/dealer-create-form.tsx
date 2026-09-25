@@ -139,8 +139,9 @@ export function DealerCreateForm({
       </div>
     </div>
     {mapPickerOpen && <DealerMapPicker apiKey={yandexMapsApiKey} city={city} address={address} initialLatitude={latitude} initialLongitude={longitude} onClose={() => setMapPickerOpen(false)} onSelect={setMapCoordinates} />}
-    <label className="grid gap-1 text-xs text-muted-foreground">Ценовой уровень<select className={input} name="priceTier" defaultValue="dealer" required><option value="dealer">Дилерский прайс</option><option value="dagestan">Дагестанский прайс</option><option value="wholesale">Оптовый прайс</option></select></label>
-    <label className="grid gap-1 text-xs text-muted-foreground">Резервная скидка от РРЦ, %<input className={input} type="number" min="0" max="80" step="0.1" name="discountPercent" defaultValue="0" required /><span className="text-[10px] leading-4">Применится только к товарам, которых нет в выбранном прайсе.</span></label>
+    <input type="hidden" name="priceTier" value="dealer" />
+    <input type="hidden" name="discountPercent" value="0" />
+    <p className="col-span-full text-xs text-muted-foreground">Единый дилерский прайс. Товары без дилерской цены недоступны для заказа.</p>
     <label className="grid gap-1 text-xs text-muted-foreground">Статус партнёра<select className={input} name="officialStatus" defaultValue="dealer" required><option value="dealer">Официальный дилер</option><option value="representative">Официальный представитель</option></select></label>
     <label className="grid gap-1 text-xs text-muted-foreground">Тип точки<select className={input} name="kind" defaultValue="store" required><option value="store">Магазин</option><option value="installation">Установочный центр</option><option value="store_install">Магазин / Установочный центр</option></select></label>
     <label className="flex items-center gap-2 self-end pb-3 text-sm"><input type="checkbox" name="authorizedInstallation" /> Авторизованная установка — гарантия 24 месяца</label>
