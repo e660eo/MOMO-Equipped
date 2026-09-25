@@ -119,6 +119,7 @@ export function CartPageClient() {
   const [placeResults, setPlaceResults] = useState<PublicPlaceResult[]>([]);
   const [placeBusy, setPlaceBusy] = useState(false);
   const mapRequestRef = useRef(0);
+  const pickupRequestRef = useRef(0);
   const lastMapViewRef = useRef<MapView | null>(null);
   const deliveryPickerRef = useRef<HTMLDivElement>(null);
   const payButtonRef = useRef<HTMLButtonElement>(null);
@@ -201,8 +202,10 @@ export function CartPageClient() {
   }, [bonusLimit]);
 
   useEffect(() => {
+    pickupRequestRef.current += 1;
+    setDeliveryBusy(false);
     setDelivery(null);
-  }, [phone, items]);
+  }, [phone, items, selectedPoint]);
 
   useEffect(() => {
     if (!promo?.code) return;
@@ -235,24 +238,30 @@ export function CartPageClient() {
     }
     const requestId = ++mapRequestRef.current;
     setMapBusy(true);
-    const result = await loadOzonPickupMap({
-      viewport: view.viewport,
-      zoom: view.zoom,
-    });
-    if (requestId !== mapRequestRef.current) return;
-    setMapBusy(false);
-    if (!result.ok) {
-      setDeliveryMsg(result.error);
-      return;
-    }
-    setPoints(result.area.points);
-    setClusters(result.area.clusters);
-    if (!result.area.points.length && !result.area.clusters.length) {
-      setDeliveryMsg("В этой области пункты Ozon не найдены. Переместите карту.");
-    } else if (result.area.clusters.length) {
-      setDeliveryMsg("Нажмите на синюю группу ПВЗ, чтобы приблизить карту.");
-    } else {
-      setDeliveryMsg("Выберите синюю метку или адрес под картой.");
+    try {
+      const result = await loadOzonPickupMap({
+        viewport: view.viewport,
+        zoom: view.zoom,
+      });
+      if (requestId !== mapRequestRef.current) return;
+      if (!result.ok) {
+        setDeliveryMsg(result.error);
+        return;
+      }
+      setPoints(result.area.points);
+      setClusters(result.area.clusters);
+      if (!result.area.points.length && !result.area.clusters.length) {
+        setDeliveryMsg("В этой области пункты Ozon не найдены. Переместите карту.");
+      } else if (result.area.clusters.length) {
+        setDeliveryMsg("Нажмите на синюю группу ПВЗ, чтобы приблизить карту.");
+      } else {
+        setDeliveryMsg("Выберите синюю метку или адрес под картой.");
+      }
+    } catch {
+      if (requestId !== mapRequestRef.current) return;
+      setDeliveryMsg("Не удалось загрузить ПВЗ. Проверьте связь и нажмите «Показать ПВЗ здесь» ещё раз.");
+    } finally {
+      if (requestId === mapRequestRef.current) setMapBusy(false);
     }
   }
 
@@ -285,14 +294,19 @@ export function CartPageClient() {
     }
     setPlaceBusy(true);
     setPlaceResults([]);
-    const result = await searchPickupPlace(placeQuery);
-    setPlaceBusy(false);
-    if (!result.ok) {
-      setDeliveryMsg(result.error);
-      return;
+    try {
+      const result = await searchPickupPlace(placeQuery);
+      if (!result.ok) {
+        setDeliveryMsg(result.error);
+        return;
+      }
+      setPlaceResults(result.places);
+      setDeliveryMsg("Выберите подходящий адрес из списка.");
+    } catch {
+      setDeliveryMsg("Не удалось найти адрес. Проверьте связь и повторите поиск.");
+    } finally {
+      setPlaceBusy(false);
     }
-    setPlaceResults(result.places);
-    setDeliveryMsg("Выберите подходящий адрес из списка.");
   }
 
   function choosePlace(place: PublicPlaceResult) {
@@ -312,23 +326,39 @@ export function CartPageClient() {
     }
     setDeliveryBusy(true);
     setDeliveryMsg("");
-    const result = await selectOzonPickup({
-      phone,
-      pointId: selectedPoint.id,
-      items: cartItemsForFulfillment(items),
-    });
-    setDeliveryBusy(false);
-    if (!result.ok) {
+    const requestId = ++pickupRequestRef.current;
+    try {
+      const result = await selectOzonPickup({
+        phone,
+        pointId: selectedPoint.id,
+        items: cartItemsForFulfillment(items),
+      });
+      if (requestId !== pickupRequestRef.current) return;
+      if (!result.ok) {
+        setDelivery(null);
+        setDeliveryMsg(result.error);
+        return;
+      }
+      setDelivery(result.delivery);
+      setFieldErrors((current) => ({ ...current, delivery: undefined }));
+      setError("");
+      setAddress(`ПВЗ Ozon: ${result.delivery.point.address}`);
+      setDeliveryMsg("ПВЗ выбран. Теперь можно перейти к оплате.");
+      requestAnimationFrame(() =>
+        payButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      );
+    } catch {
+      if (requestId !== pickupRequestRef.current) return;
       setDelivery(null);
-      setDeliveryMsg(result.error);
-      return;
+      setDeliveryMsg("Не удалось подтвердить ПВЗ. Проверьте связь и подтвердите выбранный пункт ещё раз.");
+    } finally {
+      if (requestId === pickupRequestRef.current) setDeliveryBusy(false);
     }
-    setDelivery(result.delivery);
-    setAddress(`ПВЗ Ozon: ${result.delivery.point.address}`);
-    setDeliveryMsg("ПВЗ выбран. Теперь можно перейти к оплате.");
-    requestAnimationFrame(() =>
-      payButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
-    );
+  }
+
+  function resetDeliveryForRetry() {
+    setDelivery(null);
+    setDeliveryMsg("Перед новой попыткой оплаты подтвердите выбранный ПВЗ ещё раз.");
   }
 
   async function applyPromo() {
@@ -432,6 +462,7 @@ export function CartPageClient() {
       ...(pay && delivery ? { deliveryToken: delivery.token } : {}),
     }); } catch {
       setSending(false);
+      if (pay) resetDeliveryForRetry();
       setError("Связь с сервером прервалась. Проверьте заказы в личном кабинете перед повторной попыткой.");
       return;
     }
@@ -449,6 +480,7 @@ export function CartPageClient() {
     if (saved.ok && bonusSpent > 0) notifyCustomerSessionChanged();
 
     if (pay && !saved.ok) {
+      if (saved.requiresDeliveryRefresh) resetDeliveryForRetry();
       setError(saved.error);
       if (saved.requiresAuth) openAuth("checkout");
       return;
@@ -486,8 +518,9 @@ export function CartPageClient() {
     // Просили оплату, а ссылки нет. Техническая заготовка скрыта от панели;
     // новую попытку начинаем заново, чтобы не переиспользовать старую сессию.
     if (pay) {
+      resetDeliveryForRetry();
       setError(
-        "Яндекс Pay не создал новую ссылку. Попробуйте ещё раз через минуту.",
+        "Яндекс Pay не создал новую ссылку. Через минуту подтвердите ПВЗ ещё раз и повторите оплату.",
       );
       return;
     }
@@ -922,6 +955,16 @@ export function CartPageClient() {
                     </div>
                   </div>
                   <div className="bg-surface p-4">
+                    {mapTarget.zoom >= 5 && lastMapViewRef.current && (
+                      <button
+                        type="button"
+                        disabled={mapBusy}
+                        onClick={() => { if (lastMapViewRef.current) void loadMapArea(lastMapViewRef.current); }}
+                        className="mb-3 min-h-11 w-full rounded-sm border border-border px-3 py-2 text-sm font-semibold hover:border-signal disabled:opacity-60"
+                      >
+                        {mapBusy ? "Загружаем ПВЗ…" : "Показать ПВЗ здесь"}
+                      </button>
+                    )}
                     <p className="mb-3 text-sm font-semibold">Пункты рядом с центром выбранной области</p>
                     {points.length > 0 && (
                       <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
@@ -973,7 +1016,7 @@ export function CartPageClient() {
                       </button>
                     )}
                     {deliveryMsg && (
-                      <p className="mt-2 text-[0.78rem] leading-relaxed text-signal">
+                      <p role="status" className="mt-2 text-[0.78rem] leading-relaxed text-signal">
                         {deliveryMsg}
                       </p>
                     )}
@@ -1110,16 +1153,23 @@ export function CartPageClient() {
               </div>
             )}
             <div className={cn("flex items-baseline justify-between", discount > 0 || bonusSpent > 0 ? "mt-2" : "mt-5")}>
-              <span className="text-sm">Итого</span>
+              <span className="text-sm">{payEnabled && delivery ? "Итого к онлайн-оплате" : "Итого за товары"}</span>
               <span className="font-display text-xl font-extrabold">
                 {formatPrice(payableWithDelivery)}
               </span>
             </div>
             {deliveryCharge > 0 && (
               <div className="mt-1.5 flex items-baseline justify-between text-sm text-muted-foreground">
-                <span>Доставка Ozon (самовывоз)</span>
-                <span>+ {formatPrice(deliveryCharge)}</span>
+                <span>В том числе доставка Ozon</span>
+                <span>{formatPrice(deliveryCharge)}</span>
               </div>
+            )}
+            {payEnabled && !delivery && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {total < freeFrom
+                  ? `При онлайн-оплате доставка Ozon — ${formatPrice(OZON_DELIVERY_SURCHARGE)}. Подтвердите ПВЗ, чтобы увидеть полную сумму.`
+                  : "Доставка Ozon бесплатная. Для онлайн-оплаты подтвердите ПВЗ."}
+              </p>
             )}
             <YandexSplitBadge
               amount={payableWithDelivery}
@@ -1156,10 +1206,15 @@ export function CartPageClient() {
                 >
                   {sending ? "Оформляю заказ…" : customer ? "Оплатить на сайте" : "Войти и оплатить"}
                 </button>
+                <div id="offline-order-total" className="mt-5 text-sm leading-relaxed">
+                  <p>Заявка без онлайн-оплаты: <strong>{formatPrice(goodsPayable)}</strong> за товары.</p>
+                  <p className="mt-1 text-muted-foreground">Стоимость и способ доставки согласует менеджер. Доставка в сумму заявки не включена.</p>
+                </div>
                 <button
                   type="submit"
                   name="checkoutMode"
                   value="offline"
+                  aria-describedby="offline-order-total"
                   disabled={sending}
                   className="mt-2.5 w-full rounded-sm border border-border py-3 text-sm font-semibold transition-colors hover:border-signal hover:text-signal disabled:opacity-60"
                 >

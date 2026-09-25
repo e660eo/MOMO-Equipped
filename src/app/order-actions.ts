@@ -269,7 +269,7 @@ function tooManyFrom(ip: string): boolean {
 
 export type OrderResult =
   | { ok: true; id: string; paymentUrl?: string }
-  | { ok: false; error: string; requiresAuth?: boolean; requiresEmailVerification?: boolean; cartChanged?: boolean };
+  | { ok: false; error: string; requiresAuth?: boolean; requiresEmailVerification?: boolean; cartChanged?: boolean; requiresDeliveryRefresh?: boolean };
 
 export async function submitOrder(payload: {
   name: string;
@@ -505,7 +505,7 @@ export async function submitOrder(payload: {
     let delivery: Order["delivery"];
     if (payload.pay) {
       if (!payload.deliveryToken) {
-        return { ok: false, error: "Выберите пункт Ozon перед оплатой." };
+        return { ok: false, error: "Выберите пункт Ozon перед оплатой.", requiresDeliveryRefresh: true };
       }
       try {
         delivery = consumeOzonSelection(payload.deliveryToken, phone, items);
@@ -515,6 +515,7 @@ export async function submitOrder(payload: {
         return {
           ok: false,
           error: error instanceof Error ? error.message : "Пересчитайте доставку.",
+          requiresDeliveryRefresh: true,
         };
       }
     }
@@ -602,7 +603,8 @@ export async function submitOrder(payload: {
         });
         return {
           ok: false,
-          error: "Яндекс Pay сейчас не создал новую ссылку. Попробуйте ещё раз через минуту.",
+          error: "Яндекс Pay сейчас не создал новую ссылку. Через минуту подтвердите ПВЗ ещё раз и повторите оплату.",
+          requiresDeliveryRefresh: true,
         };
       }
     }
@@ -615,6 +617,7 @@ export async function submitOrder(payload: {
       return {
         ok: false,
         error: "Оплата на сайте временно недоступна. Попробуйте ещё раз позже.",
+        requiresDeliveryRefresh: true,
       };
     }
 
@@ -635,6 +638,7 @@ export async function submitOrder(payload: {
         "Не получилось сохранить заказ на сайте.",
         "Не удалось сохранить заказ",
       ),
+      requiresDeliveryRefresh: payload.pay === true,
     };
   }
 }
