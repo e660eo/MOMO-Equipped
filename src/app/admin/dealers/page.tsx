@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Building2, Package, Pencil, UserPlus } from "lucide-react";
 import { DealerCreateForm, type DealerCreateInitial } from "@/components/admin/dealer-create-form";
 import { DealerApplicationsPanel } from "@/components/admin/dealer-applications-panel";
+import { DealerDemoAccess } from "@/components/admin/dealer-demo-access";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireSession } from "@/lib/admin-auth";
 import { b2bPriceCounts, getB2BPriceBook } from "@/lib/b2b-prices";
@@ -35,6 +36,7 @@ export default async function AdminDealersPage({ searchParams }: { searchParams:
       <Link href="/admin/dealers/orders" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-bold transition-colors hover:border-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal">Заказы дилеров</Link>
       <Link href="/admin/dealer-prices" className="inline-flex min-h-11 items-center rounded-lg bg-signal px-4 text-sm font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal">Обновить дилерский прайс</Link>
     </nav>
+    <DealerDemoAccess />
     <div className="mt-7 grid gap-5 lg:grid-cols-2"><section id="create" className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"><div className="flex items-center gap-3"><UserPlus className="text-signal" size={21} /><div><h2 className="font-display text-lg font-extrabold uppercase">Создать дилера</h2><p className="text-xs text-muted-foreground">Все дилеры заказывают по единому дилерскому прайсу.</p></div></div>{selected && <p className="mt-4 rounded-lg bg-signal/8 px-3 py-2 text-xs text-signal">Форма заполнена из заявки «{selected.company}».</p>}<DealerCreateForm key={initial?.applicationId ?? "blank"} initial={initial} yandexMapsApiKey={yandexMapsApiKey} /></section>
       <DealerApplicationsPanel applications={applications} />
     </div>
