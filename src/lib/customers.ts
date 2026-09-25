@@ -6,6 +6,7 @@ import { audit } from "./audit-log";
 import { phoneKey } from "./phone";
 import { getBonusSummary, removeCustomerBonusLedger } from "./bonus-ledger";
 import { deleteCustomerProductReviews } from "./product-reviews";
+import { deleteCustomerCart } from "./customer-carts";
 
 /*
   Покупатели с аккаунтом на сайте.
@@ -184,6 +185,7 @@ export function deleteCustomer(id: string): string[] {
   assertWritable();
   updateJson<Customer[]>(FILE, (all) => all.filter((c) => c.id !== id));
   removeCustomerBonusLedger(id);
+  deleteCustomerCart(id);
   const affectedReviewSlugs = deleteCustomerProductReviews(id);
   auditCustomerLifecycle({
     customerId: id,

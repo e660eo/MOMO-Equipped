@@ -78,7 +78,7 @@ test("checkout recovers from delivery failures and separates payment totals", as
   await expect(page.getByText(/Не удалось найти адрес/)).toBeVisible();
   await expect(search).toBeEnabled();
   await search.click();
-  await expect(page.getByRole("button", { name: "Москва", exact: true })).toBeVisible();
+  await expect(page.locator("#rc-delivery").getByRole("button", { name: "Москва", exact: true })).toBeVisible();
 
   const confirm = page.getByRole("button", { name: "Подтвердить выбранный ПВЗ", exact: true });
   await confirm.click();

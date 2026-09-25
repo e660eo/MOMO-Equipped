@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { PublicCustomer } from "@/lib/types";
 import type { PublicDealerSession } from "@/lib/viewer-session";
+import { CartAccountSync } from "./cart-account-sync";
 
 /*
   Текущий покупатель или дилер для клиентских компонентов — шапки, модалки
@@ -29,37 +30,45 @@ export function CustomerProvider({
   children: React.ReactNode;
 }) {
   const [session, setSession] = useState<ViewerSession>(EMPTY_SESSION);
+  const [cartCustomerId, setCartCustomerId] = useState<string | null | undefined>(undefined);
+  const requestId = useRef(0);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
+    const id = ++requestId.current;
     try {
       const response = await fetch("/api/customer/me", {
         cache: "no-store",
         credentials: "same-origin",
         signal,
       });
-      if (!response.ok) return setSession(EMPTY_SESSION);
+      if (!response.ok) return;
       const body = (await response.json()) as ViewerSession;
+      if (id !== requestId.current || signal?.aborted) return;
       setSession({ customer: body.customer ?? null, dealer: body.dealer ?? null });
-    } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setSession(EMPTY_SESSION);
-      }
-    }
+      setCartCustomerId(body.customer?.id ?? null);
+    } catch { /* A network failure is not an authoritative logout. */ }
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     void refresh(controller.signal);
-    const onChanged = () => void refresh();
+    const onChanged = () => void refresh(controller.signal);
     window.addEventListener(CUSTOMER_CHANGED, onChanged);
+    window.addEventListener("focus", onChanged);
+    window.addEventListener("online", onChanged);
     return () => {
       controller.abort();
       window.removeEventListener(CUSTOMER_CHANGED, onChanged);
+      window.removeEventListener("focus", onChanged);
+      window.removeEventListener("online", onChanged);
     };
   }, [refresh]);
 
   return (
-    <CustomerContext.Provider value={session}>{children}</CustomerContext.Provider>
+    <CustomerContext.Provider value={session}>
+      <CartAccountSync customerId={cartCustomerId} />
+      {children}
+    </CustomerContext.Provider>
   );
 }
 

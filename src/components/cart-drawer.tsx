@@ -83,7 +83,7 @@ const russiaMapTarget: MapTarget = { lat: 61.2, long: 89.2, zoom: 2 };
 type CheckoutField = "name" | "phone" | "address" | "consent" | "delivery";
 
 export function CartPageClient() {
-  const { items, setQty, remove, clear, replace } = useCart();
+  const { items, setQty, remove, clear, replace, syncStatus } = useCart();
   const [proposedCart, setProposedCart] = useState<CartItem[] | null>(null);
   useEffect(() => setProposedCart(null), [items]);
   const recipientTouched = useRef(false);
@@ -571,6 +571,15 @@ export function CartPageClient() {
           )}
         </div>
 
+        {customer && (
+          <p role="status" className="mb-4 text-sm text-muted-foreground">
+            {syncStatus === "error"
+              ? "Не удалось связаться с аккаунтом. Изменения сохранены на этом устройстве; повторим синхронизацию после восстановления связи."
+              : syncStatus === "saved"
+                ? "Корзина сохранена в аккаунте и доступна на других устройствах."
+                : "Синхронизируем корзину с аккаунтом…"}
+          </p>
+        )}
         {sent ? (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed">
