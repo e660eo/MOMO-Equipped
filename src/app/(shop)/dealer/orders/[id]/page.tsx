@@ -7,6 +7,7 @@ import { DealerOrderProgress } from "@/components/dealer-order-progress";
 import { DealerRepeatOrderButton } from "@/components/dealer-repeat-order-button";
 import { currentDealer } from "@/lib/dealer-auth";
 import { getDealerOrders } from "@/lib/dealers";
+import { DEALER_PAYMENT_LABELS, getDealerOrderAgreement } from "@/lib/dealer-order-management";
 import {
   DEALER_ORDER_STATUS_LABELS,
   dealerOrderUnitCount,
@@ -26,6 +27,8 @@ export default async function DealerOrderDetailsPage({ params }: { params: Promi
   const { id } = await params;
   const order = getDealerOrders(session.account.id).find((item) => item.id === id);
   if (!order) notFound();
+  const agreement = getDealerOrderAgreement(order.id);
+  const displayItems = agreement?.items ?? order.items;
 
   return (
     <DealerCabinetShell session={session} active="orders">
@@ -40,16 +43,35 @@ export default async function DealerOrderDetailsPage({ params }: { params: Promi
           </div>
           <div className="sm:text-right">
             <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${order.status === "canceled" ? "bg-red-50 text-red-700" : order.status === "done" ? "bg-emerald-50 text-emerald-700" : "bg-[#fff0e7] text-[#c44100]"}`}>{DEALER_ORDER_STATUS_LABELS[order.status]}</span>
-            <p className="mt-3 text-3xl font-black">{formatPrice(order.total)}</p>
-            <p className="mt-1 text-xs text-black/40">{order.items.length} {plural(order.items.length, "позиция", "позиции", "позиций")} · {dealerOrderUnitCount(order)} шт.</p>
+            <p className="mt-3 text-3xl font-black">{formatPrice(agreement?.total ?? order.total)}</p>
+            {agreement && <p className="mt-1 text-xs text-black/45">По согласованным условиям, с доставкой</p>}
+            <p className="mt-1 text-xs text-black/40">{displayItems.length} {plural(displayItems.length, "позиция", "позиции", "позиций")} · {dealerOrderUnitCount({ items: displayItems })} шт.</p>
           </div>
         </div>
 
         <div className="mt-8 border-y border-black/7 py-6"><DealerOrderProgress status={order.status} /></div>
 
+        {agreement && <section className="mt-7 rounded-2xl border border-[#ff5500]/20 bg-[#fff8f2] p-4 sm:p-5">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#d94700]">Условия от менеджера · версия {agreement.revision}</p>
+          <h3 className="mt-2 font-display text-xl font-black uppercase">Согласованный заказ</h3>
+          <p className="mt-1 text-xs text-black/45">Обновлено {formatDate(agreement.updatedAt)}</p>
+          <ul className="mt-4 divide-y divide-black/8">{agreement.items.map((item) => <li key={item.slug} className="flex justify-between gap-3 py-3 text-sm"><span>{item.title} × {item.qty}</span><strong className="shrink-0">{formatPrice(item.price * item.qty)}</strong></li>)}</ul>
+          <dl className="mt-4 grid gap-3 border-t border-black/10 pt-4 text-sm sm:grid-cols-2">
+            <div><dt className="text-black/45">Доставка</dt><dd className="mt-1 whitespace-pre-wrap font-semibold">{agreement.deliveryMethod || "Уточняется"}{agreement.deliveryAddress && `\n${agreement.deliveryAddress}`}</dd></div>
+            <div><dt className="text-black/45">Стоимость доставки</dt><dd className="mt-1 font-semibold">{formatPrice(agreement.deliveryCost)}</dd></div>
+            <div><dt className="text-black/45">Оплата</dt><dd className="mt-1 font-semibold">{DEALER_PAYMENT_LABELS[agreement.paymentStatus]}</dd></div>
+            {agreement.invoiceReference && <div><dt className="text-black/45">Счёт</dt><dd className="mt-1 font-semibold">{agreement.invoiceReference}</dd></div>}
+            {agreement.invoiceFile && <div><dt className="text-black/45">Документ</dt><dd className="mt-1"><a href={`/dealer/orders/${encodeURIComponent(order.id)}/invoice`} className="font-semibold text-[#d94700] underline">Скачать счёт (PDF)</a></dd></div>}
+            {agreement.paymentTerms && <div className="sm:col-span-2"><dt className="text-black/45">Условия оплаты</dt><dd className="mt-1 whitespace-pre-wrap">{agreement.paymentTerms}</dd></div>}
+            {(agreement.trackingNumber || agreement.trackingUrl) && <div className="sm:col-span-2"><dt className="text-black/45">Отслеживание</dt><dd className="mt-1 flex flex-wrap gap-3 font-semibold">{agreement.trackingNumber}{agreement.trackingUrl && <a href={agreement.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-[#d94700] underline">Отследить отправление ↗</a>}</dd></div>}
+          </dl>
+          {agreement.managerMessage && <div className="mt-5 rounded-xl bg-white p-4"><p className="font-bold">Сообщение менеджера</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-black/65">{agreement.managerMessage}</p></div>}
+          <div className="mt-5 flex justify-between gap-4 border-t border-black/10 pt-4"><span className="font-semibold">Итого с доставкой</span><strong className="text-xl">{formatPrice(agreement.total)}</strong></div>
+        </section>}
+
         <div className="mt-7 grid gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>
-            <div className="flex items-center gap-3"><ReceiptText className="text-[#ff5500]" size={21} aria-hidden /><h3 className="font-display text-xl font-black uppercase">Состав заказа</h3></div>
+            <div className="flex items-center gap-3"><ReceiptText className="text-[#ff5500]" size={21} aria-hidden /><h3 className="font-display text-xl font-black uppercase">{agreement ? "Исходная заявка" : "Состав заказа"}</h3></div>
             <div className="mt-4 divide-y divide-black/7 rounded-2xl border border-black/8">
               {order.items.map((item) => (
                 <article key={item.slug} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_90px_120px] sm:items-center">
@@ -71,7 +93,7 @@ export default async function DealerOrderDetailsPage({ params }: { params: Promi
               <Package className="text-[#ff6a1f]" size={22} aria-hidden />
               <h3 className="mt-3 font-display text-xl font-black uppercase">Действия</h3>
               <p className="mt-2 text-sm leading-6 text-white/50">Добавьте эти позиции в новый черновик. Недоступные товары будут исключены автоматически.</p>
-              <DealerRepeatOrderButton items={order.items.map((item) => ({ slug: item.slug, qty: item.qty }))} className="mt-4 w-full border-white/15 bg-white/7 text-white hover:border-[#ff5500]" />
+              <DealerRepeatOrderButton accountId={session.account.id} items={displayItems.map((item) => ({ slug: item.slug, qty: item.qty }))} className="mt-4 w-full border-white/15 bg-white/7 text-white hover:border-[#ff5500]" />
               <Link href="/dealer/order" className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#ff5500] px-4 text-sm font-bold text-white">Открыть каталог</Link>
             </div>
 

@@ -544,6 +544,11 @@ export interface DealerOrder {
   items: OrderItem[];
   total: number;
   comment?: string;
+  /** The same account/request pair always returns the original order. */
+  requestId?: string;
+  requestFingerprint?: string;
+  /** Durable events: queued delivery can recover after a process restart. */
+  notificationEvents?: Array<{ id: string; at: string; status: DealerOrderStatus; kind: "created" | "status" }>;
   history: Array<{ at: string; actor: string; from?: string; to: string }>;
 }
 

@@ -17,6 +17,7 @@ import { DealerOrderProgress } from "@/components/dealer-order-progress";
 import { getB2BPriceBook } from "@/lib/b2b-prices";
 import { currentDealer } from "@/lib/dealer-auth";
 import { dealerPriceFor, getDealerOrders } from "@/lib/dealers";
+import { getDealerOrderAgreement } from "@/lib/dealer-order-management";
 import {
   DEALER_ORDER_STATUS_LABELS,
   dealerOrderLastUpdated,
@@ -42,6 +43,7 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
 
   const products = getProducts().filter((product) => !product.isClearance && !product.hidden && dealerPriceFor(product, session.account) !== undefined);
   const orders = getDealerOrders(session.account.id);
+  const agreements = new Map(orders.map((order) => [order.id, getDealerOrderAgreement(order.id)]));
   const openOrders = orders.filter((order) => isDealerOrderOpen(order.status));
   const documents = getSupportDocuments("dealer");
   const priceBook = getB2BPriceBook();
@@ -50,6 +52,10 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
   const lowStockCount = products.filter((product) => typeof product.stock === "number" && product.stock > 0 && product.stock <= 5).length;
   const newCount = products.filter((product) => product.isNew).length;
   const focusOrder = openOrders[0] ?? orders[0];
+  const focusAgreement = focusOrder ? agreements.get(focusOrder.id) : undefined;
+  const focusItems = focusAgreement?.items ?? focusOrder?.items ?? [];
+  const focusStatusUpdatedAt = focusOrder ? dealerOrderLastUpdated(focusOrder) : "";
+  const focusUpdatedAt = focusAgreement && Date.parse(focusAgreement.updatedAt) > Date.parse(focusStatusUpdatedAt) ? focusAgreement.updatedAt : focusStatusUpdatedAt;
   const activated = (await searchParams).activated === "1";
 
   return (
@@ -71,7 +77,7 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
         </Link>
       </section>
 
-      <div className="mt-6"><DealerDraftSummary /></div>
+      <div className="mt-6"><DealerDraftSummary accountId={session.account.id} /></div>
 
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <Link href="/dealer/order" className="group rounded-2xl border border-black/7 bg-white p-5 transition-colors hover:border-[#ff5500]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500]">
@@ -101,14 +107,14 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
               <p className="text-xs font-bold uppercase tracking-[.16em] text-[#d94700]">{focusOrder && isDealerOrderOpen(focusOrder.status) ? "Сейчас в работе" : "Последний заказ"}</p>
               <h3 className="mt-1 font-display text-2xl font-black uppercase">{focusOrder ? focusOrder.id : "Заказов пока нет"}</h3>
             </div>
-            {focusOrder && <p className="text-right"><strong className="block text-xl">{formatPrice(focusOrder.total)}</strong><span className="text-xs text-black/40">{dealerOrderUnitCount(focusOrder)} шт.</span></p>}
+            {focusOrder && <p className="text-right"><strong className="block text-xl">{formatPrice(focusAgreement?.total ?? focusOrder.total)}</strong>{focusAgreement && <span className="mt-1 block text-xs text-black/45">Согласовано, с доставкой</span>}<span className="text-xs text-black/40">{dealerOrderUnitCount({ items: focusItems })} шт.</span></p>}
           </div>
 
           {focusOrder ? (
             <>
               <div className="mt-7"><DealerOrderProgress status={focusOrder.status} /></div>
               <div className="mt-6 flex flex-col justify-between gap-4 border-t border-black/7 pt-5 sm:flex-row sm:items-center">
-                <p className="text-sm text-black/50">Обновлён {formatDate(dealerOrderLastUpdated(focusOrder), true)}</p>
+                <p className="text-sm text-black/50">Обновлён {formatDate(focusUpdatedAt, true)}</p>
                 <Link href={`/dealer/orders/${encodeURIComponent(focusOrder.id)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#111214] px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500]">Открыть заказ <ArrowRight size={15} aria-hidden /></Link>
               </div>
             </>
@@ -147,13 +153,18 @@ export default async function DealerCabinetPage({ searchParams }: { searchParams
         <section className="mt-8">
           <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#d94700]">История</p><h3 className="mt-1 font-display text-2xl font-black uppercase">Недавние заказы</h3></div><Link href="/dealer/orders" className="text-sm font-bold text-[#d94700]">Все заказы →</Link></div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            {orders.slice(0, 3).map((order) => (
+            {orders.slice(0, 3).map((order) => {
+              const agreement = agreements.get(order.id);
+              const items = agreement?.items ?? order.items;
+              return (
               <Link key={order.id} href={`/dealer/orders/${encodeURIComponent(order.id)}`} className="rounded-2xl border border-black/8 bg-white p-5 hover:border-[#ff5500]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500]">
                 <div className="flex items-start justify-between gap-3"><b>{order.id}</b><span className="rounded-full bg-black/5 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide">{DEALER_ORDER_STATUS_LABELS[order.status]}</span></div>
-                <p className="mt-4 text-xl font-black">{formatPrice(order.total)}</p>
-                <p className="mt-1 text-xs text-black/40">{formatDate(order.createdAt)} · {dealerOrderUnitCount(order)} шт.</p>
+                <p className="mt-4 text-xl font-black">{formatPrice(agreement?.total ?? order.total)}</p>
+                {agreement && <p className="mt-1 text-xs text-black/45">Согласовано, с доставкой</p>}
+                <p className="mt-1 text-xs text-black/40">{formatDate(order.createdAt)} · {dealerOrderUnitCount({ items })} шт.</p>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

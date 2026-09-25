@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useActionState, useDeferredValue, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Download,
@@ -16,11 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { submitDealerOrder, type DealerOrderState } from "@/app/(shop)/dealer/actions";
-import {
-  DEALER_ORDER_DRAFT_STORAGE_KEY,
-  parseDealerOrderDraft,
-  serializeDealerOrderDraft,
-} from "@/lib/dealer-order-draft";
+import { dealerSubmissionId, finishDealerSubmission, getPendingDealerSubmission, useDealerDraft, usePendingDealerSubmission } from "@/lib/dealer-draft-client";
 import { formatPrice } from "@/lib/format";
 import { plural } from "@/lib/utils";
 
@@ -46,21 +42,53 @@ function availableLimit(item: DealerCatalogItem): number {
   return item.stock ?? 999;
 }
 
-export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[] }) {
+export function DealerOrderCatalog({ products: initialProducts, accountId }: { products: DealerCatalogItem[]; accountId: string }) {
+  const draft = useDealerDraft(accountId);
+  const pendingSubmission = usePendingDealerSubmission(accountId);
+  const quantities = draft.draft.quantities;
+  const comment = draft.draft.comment;
+  const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
+  const [acceptedPriceChanges, setAcceptedPriceChanges] = useState<DealerOrderState["priceChanges"]>();
+  const products = useMemo(() => initialProducts.map((product) => ({ ...product, price: priceOverrides[product.slug] ?? product.price })), [initialProducts, priceOverrides]);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [category, setCategory] = useState("all");
   const [brand, setBrand] = useState("all");
   const [availability, setAvailability] = useState<AvailabilityFilter>("all");
   const [sort, setSort] = useState<SortMode>("default");
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [comment, setComment] = useState("");
-  const [draftLoaded, setDraftLoaded] = useState(false);
-  const [state, action, pending] = useActionState<DealerOrderState, FormData>(submitDealerOrder, {});
+  const [state, action, pending] = useActionState<DealerOrderState, FormData>(async (previous, form) => {
+    const stored = getPendingDealerSubmission(accountId);
+    if (form.get("recover") === "1" && stored) {
+      const [items, savedComment, quotedPrices] = JSON.parse(stored.payload) as string[];
+      form.set("items", items);
+      form.set("comment", savedComment);
+      form.set("quotedPrices", quotedPrices);
+    }
+    const payload = JSON.stringify([form.get("items"), form.get("comment"), form.get("quotedPrices")]);
+    if (stored && stored.payload !== payload) return { error: "Сначала проверьте предыдущую отправку. Новую заявку можно отправить после получения результата." };
+    if (form.get("recover") !== "1" && !await draft.sync()) return { error: "Не удалось синхронизировать черновик. Проверьте соединение и повторите отправку." };
+    try {
+      const requestId = dealerSubmissionId(accountId, payload);
+      form.set("requestId", requestId);
+      const result = await submitDealerOrder(previous, form);
+      if (result.ok) {
+        draft.consume(requestId, JSON.parse(String(form.get("items"))), String(form.get("comment") ?? ""));
+      }
+      finishDealerSubmission(accountId, requestId);
+      return result;
+    } catch {
+      return { error: "Не удалось получить подтверждение. Повторите отправку — повторная заявка не создастся." };
+    }
+  }, {});
 
   const categories = useMemo(() => [...new Set(products.map((product) => product.category))].sort(), [products]);
   const brands = useMemo(() => [...new Set(products.map((product) => product.brand))].sort(), [products]);
   const productMap = useMemo(() => new Map(products.map((product) => [product.slug, product])), [products]);
+  const needsPriceReview = Boolean(state.priceChanges?.length && state.priceChanges !== acceptedPriceChanges);
+  const unavailableDraftItems = Object.entries(quantities).filter(([slug, qty]) => {
+    const product = productMap.get(slug);
+    return !product || qty > availableLimit(product);
+  });
 
   const filtered = useMemo(() => {
     const needle = deferredQuery.trim().toLowerCase();
@@ -93,52 +121,14 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
   const totalUnits = selected.reduce((sum, row) => sum + row.qty, 0);
   const hasFilters = Boolean(query) || category !== "all" || brand !== "all" || availability !== "all" || sort !== "default";
 
-  useEffect(() => {
-    const draft = parseDealerOrderDraft(localStorage.getItem(DEALER_ORDER_DRAFT_STORAGE_KEY));
-    if (draft) {
-      const safeQuantities: Record<string, number> = {};
-      for (const [slug, rawQty] of Object.entries(draft.quantities)) {
-        const product = productMap.get(slug);
-        if (!product) continue;
-        const qty = Math.min(rawQty, availableLimit(product));
-        if (qty > 0) safeQuantities[slug] = qty;
-      }
-      setQuantities(safeQuantities);
-      setComment(draft.comment);
-    }
-    setDraftLoaded(true);
-  }, [productMap]);
-
-  useEffect(() => {
-    if (!draftLoaded) return;
-    const timer = window.setTimeout(() => {
-      if (!selected.length && !comment.trim()) {
-        localStorage.removeItem(DEALER_ORDER_DRAFT_STORAGE_KEY);
-      } else {
-        localStorage.setItem(
-          DEALER_ORDER_DRAFT_STORAGE_KEY,
-          serializeDealerOrderDraft(quantities, comment),
-        );
-      }
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [comment, draftLoaded, quantities, selected.length]);
-
-  useEffect(() => {
-    if (!state.ok) return;
-    setQuantities({});
-    setComment("");
-    localStorage.removeItem(DEALER_ORDER_DRAFT_STORAGE_KEY);
-  }, [state.ok, state.orderId]);
-
   function setQty(item: DealerCatalogItem, next: number) {
     const qty = Math.max(0, Math.min(availableLimit(item), Math.round(next || 0)));
-    setQuantities((current) => {
-      const updated = { ...current };
-      if (qty > 0) updated[item.slug] = qty;
-      else delete updated[item.slug];
-      return updated;
-    });
+    draft.setQuantity(item.slug, qty);
+  }
+
+  function acceptPriceChanges() {
+    setPriceOverrides((current) => ({ ...current, ...Object.fromEntries((state.priceChanges ?? []).map((change) => [change.slug, change.price])) }));
+    setAcceptedPriceChanges(state.priceChanges);
   }
 
   function clearFilters() {
@@ -240,9 +230,9 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
                   {difference > 0 && <p className="mt-0.5 text-[11px] text-black/40">РРЦ {formatPrice(product.retailPrice)} · выгода {formatPrice(difference)}</p>}
                 </div>
                 <div className="col-start-2 flex h-11 w-[126px] items-center rounded-xl border border-black/10 sm:col-auto">
-                  <button type="button" onClick={() => setQty(product, qty - 1)} disabled={!qty} className="grid h-full w-11 place-items-center disabled:opacity-25" aria-label={`Уменьшить количество: ${product.title}`}><Minus size={15} /></button>
-                  <input aria-label={`Количество: ${product.title}`} value={qty || ""} onChange={(event) => setQty(product, Number(event.target.value))} inputMode="numeric" className="min-w-0 flex-1 bg-transparent text-center text-sm font-bold outline-none" placeholder="0" disabled={!product.available} />
-                  <button type="button" onClick={() => setQty(product, qty + 1)} disabled={!product.available || qty >= availableLimit(product)} className="grid h-full w-11 place-items-center disabled:opacity-25" aria-label={`Увеличить количество: ${product.title}`}><Plus size={15} /></button>
+                  <button type="button" onClick={() => setQty(product, qty - 1)} disabled={!qty || pending || !draft.loaded || draft.status === "auth"} className="grid h-full w-11 place-items-center disabled:opacity-25" aria-label={`Уменьшить количество: ${product.title}`}><Minus size={15} /></button>
+                  <input aria-label={`Количество: ${product.title}`} value={qty || ""} onChange={(event) => setQty(product, Number(event.target.value))} inputMode="numeric" className="min-w-0 flex-1 bg-transparent text-center text-sm font-bold outline-none" placeholder="0" disabled={!product.available || pending || !draft.loaded || draft.status === "auth"} />
+                  <button type="button" onClick={() => setQty(product, qty + 1)} disabled={!product.available || qty >= availableLimit(product) || pending || !draft.loaded || draft.status === "auth"} className="grid h-full w-11 place-items-center disabled:opacity-25" aria-label={`Увеличить количество: ${product.title}`}><Plus size={15} /></button>
                 </div>
               </article>
             );
@@ -260,7 +250,9 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
 
       <aside id="dealer-order-summary" className="scroll-mt-5 xl:sticky xl:top-5 xl:self-start">
         <form action={action} className="rounded-[24px] bg-[#111214] p-5 text-white shadow-2xl shadow-black/10 sm:p-6">
+          <input type="hidden" name="accountId" value={accountId} />
           <input type="hidden" name="items" value={JSON.stringify(selected.map(({ product, qty }) => ({ slug: product.slug, qty })))} />
+          <input type="hidden" name="quotedPrices" value={JSON.stringify(Object.fromEntries(selected.map(({ product }) => [product.slug, product.price])))} />
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-[#ff5500]"><ShoppingCart size={19} aria-hidden /></span>
             <div><p className="text-xs uppercase tracking-[.16em] text-white/45">Дилерский заказ</p><p className="font-bold">{selected.length ? `${selected.length} ${plural(selected.length, "позиция", "позиции", "позиций")} · ${totalUnits} шт.` : "Корзина пуста"}</p></div>
@@ -277,12 +269,16 @@ export function DealerOrderCatalog({ products }: { products: DealerCatalogItem[]
           <div className="mt-6 flex items-end justify-between border-t border-white/10 pt-5"><span className="text-xs uppercase tracking-[.14em] text-white/45">Итого</span><strong className="text-2xl">{formatPrice(total)}</strong></div>
           <label className="mt-5 grid gap-2 text-xs font-semibold text-white/60">
             Комментарий менеджеру
-            <textarea name="comment" value={comment} onChange={(event) => setComment(event.target.value)} maxLength={700} className="min-h-24 w-full resize-y rounded-xl border border-white/10 bg-white/7 p-3 text-sm font-normal text-white outline-none placeholder:text-white/30 focus:border-[#ff5500] focus:ring-2 focus:ring-[#ff5500]/20" placeholder="Например: позвонить перед отгрузкой" />
+            <textarea name="comment" value={comment} onChange={(event) => draft.setComment(event.target.value)} maxLength={700} disabled={pending || !draft.loaded || draft.status === "auth"} className="min-h-24 w-full resize-y rounded-xl border border-white/10 bg-white/7 p-3 text-sm font-normal text-white outline-none placeholder:text-white/30 focus:border-[#ff5500] focus:ring-2 focus:ring-[#ff5500]/20" placeholder="Например: позвонить перед отгрузкой" />
           </label>
-          {draftLoaded && (selected.length > 0 || comment.trim()) && <p className="mt-3 flex items-center gap-1.5 text-[11px] text-white/40"><FileClock size={13} aria-hidden /> Черновик сохраняется автоматически</p>}
-          {state.error && <p role="alert" className="mt-4 rounded-lg bg-red-500/15 px-3 py-2.5 text-xs text-red-200">{state.error}</p>}
+          <p role="status" className="mt-3 flex items-center gap-1.5 text-xs text-white/65"><FileClock className="shrink-0" size={13} aria-hidden />{draft.status === "loading" ? "Загружаем черновик…" : draft.status === "saving" ? "Сохраняем черновик…" : draft.status === "offline" ? "Нет связи. Изменения ждут синхронизации на этом устройстве." : draft.status === "auth" ? "Аккаунт изменился. Обновите страницу и войдите заново." : "Черновик сохранён в аккаунте"}</p>
+          {(draft.status === "offline" || draft.status === "auth") && <button type="button" className="mt-2 min-h-11 text-xs font-bold underline" onClick={() => draft.status === "auth" ? window.location.reload() : void draft.sync()}>{draft.status === "auth" ? "Обновить страницу" : "Повторить синхронизацию"}</button>}
+          {unavailableDraftItems.length > 0 && <div className="mt-4 rounded-lg bg-amber-500/15 p-3 text-xs text-amber-100"><p>Некоторые позиции больше недоступны или их остаток уменьшился. Проверьте перед отправкой:</p><ul className="mt-2 space-y-2">{unavailableDraftItems.map(([slug]) => <li key={slug}>{productMap.get(slug)?.title ?? "Товар удалён из дилерского прайса"}<button type="button" disabled={pending} className="block min-h-11 font-bold underline" onClick={() => draft.setQuantity(slug, productMap.has(slug) ? availableLimit(productMap.get(slug)!) : 0)}>{productMap.has(slug) && availableLimit(productMap.get(slug)!) > 0 ? "Обновить количество" : "Убрать из черновика"}</button></li>)}</ul></div>}
+          {state.error && (!state.priceChanges?.length || needsPriceReview) && <p role="alert" className="mt-4 rounded-lg bg-red-500/15 px-3 py-2.5 text-xs text-red-200">{state.error}</p>}
+          {needsPriceReview && <div className="mt-4 rounded-lg bg-amber-500/15 p-3 text-xs text-amber-100"><p className="font-bold">Прайс изменился. Проверьте новые цены:</p><ul className="mt-2 space-y-2">{state.priceChanges?.map((change) => <li key={change.slug}>{change.title}<span className="block">{formatPrice(change.previousPrice)} → {formatPrice(change.price)}</span></li>)}</ul><button type="button" onClick={acceptPriceChanges} className="mt-3 min-h-11 w-full rounded-lg border border-amber-200/40 px-3 font-bold">Принять цены и пересчитать</button><p className="mt-2">После пересчёта отправьте заявку ещё раз.</p></div>}
           {state.ok && <p role="status" className="mt-4 flex items-center gap-2 rounded-lg bg-emerald-500/15 px-3 py-2.5 text-xs text-emerald-200"><CheckCircle2 size={16} aria-hidden /> Заказ {state.orderId} отправлен менеджеру.</p>}
-          <button disabled={pending || !selected.length} className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ff5500] text-sm font-bold transition-colors hover:bg-[#ff6a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-35">{pending && <LoaderCircle className="animate-spin" size={18} aria-hidden />}{pending ? "Отправляем…" : "Отправить заказ"}</button>
+          {pendingSubmission && !pending && <div className="mt-4 rounded-lg bg-amber-500/15 p-3 text-xs text-amber-100"><p>Сохранена отправка без подтверждённого результата. Проверим её с прежним составом и ценами, чтобы исключить дубль.</p><button name="recover" value="1" className="mt-2 min-h-11 w-full rounded-lg border border-amber-200/40 px-3 font-bold" disabled={draft.status === "auth"}>Проверить отправленную заявку</button></div>}
+          <button disabled={pending || Boolean(pendingSubmission) || !selected.length || !draft.loaded || draft.status === "auth" || needsPriceReview || unavailableDraftItems.length > 0} className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ff5500] text-sm font-bold transition-colors hover:bg-[#ff6a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-35">{pending && <LoaderCircle className="animate-spin" size={18} aria-hidden />}{pending ? "Отправляем…" : "Отправить заказ"}</button>
           <p className="mt-3 text-center text-xs leading-5 text-white/60">Это заявка менеджеру. Наличие, доставку и оплату согласуем после отправки.</p>
         </form>
       </aside>

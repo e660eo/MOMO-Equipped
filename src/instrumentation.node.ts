@@ -47,4 +47,7 @@ export async function registerNodeInstrumentation() {
 
   const { scheduleAdminNotifications } = await import("./lib/notification-watch");
   scheduleAdminNotifications();
+
+  const { scheduleDealerOrderNotifications } = await import("./lib/dealer-order-notifications");
+  scheduleDealerOrderNotifications();
 }

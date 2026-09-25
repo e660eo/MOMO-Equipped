@@ -44,6 +44,13 @@ next-env.d.ts
 /data/orders.json
 /data/customers.json
 /data/customer-carts.json
+/data/dealer-drafts.json
+/data/dealer-order-agreements.json
+/data/dealer-order-notifications.json
+/data/dealer-invoices/
+/data/dealer-price-imports/
+/data/dealer-price-import-previews.json
+/data/*.json.lock/
 /data/support-conversations.json
 /data/promos.json
 /data/ozon-oauth.json

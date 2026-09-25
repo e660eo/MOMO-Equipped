@@ -39,9 +39,9 @@ export default async function DealerOrderPage() {
       <div className="mb-6 max-w-3xl">
         <p className="text-xs font-bold uppercase tracking-[.17em] text-[#d94700]">Единый дилерский прайс</p>
         <h2 className="mt-1 font-display text-3xl font-black uppercase tracking-[-.03em] sm:text-4xl">Новый заказ</h2>
-        <p className="mt-2 text-sm leading-6 text-black/55">Выберите товары и количество. Черновик сохраняется на этом устройстве автоматически, поэтому к заказу можно вернуться позже.</p>
+        <p className="mt-2 text-sm leading-6 text-black/55">Выберите товары и количество. Черновик сохраняется в вашем аккаунте — продолжить заказ можно с телефона или компьютера.</p>
       </div>
-      <DealerOrderCatalog products={catalog} />
+      <DealerOrderCatalog products={catalog} accountId={session.account.id} />
     </DealerCabinetShell>
   );
 }

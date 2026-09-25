@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import { withDataFileLock } from "./data-file-lock";
+import { ExpectedError } from "./errors";
 import { b2bPriceForSlug, getB2BPriceBook, type B2BPriceBook } from "./b2b-prices";
 import { hashPassword } from "./password";
 import { assertWritable, readJson, updateJson } from "./store";
@@ -369,33 +371,53 @@ export function createDealerOrder(input: {
   account: DealerAccount;
   items: OrderItem[];
   comment?: string;
+  requestId?: string;
+  requestFingerprint?: string;
 }): DealerOrder {
   assertWritable();
+  return withDataFileLock(ORDERS, () => {
+  getDealerOrders(); // Refuse to replace an unreadable existing order file.
   let created!: DealerOrder;
   updateJson<DealerOrder[]>(ORDERS, (all) => {
+    if (input.requestId) {
+      const existing = all.find((order) => order.accountId === input.account.id && order.requestId === input.requestId);
+      if (existing) {
+        if (existing.requestFingerprint !== input.requestFingerprint) throw new ExpectedError("Эта заявка уже отправлена с другим составом. Обновите страницу перед новым заказом.");
+        created = existing;
+        return all;
+      }
+    }
+    const now = new Date().toISOString();
     created = {
       id: nextDealerOrderId(all),
       dealerId: input.account.dealerId,
       accountId: input.account.id,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
       status: "new",
       items: input.items,
-      total: input.items.reduce((sum, item) => sum + item.price * item.qty, 0),
+      total: Math.round(input.items.reduce((sum, item) => sum + item.price * item.qty, 0) * 100) / 100,
       ...(input.comment ? { comment: input.comment } : {}),
-      history: [{ at: new Date().toISOString(), actor: input.account.contactName, to: "new" }],
+      ...(input.requestId ? { requestId: input.requestId, requestFingerprint: input.requestFingerprint } : {}),
+      notificationEvents: [{ id: crypto.randomUUID(), at: now, status: "new", kind: "created" }],
+      history: [{ at: now, actor: input.account.contactName, to: "new" }],
     };
     return [created, ...all];
   });
   return created;
+  });
 }
 
-export function updateDealerOrderStatus(id: string, status: DealerOrderStatus): void {
+export function updateDealerOrderStatus(id: string, status: DealerOrderStatus, expectedStatus?: DealerOrderStatus): void {
   assertWritable();
+  withDataFileLock(ORDERS, () => {
+  const existing = getDealerOrders().find((order) => order.id === id);
+  if (expectedStatus && existing?.status !== expectedStatus) throw new ExpectedError("DEALER_STATUS_CONFLICT");
   updateJson<DealerOrder[]>(ORDERS, (all) =>
     all.map((order) => order.id === id && order.status !== status
       ? {
           ...order,
           status,
+          notificationEvents: [...(order.notificationEvents ?? []), { id: crypto.randomUUID(), at: new Date().toISOString(), status, kind: "status" }],
           history: [
             ...order.history,
             { at: new Date().toISOString(), actor: "Администратор", from: order.status, to: status },
@@ -403,4 +425,5 @@ export function updateDealerOrderStatus(id: string, status: DealerOrderStatus): 
         }
       : order),
   );
+  });
 }

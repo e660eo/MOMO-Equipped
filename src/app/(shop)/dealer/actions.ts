@@ -6,13 +6,16 @@ import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit-log";
 import { currentDealer, endDealerSession, startDealerSession } from "@/lib/dealer-auth";
 import { endCustomerSession } from "@/lib/customer-auth";
-import { notifyDealerOrder } from "@/lib/dealer-mail";
+import { ensureDealerOrderNotifications, processDealerOrderNotifications } from "@/lib/dealer-order-notifications";
+import { parseDealerOrderSubmission, type DealerPriceChange } from "@/lib/dealer-order-submission";
+import { getB2BPriceBook } from "@/lib/b2b-prices";
 import {
   accountForInvite,
   activateDealerAccount,
   createDealerOrder,
   dealerPriceFor,
   findDealerAccountByEmail,
+  getDealerOrders,
   markDealerLogin,
 } from "@/lib/dealers";
 import { getProducts } from "@/lib/data";
@@ -22,7 +25,7 @@ import { verifyPassword } from "@/lib/password";
 import type { OrderItem } from "@/lib/types";
 
 export type DealerAuthState = { error?: string };
-export type DealerOrderState = { error?: string; ok?: boolean; orderId?: string };
+export type DealerOrderState = { error?: string; ok?: boolean; orderId?: string; priceChanges?: DealerPriceChange[] };
 
 const loginAttempts = new Map<string, { count: number; startedAt: number }>();
 
@@ -92,39 +95,50 @@ export async function submitDealerOrder(
   try {
     const session = await currentDealer();
     if (!session) throw new ExpectedError("Сессия закончилась. Войдите в кабинет заново.");
-    const raw = JSON.parse(String(formData.get("items") ?? "[]")) as Array<{ slug?: unknown; qty?: unknown }>;
-    if (!Array.isArray(raw) || raw.length === 0 || raw.length > 100) throw new ExpectedError("Добавьте товары в заказ.");
-    const requested = new Map<string, number>();
-    for (const row of raw) {
-      const slug = typeof row.slug === "string" ? row.slug : "";
-      const qty = Number(row.qty);
-      if (!slug || !Number.isSafeInteger(qty) || qty < 1 || qty > 999) throw new ExpectedError("Проверьте количество товаров.");
-      requested.set(slug, (requested.get(slug) ?? 0) + qty);
+    if (String(formData.get("accountId") ?? "") !== session.account.id) throw new ExpectedError("Аккаунт изменился. Обновите страницу заказа.");
+    const input = parseDealerOrderSubmission(formData);
+    const existing = getDealerOrders(session.account.id).find((order) => order.requestId === input.requestId);
+    if (existing) {
+      if (existing.requestFingerprint !== input.fingerprint) throw new ExpectedError("Эта заявка уже отправлена с другим составом. Обновите страницу перед новым заказом.");
+      try { ensureDealerOrderNotifications(existing); } catch (error) { console.error("dealer notification queue:", error); }
+      void processDealerOrderNotifications().catch((error) => console.error("dealer notification delivery:", error));
+      return { ok: true, orderId: existing.id };
     }
     const products = new Map(getProducts().filter((product) => !product.isClearance && !product.hidden).map((product) => [product.slug, product]));
+    const priceBook = getB2BPriceBook();
     const items: OrderItem[] = [];
-    for (const [slug, qty] of requested) {
+    const priceChanges: DealerPriceChange[] = [];
+    for (const { slug, qty, quotedPrice } of input.items) {
       const product = products.get(slug);
       if (!product) throw new ExpectedError("Один из товаров больше недоступен.");
       if (isInStock(product) === false) throw new ExpectedError(`${product.title}: сейчас нет в наличии.`);
       const limit = stockLimit(product);
       if (limit !== null && qty > limit) throw new ExpectedError(`${product.title}: доступно ${limit} шт.`);
-      const price = dealerPriceFor(product, session.account);
+      const price = dealerPriceFor(product, session.account, priceBook);
       if (price === undefined) throw new ExpectedError(`${product.title}: дилерская цена пока не указана. Уберите товар из заказа.`);
+      if (price !== quotedPrice) priceChanges.push({ slug, title: product.title, previousPrice: quotedPrice, price });
       items.push({ slug, title: product.title, price, qty });
     }
-    const comment = String(formData.get("comment") ?? "").trim().slice(0, 700);
-    const order = createDealerOrder({ account: session.account, items, ...(comment ? { comment } : {}) });
-    audit({ entity: "dealer", entityId: order.id, action: "order_created", summary: `Создан дилерский заказ ${order.id}`, actor: session.account.contactName, after: order });
+    if (priceChanges.length) return { error: "Дилерский прайс изменился. Проверьте новые цены перед отправкой.", priceChanges };
+    const order = createDealerOrder({ account: session.account, items, requestId: input.requestId, requestFingerprint: input.fingerprint, ...(input.comment ? { comment: input.comment } : {}) });
     try {
-      await notifyDealerOrder(order, session.dealer);
+      audit({ entity: "dealer", entityId: order.id, action: "order_created", summary: `Создан дилерский заказ ${order.id}`, actor: session.account.contactName, after: order });
+    } catch (error) { console.error("dealer order audit:", error); }
+    try {
+      ensureDealerOrderNotifications(order);
     } catch (mailError) {
-      console.error("notifyDealerOrder:", mailError);
+      console.error("dealer notification queue:", mailError);
     }
-    revalidatePath("/dealer");
-    revalidatePath("/admin/dealers");
+    void processDealerOrderNotifications().catch((error) => console.error("dealer notification delivery:", error));
+    try {
+      revalidatePath("/dealer");
+      revalidatePath("/admin/dealers");
+    } catch (error) { console.error("dealer order revalidation:", error); }
     return { ok: true, orderId: order.id };
   } catch (error) {
+    // An IO failure may happen after the atomic write. Let the client retain its
+    // request token and recover, rather than treating that request as rejected.
+    if (!(error instanceof ExpectedError)) throw error;
     return { error: messageFor(error, "Не удалось отправить заказ. Попробуйте ещё раз.", "submitDealerOrder") };
   }
 }

@@ -7,6 +7,7 @@ import { DealerOrderProgress } from "@/components/dealer-order-progress";
 import { DealerRepeatOrderButton } from "@/components/dealer-repeat-order-button";
 import { currentDealer } from "@/lib/dealer-auth";
 import { getDealerOrders } from "@/lib/dealers";
+import { getDealerOrderAgreement } from "@/lib/dealer-order-management";
 import {
   DEALER_ORDER_STATUS_LABELS,
   dealerOrderLastUpdated,
@@ -24,6 +25,10 @@ function formatDate(value: string): string {
 }
 
 function OrderCard({ order }: { order: DealerOrder }) {
+  const agreement = getDealerOrderAgreement(order.id);
+  const items = agreement?.items ?? order.items;
+  const statusUpdatedAt = dealerOrderLastUpdated(order);
+  const updatedAt = agreement && Date.parse(agreement.updatedAt) > Date.parse(statusUpdatedAt) ? agreement.updatedAt : statusUpdatedAt;
   return (
     <article className="rounded-[24px] border border-black/8 bg-white p-5 sm:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -35,22 +40,23 @@ function OrderCard({ order }: { order: DealerOrder }) {
           <p className="mt-1 text-xs text-black/40">Создан {formatDate(order.createdAt)}</p>
         </div>
         <div className="sm:text-right">
-          <p className="text-xl font-black">{formatPrice(order.total)}</p>
-          <p className="mt-1 text-xs text-black/40">{order.items.length} {plural(order.items.length, "позиция", "позиции", "позиций")} · {dealerOrderUnitCount(order)} шт.</p>
+          <p className="text-xl font-black">{formatPrice(agreement?.total ?? order.total)}</p>
+          {agreement && <p className="mt-1 text-xs text-black/45">Согласовано, с доставкой</p>}
+          <p className="mt-1 text-xs text-black/40">{items.length} {plural(items.length, "позиция", "позиции", "позиций")} · {dealerOrderUnitCount({ items })} шт.</p>
         </div>
       </div>
 
       <div className="mt-6"><DealerOrderProgress status={order.status} /></div>
 
       <div className="mt-6 rounded-xl bg-[#f6f6f4] px-4 py-3 text-sm text-black/60">
-        {order.items.slice(0, 3).map((item) => <p key={`${order.id}-${item.slug}`} className="truncate">{item.title} × {item.qty}</p>)}
-        {order.items.length > 3 && <p className="mt-1 text-xs font-semibold text-black/40">Ещё {order.items.length - 3} поз.</p>}
+        {items.slice(0, 3).map((item) => <p key={`${order.id}-${item.slug}`} className="truncate">{item.title} × {item.qty}</p>)}
+        {items.length > 3 && <p className="mt-1 text-xs font-semibold text-black/40">Ещё {items.length - 3} поз.</p>}
       </div>
 
       <div className="mt-5 flex flex-col justify-between gap-3 border-t border-black/7 pt-5 sm:flex-row sm:items-center">
-        <p className="text-xs text-black/40">Последнее изменение: {formatDate(dealerOrderLastUpdated(order))}</p>
+        <p className="text-xs text-black/40">Последнее изменение: {formatDate(updatedAt)}</p>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <DealerRepeatOrderButton items={order.items.map((item) => ({ slug: item.slug, qty: item.qty }))} />
+          <DealerRepeatOrderButton accountId={order.accountId} items={items.map((item) => ({ slug: item.slug, qty: item.qty }))} />
           <Link href={`/dealer/orders/${encodeURIComponent(order.id)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#111214] px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500]">Подробнее <ArrowRight size={15} aria-hidden /></Link>
         </div>
       </div>

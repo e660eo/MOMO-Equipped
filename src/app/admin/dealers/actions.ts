@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/admin-auth";
 import { audit } from "@/lib/audit-log";
 import {
@@ -30,6 +31,8 @@ import {
 } from "@/lib/dealers";
 import { ExpectedError, messageFor } from "@/lib/errors";
 import { SITE_URL } from "@/lib/site-url";
+import { ensureDealerOrderNotifications, processDealerOrderNotifications } from "@/lib/dealer-order-notifications";
+import { getDealerOrders } from "@/lib/dealers";
 import { DEALER_PRICE_TIERS, DEALER_PRICE_TIER_LABELS } from "@/lib/b2b-prices";
 import type {
   DealerApplicationStatus,
@@ -418,8 +421,22 @@ export async function setDealerOrderStatus(formData: FormData): Promise<void> {
   const status = text(formData, "status", 20) as DealerOrderStatus;
   const allowed: DealerOrderStatus[] = ["new", "confirmed", "shipped", "done", "canceled"];
   if (!id || !allowed.includes(status)) return;
-  updateDealerOrderStatus(id, status);
+  const expectedStatus = text(formData, "expectedStatus", 20) as DealerOrderStatus;
+  if (expectedStatus && !allowed.includes(expectedStatus)) return;
+  try { updateDealerOrderStatus(id, status, expectedStatus || undefined); }
+  catch (error) {
+    if (error instanceof ExpectedError && error.message === "DEALER_STATUS_CONFLICT") redirect(`/admin/dealers/orders/${encodeURIComponent(id)}?statusConflict=1`);
+    throw error;
+  }
+  const order = getDealerOrders().find((entry) => entry.id === id);
+  if (order) {
+    try { ensureDealerOrderNotifications(order); } catch (error) { console.error("dealer notification queue:", error); }
+    void processDealerOrderNotifications().catch((error) => console.error("dealer notification delivery:", error));
+  }
   audit({ entity: "dealer", entityId: id, action: "order_status", summary: `Статус дилерского заказа: ${status}` });
   revalidatePath("/admin/dealers");
   revalidatePath("/dealer");
+  revalidatePath("/dealer/orders");
+  revalidatePath(`/dealer/orders/${id}`);
+  revalidatePath(`/admin/dealers/orders/${id}`);
 }

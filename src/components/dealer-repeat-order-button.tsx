@@ -2,31 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { RotateCcw } from "lucide-react";
-import {
-  DEALER_ORDER_DRAFT_STORAGE_KEY,
-  parseDealerOrderDraft,
-  serializeDealerOrderDraft,
-} from "@/lib/dealer-order-draft";
+import { useDealerDraft } from "@/lib/dealer-draft-client";
 
 export function DealerRepeatOrderButton({
   items,
+  accountId,
   className = "",
 }: {
   items: Array<{ slug: string; qty: number }>;
+  accountId: string;
   className?: string;
 }) {
   const router = useRouter();
+  const draft = useDealerDraft(accountId);
 
   function repeatOrder() {
-    const current = parseDealerOrderDraft(localStorage.getItem(DEALER_ORDER_DRAFT_STORAGE_KEY));
-    const quantities = { ...(current?.quantities ?? {}) };
-    for (const item of items) {
-      quantities[item.slug] = Math.min(999, (quantities[item.slug] ?? 0) + item.qty);
-    }
-    localStorage.setItem(
-      DEALER_ORDER_DRAFT_STORAGE_KEY,
-      serializeDealerOrderDraft(quantities, current?.comment ?? ""),
-    );
+    draft.addItems(items);
     router.push("/dealer/order");
   }
 
@@ -34,7 +25,8 @@ export function DealerRepeatOrderButton({
     <button
       type="button"
       onClick={repeatOrder}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-bold transition-colors hover:border-[#ff5500] hover:text-[#ff5500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500] ${className}`}
+      disabled={!draft.loaded || draft.status === "auth"}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-4 text-sm font-bold transition-colors hover:border-[#ff5500] hover:text-[#ff5500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500] disabled:opacity-40 ${className}`}
     >
       <RotateCcw size={16} aria-hidden /> Повторить заказ
     </button>

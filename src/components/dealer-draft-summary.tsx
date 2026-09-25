@@ -2,20 +2,13 @@
 
 import Link from "next/link";
 import { ArrowRight, FileClock } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  DEALER_ORDER_DRAFT_STORAGE_KEY,
-  dealerDraftCounts,
-  parseDealerOrderDraft,
-} from "@/lib/dealer-order-draft";
+import { dealerDraftCounts } from "@/lib/dealer-order-draft";
+import { useDealerDraft } from "@/lib/dealer-draft-client";
 import { plural } from "@/lib/utils";
 
-export function DealerDraftSummary() {
-  const [counts, setCounts] = useState({ positions: 0, units: 0 });
-
-  useEffect(() => {
-    setCounts(dealerDraftCounts(parseDealerOrderDraft(localStorage.getItem(DEALER_ORDER_DRAFT_STORAGE_KEY))));
-  }, []);
+export function DealerDraftSummary({ accountId }: { accountId: string }) {
+  const { draft } = useDealerDraft(accountId);
+  const counts = dealerDraftCounts(draft);
 
   if (!counts.positions) return null;
   return (
@@ -24,7 +17,7 @@ export function DealerDraftSummary() {
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#ff5500] text-white"><FileClock size={19} aria-hidden /></span>
         <div>
           <p className="font-bold">У вас сохранён черновик заказа</p>
-          <p className="mt-1 text-sm text-black/55">{counts.positions} {plural(counts.positions, "позиция", "позиции", "позиций")} · {counts.units} шт. Можно продолжить с любого раздела кабинета.</p>
+          <p className="mt-1 text-sm text-black/55">{counts.positions} {plural(counts.positions, "позиция", "позиции", "позиций")} · {counts.units} шт. Черновик привязан к вашему аккаунту.</p>
         </div>
       </div>
       <Link href="/dealer/order" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#111214] px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500]">
