@@ -1,43 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { createPortal } from "react-dom";
-import { Menu, X } from "lucide-react";
+import { useId, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { AdminNavLink } from "./nav-link";
+import { ADMIN_NAV_GROUPS, ADMIN_OVERVIEW, currentAdminNavigation } from "./admin-navigation";
 
-const LINKS = [
-  { href: "/admin/orders", label: "Заказы" },
-  { href: "/admin/sales", label: "Отчёты" },
-  { href: "/admin/customers", label: "Клиенты" },
-  { href: "/admin/dealers", label: "Дилеры", activePaths: ["/admin/dealer-prices"] },
-  { href: "/admin/products", label: "Товары" },
-  { href: "/admin/reviews", label: "Отзывы" },
-  { href: "/admin/listening-stand", label: "Стенд" },
-  { href: "/admin/messages", label: "Чаты" },
-  { href: "/admin/support", label: "Материалы" },
-  { href: "/admin/banners", label: "Баннеры" },
-  { href: "/admin/news", label: "Новости" },
-  { href: "/admin/bundles", label: "Сборки" },
-  { href: "/admin/promos", label: "Промокоды" },
-  { href: "/admin/settings", label: "Настройки" },
-  { href: "/admin/audit", label: "Журнал" },
-];
+export type AdminNavCounts = { newOrders: number; newMessages: number; newDealerOrders: number };
 
-export function AdminNav({
-  newOrders = 0,
-  newMessages = 0,
-}: {
-  newOrders?: number;
-  newMessages?: number;
-}) {
-  const [open, setOpen] = useState(false);
-  const badge = (href: string) =>
-    href === "/admin/orders" ? newOrders : href === "/admin/messages" ? newMessages : 0;
-  return <>
-    <nav aria-label="Разделы админки" className="hidden flex-1 flex-wrap items-center gap-x-5 gap-y-1.5 text-[0.82rem] lg:flex">
-      {LINKS.map((link) => <AdminNavLink key={link.href} {...link} badge={badge(link.href)} />)}
-    </nav>
-    <button type="button" onClick={() => setOpen(true)} className="ml-auto inline-flex min-h-11 items-center gap-2 rounded-sm border border-border px-3 py-2 text-[0.82rem] lg:hidden" aria-expanded={open}><Menu size={17} /> Разделы {newOrders + newMessages > 0 && <span className="rounded-full bg-signal px-1.5 text-white">{newOrders + newMessages}</span>}</button>
-    {open && createPortal(<div className="admin-scope fixed inset-0 z-[300] lg:hidden"><button type="button" aria-label="Закрыть меню" onClick={() => setOpen(false)} className="absolute inset-0 bg-black/45" /><aside className="absolute right-0 top-0 h-full w-[min(90vw,360px)] overflow-y-auto border-l border-border bg-surface px-4 pb-[calc(env(safe-area-inset-bottom)_+_1rem)] pt-[calc(env(safe-area-inset-top)_+_1rem)] shadow-2xl sm:p-5"><div className="flex items-center justify-between"><p className="font-display text-sm font-extrabold uppercase">Разделы панели</p><button type="button" onClick={() => setOpen(false)} aria-label="Закрыть" className="inline-flex h-11 w-11 items-center justify-center"><X size={20} /></button></div><nav aria-label="Разделы админки" onClick={() => setOpen(false)} className="mt-4 grid gap-1 text-[0.92rem] sm:mt-6">{LINKS.map((link) => <AdminNavLink key={link.href} {...link} badge={badge(link.href)} />)}</nav></aside></div>, document.body)}
-  </>;
+export function AdminNav({ pathname, counts, onNavigate }: { pathname: string; counts: AdminNavCounts; onNavigate?: () => void }) {
+  const selected = currentAdminNavigation(pathname);
+  const [expanded, setExpanded] = useState<string | null>(selected.group?.id ?? "sales");
+  const prefix = useId();
+  const badge = (href: string) => href === "/admin/orders" ? counts.newOrders : href === "/admin/messages" ? counts.newMessages : href === "/admin/dealers/orders" ? counts.newDealerOrders : 0;
+
+  return <nav aria-label="Разделы админки" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-5">
+    <AdminNavLink {...ADMIN_OVERVIEW} active={pathname === "/admin"} onNavigate={onNavigate} />
+    <div className="my-4 border-t border-border" />
+    <div className="space-y-2">
+      {ADMIN_NAV_GROUPS.map((group) => {
+        const open = expanded === group.id;
+        const count = group.items.reduce((sum, item) => sum + badge(item.href), 0);
+        return <section key={group.id}>
+          <button type="button" aria-expanded={open} aria-controls={`${prefix}-${group.id}`} onClick={() => setExpanded(open ? null : group.id)}
+            className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-bold uppercase tracking-[.08em] transition-colors hover:bg-foreground/5 ${selected.group?.id === group.id ? "text-[var(--signal-text)]" : "text-muted-foreground"}`}>
+            <span className="flex-1">{group.label}</span>
+            {!open && count > 0 && <span aria-label={`новых: ${count}`} className="rounded-md bg-signal/10 px-1.5 py-0.5 text-xs text-[var(--signal-text)]">{count}</span>}
+            <ChevronDown size={15} aria-hidden className={`transition-transform ${open ? "rotate-180" : ""}`} />
+          </button>
+          <div id={`${prefix}-${group.id}`} hidden={!open} className="space-y-1 pb-2">
+            {group.items.map((item) => <AdminNavLink key={item.href} {...item} active={selected.item.href === item.href} badge={badge(item.href)} onNavigate={onNavigate} />)}
+          </div>
+        </section>;
+      })}
+    </div>
+  </nav>;
 }

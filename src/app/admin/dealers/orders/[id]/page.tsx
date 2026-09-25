@@ -26,7 +26,7 @@ export default async function AdminDealerOrderPage({ params, searchParams }: { p
   const notifications = getDealerOrderNotifications(id);
   const needsRetry = notifications.some((item) => item.status === "failed" || (item.status === "pending" && item.error));
   return <div className="space-y-5">
-    <Link href="/admin/dealers" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted-foreground hover:text-signal">← Дилеры и заказы</Link>
+    <Link href="/admin/dealers/orders" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted-foreground hover:text-signal">← Заказы дилеров</Link>
     {statusConflict && <p role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">Статус уже изменён другим менеджером. Показаны актуальные данные; проверьте их перед сохранением.</p>}
     <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-5">

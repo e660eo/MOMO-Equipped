@@ -133,6 +133,7 @@ export async function submitDealerOrder(
     try {
       revalidatePath("/dealer");
       revalidatePath("/admin/dealers");
+      revalidatePath("/admin/dealers/orders");
     } catch (error) { console.error("dealer order revalidation:", error); }
     return { ok: true, orderId: order.id };
   } catch (error) {

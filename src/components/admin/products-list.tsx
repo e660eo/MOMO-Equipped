@@ -261,9 +261,9 @@ export function ProductsList({
         </table>
       </div>
 
-      <div className="mt-4 grid gap-3 md:hidden">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:hidden">
         {visible.map((product) => (
-          <article key={product.slug} className="rounded-xl border border-border bg-surface p-4">
+          <article key={product.slug} className="min-w-0 rounded-xl border border-border bg-surface p-4">
             <div className="flex items-start gap-3">
               <input type="checkbox" checked={selected.has(product.slug)} onChange={() => toggleOne(product.slug)} aria-label={`Выбрать ${product.title}`} className="mt-3" />
               <div className="min-w-0 flex-1"><ProductIdentity product={product} bundleNames={bundleNames} /></div>

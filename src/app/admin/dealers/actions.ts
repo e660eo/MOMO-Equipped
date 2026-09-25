@@ -108,6 +108,7 @@ export async function createDealerAdmin(_state: CreateDealerState, formData: For
     const inviteUrl = `${SITE_URL}/dealer/activate?token=${encodeURIComponent(result.inviteToken)}`;
     audit({ entity: "dealer", entityId: result.account.id, action: "dealer_created", summary: `Создан дилер ${result.dealer.name}; ${DEALER_PRICE_TIER_LABELS[priceTier]}; резервная скидка ${discountPercent}%`, after: { dealer: result.dealer, account: { ...result.account, passwordHash: "[hidden]", inviteHash: "[hidden]" } } });
     revalidatePath("/admin/dealers");
+    revalidatePath("/admin/dealers/orders");
     revalidatePath("/dealers");
     return { ok: true, inviteUrl, mailSent: mail.ok };
   } catch (error) {
@@ -227,6 +228,7 @@ export async function updateDealerAdmin(
       },
     });
     revalidatePath("/admin/dealers");
+    revalidatePath("/admin/dealers/orders");
     revalidatePath(`/admin/dealers/${id}/edit`);
     revalidatePath("/dealers");
     revalidatePath("/dealer");
@@ -267,6 +269,7 @@ export async function enableAndSendDealerAccess(formData: FormData): Promise<voi
     after: { mailSent: result.ok },
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
 }
 
 export async function setDealerApplicationStatus(formData: FormData): Promise<void> {
@@ -279,6 +282,7 @@ export async function setDealerApplicationStatus(formData: FormData): Promise<vo
   updateDealerApplication(id, { status, ...(note ? { note } : {}) });
   audit({ entity: "dealer", entityId: id, action: "application_status", summary: `Статус дилерской заявки: ${status}` });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
 }
 
 export async function archiveDealerApplicationAction(formData: FormData): Promise<void> {
@@ -297,6 +301,7 @@ export async function archiveDealerApplicationAction(formData: FormData): Promis
     after: { archivedAt: after.archivedAt },
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
 }
 
 export async function restoreDealerApplicationAction(formData: FormData): Promise<void> {
@@ -315,6 +320,7 @@ export async function restoreDealerApplicationAction(formData: FormData): Promis
     after: { archivedAt: after.archivedAt },
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
 }
 
 export async function deleteDealerApplicationAction(formData: FormData): Promise<void> {
@@ -333,6 +339,7 @@ export async function deleteDealerApplicationAction(formData: FormData): Promise
     before: deleted,
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
 }
 
 export async function setDealerLocationVisibility(formData: FormData): Promise<void> {
@@ -352,6 +359,7 @@ export async function setDealerLocationVisibility(formData: FormData): Promise<v
     after: { active: after.active },
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
   revalidatePath("/dealers");
 }
 
@@ -378,6 +386,7 @@ export async function deleteDealerAction(formData: FormData): Promise<void> {
     },
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
   revalidatePath("/dealers");
   revalidatePath("/dealer");
 }
@@ -400,6 +409,7 @@ export async function setDealerLocationProfileAction(formData: FormData): Promis
     after: { kind: after.kind, authorizedInstallation: after.authorizedInstallation },
   });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
   revalidatePath("/dealers");
 }
 
@@ -412,6 +422,7 @@ export async function setDealerTerms(formData: FormData): Promise<void> {
   updateDealerTerms(accountId, { priceTier, discountPercent, disabled: formData.get("disabled") === "on" });
   audit({ entity: "dealer", entityId: accountId, action: "terms_updated", summary: `Условия дилера обновлены: ${DEALER_PRICE_TIER_LABELS[priceTier]}, резервная скидка ${discountPercent}%` });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
   revalidatePath("/dealer");
 }
 
@@ -435,6 +446,7 @@ export async function setDealerOrderStatus(formData: FormData): Promise<void> {
   }
   audit({ entity: "dealer", entityId: id, action: "order_status", summary: `Статус дилерского заказа: ${status}` });
   revalidatePath("/admin/dealers");
+  revalidatePath("/admin/dealers/orders");
   revalidatePath("/dealer");
   revalidatePath("/dealer/orders");
   revalidatePath(`/dealer/orders/${id}`);

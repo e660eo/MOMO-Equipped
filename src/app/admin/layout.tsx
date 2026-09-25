@@ -1,78 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { hasSession } from "@/lib/admin-auth";
-import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminShell } from "@/components/admin/admin-shell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { logoutAdmin } from "./actions";
 import { countNewOrders } from "@/lib/orders";
+import { getDealerOrders } from "@/lib/dealers";
 import { countWaitingSupportConversations } from "@/lib/support-conversations";
 
-export const metadata: Metadata = {
-  title: "Панель управления",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = { title: "Панель управления", robots: { index: false, follow: false } };
 
-/*
-  Оболочка панели.
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  if (!await hasSession()) return <div className="admin-scope relative min-h-screen bg-bg text-foreground"><ThemeToggle className="fixed right-5 top-5 z-50 bg-surface shadow-sm" />{children}</div>;
 
-  Витрины вокруг нет намеренно: шапка магазина, корзина и всплывающие
-  подсказки в рабочем инструменте только мешают. Здесь же проверяется
-  подпись сессии — middleware отсекает лишь запросы совсем без куки.
-*/
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const authorized = await hasSession();
-
-  // Страница входа рисуется этим же layout, но до авторизации показывать
-  // навигацию не нужно. Переключатель темы оставляем доступным и здесь,
-  // чтобы войти в панель можно было сразу в комфортном оформлении.
-  if (!authorized) {
-    return (
-      <div className="admin-scope relative min-h-screen bg-bg text-foreground">
-        <ThemeToggle className="fixed right-5 top-5 z-50 bg-surface shadow-sm" />
-        {children}
-      </div>
-    );
-  }
-
-  return (
-    <div className="admin-scope min-h-screen overflow-x-hidden bg-bg text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:gap-x-8 sm:gap-y-3 sm:px-5 sm:py-3.5">
-          <Link href="/admin" className="font-display text-sm font-extrabold uppercase tracking-tight">
-            MOMO · панель
-          </Link>
-          <AdminNav
-            newOrders={countNewOrders()}
-            newMessages={countWaitingSupportConversations()}
-          />
-          <div className="flex w-full items-center justify-between gap-2 text-[0.8rem] sm:ml-auto sm:w-auto sm:justify-start sm:gap-4">
-            <div className="flex items-center gap-2">
-              <span className="hidden text-muted-foreground sm:inline">Тема</span>
-              <ThemeToggle />
-            </div>
-            <Link
-              href="/"
-              target="_blank"
-              className="text-muted-foreground transition-colors hover:text-signal"
-            >
-              Открыть сайт ↗
-            </Link>
-            <form action={logoutAdmin}>
-              <button
-                type="submit"
-                className="text-muted-foreground transition-all hover:text-signal active:scale-95"
-              >
-                Выйти
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-[1200px] px-4 py-5 sm:px-5 sm:py-8">{children}</main>
-    </div>
-  );
+  return <AdminShell counts={{ newOrders: countNewOrders(), newMessages: countWaitingSupportConversations(), newDealerOrders: getDealerOrders().filter((order) => order.status === "new").length }} toolbar={<>
+    <ThemeToggle />
+    <form action={logoutAdmin}><button type="submit" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"><LogOut size={16} aria-hidden /><span className="hidden sm:inline">Выйти</span><span className="sr-only sm:hidden">Выйти</span></button></form>
+  </>}>{children}</AdminShell>;
 }

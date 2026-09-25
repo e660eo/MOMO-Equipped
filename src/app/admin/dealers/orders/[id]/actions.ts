@@ -49,6 +49,7 @@ export async function saveDealerAgreementAction(_state: DealerAgreementState, fo
     void processDealerOrderNotifications().catch((error) => console.error("[dealer-agreement] mail:", error));
     revalidatePath(`/admin/dealers/orders/${orderId}`);
     revalidatePath("/admin/dealers");
+    revalidatePath("/admin/dealers/orders");
     revalidatePath(`/dealer/orders/${orderId}`);
     revalidatePath("/dealer/orders");
     revalidatePath("/dealer");
