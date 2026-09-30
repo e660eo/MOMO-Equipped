@@ -35,6 +35,7 @@ node scripts/migrate-live-data.mjs
 node scripts/update-subwoofer-arrivals.mjs
 node scripts/update-audit-fixes.mjs
 node scripts/update-ub10250-specs.mjs
+node scripts/update-retail-prices.mjs
 
 echo "→ Собираем прод-версию отдельно от работающего сайта…"
 # Версия уезжает в мета-теги страниц: по ней снаружи видно, какая сборка

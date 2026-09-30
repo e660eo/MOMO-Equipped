@@ -1,0 +1,966 @@
+{
+  "source": "Дил.прайс МОМО 24.09.2026.xlsx",
+  "sha256": "2afcd0ef843353026c80ffa3718cc098902e667b79e71ae9c60fdc75e536834a",
+  "rounding": "nearest-ruble-half-up",
+  "notes": [
+    "Prices are taken from the РРЦ column, not РОЦ or Дил. цена.",
+    "Multipliers account for grille pairs. Cable cuts, clearance and products without a matched source remain unchanged.",
+    "UB-10.250 excluded pending owner clarification: source D6=6244, current=3825."
+  ],
+  "products": [
+    {
+      "slug": "dinamiki-momo-estradnye-avtomobilnye-16sm-he-715-403655",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D10",
+      "model": "MOMO HE-715 ver.6",
+      "multiplier": 1,
+      "sourceRrp": 4432,
+      "price": 4432
+    },
+    {
+      "slug": "dinamiki-avtomobilnye-16sm-koaksialnye-sbs-165-494461",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D27",
+      "model": "MOMO SBS-165",
+      "multiplier": 1,
+      "sourceRrp": 1482.9188400000003,
+      "price": 1483
+    },
+    {
+      "slug": "dinamiki-avtomobilnye-momo-us-310-v3-811784",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D24",
+      "model": "MOMO US-310 V3",
+      "multiplier": 1,
+      "sourceRrp": 3310.4,
+      "price": 3310
+    },
+    {
+      "slug": "dinamiki-koaksialnye-zeus-ac-165-517978",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D22",
+      "model": "ZEUS AC-165 ",
+      "multiplier": 1,
+      "sourceRrp": 1156.744719,
+      "price": 1157
+    },
+    {
+      "slug": "dinamiki-koaksialnye-ovaly-sbs-690-648108",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D26",
+      "model": "MOMO SBS-690.2",
+      "multiplier": 1,
+      "sourceRrp": 2312,
+      "price": 2312
+    },
+    {
+      "slug": "dinamiki-koaksialnye-shirokopolosnye-130sm-sbs-130-445938",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D28",
+      "model": "ДИНАМИКИ МОМО SBS-130",
+      "multiplier": 1,
+      "sourceRrp": 1248,
+      "price": 1248
+    },
+    {
+      "slug": "dinamiki-koaksialnye-shirokopolosnye-ovaly-mr-690-186265",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D30",
+      "model": "ZEUS MR-690 ",
+      "multiplier": 1,
+      "sourceRrp": 2688,
+      "price": 2688
+    },
+    {
+      "slug": "dinamiki-rupornye-100mm-avtomobilnye-he-290-017173",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D19",
+      "model": "MOMO HE-290",
+      "multiplier": 1,
+      "sourceRrp": 1537.6000000000001,
+      "price": 1538
+    },
+    {
+      "slug": "dinamiki-estradnye-13sm-v-mashinu-mr-130-056376",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D5",
+      "model": "ZEUS MR-130 ",
+      "multiplier": 1,
+      "sourceRrp": 1598.4,
+      "price": 1598
+    },
+    {
+      "slug": "dinamiki-estradnye-16sm-avtomobilnye-mr-6-1-143399",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D15",
+      "model": "ZEUS MR-6.1",
+      "multiplier": 1,
+      "sourceRrp": 1680,
+      "price": 1680
+    },
+    {
+      "slug": "dinamiki-estradnye-25sm-momo-he-1000-709600",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D4",
+      "model": "MOMO HE-1000",
+      "multiplier": 1,
+      "sourceRrp": 3800,
+      "price": 3800
+    },
+    {
+      "slug": "dinamiki-estradnye-v-mashinu-16sm-he-610-096126",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D7",
+      "model": "МОМО HE-610.3",
+      "multiplier": 1,
+      "sourceRrp": 2441.6,
+      "price": 2442
+    },
+    {
+      "slug": "kolonki-avtomobilnye-koaksialnye-165mm-zeus-us-650-754789",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D25",
+      "model": "ZEUS US-650",
+      "multiplier": 1,
+      "sourceRrp": 2704,
+      "price": 2704
+    },
+    {
+      "slug": "kolonki-avtomobilnye-shirokopolosnye-estradnye-16sm-he-615-676173",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D9",
+      "model": "MOMO HE-615   (MID BASS)",
+      "multiplier": 1,
+      "sourceRrp": 4032,
+      "price": 4032
+    },
+    {
+      "slug": "kolonki-avtomobilnye-estradnye-165mm-momo-he-612-783658",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D8",
+      "model": "MOMO HE-612",
+      "multiplier": 1,
+      "sourceRrp": 3904,
+      "price": 3904
+    },
+    {
+      "slug": "kolonki-koaksialnye-ovalnye-v-mashinu-us-690-650235",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D29",
+      "model": "MOMO US 690.3",
+      "multiplier": 1,
+      "sourceRrp": 4208,
+      "price": 4208
+    },
+    {
+      "slug": "kolonki-koaksialnye-shirokopolosnye-16sm-us-310-677887",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D24",
+      "model": "MOMO US-310 V3",
+      "multiplier": 1,
+      "sourceRrp": 3310.4,
+      "price": 3310
+    },
+    {
+      "slug": "kolonki-rupora-10sm-v-mashinu-he-400-009725",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D20",
+      "model": "МОМО HE-400  ",
+      "multiplier": 1,
+      "sourceRrp": 3518.4,
+      "price": 3518
+    },
+    {
+      "slug": "kolonki-estradnye-130mm-dlya-avtomobilya-he-130-053896",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D6",
+      "model": "MOMO HE-130.3",
+      "multiplier": 1,
+      "sourceRrp": 2268.8,
+      "price": 2269
+    },
+    {
+      "slug": "kolonki-estradnye-avtomobilnye-165mm-bonnie-clyde-534149",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D14",
+      "model": "MOMO BONNIE AND CLYDE",
+      "multiplier": 1,
+      "sourceRrp": 4768,
+      "price": 4768
+    },
+    {
+      "slug": "estradnye-kolonki-20sm-v-mashinu-he-810-916179",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D12",
+      "model": "MOMO HE-810.4",
+      "multiplier": 1,
+      "sourceRrp": 4640,
+      "price": 4640
+    },
+    {
+      "slug": "dinamiki-estradnye-zeus-mr-8-1-20sm",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D16",
+      "model": "ZEUS MR-8.1",
+      "multiplier": 1,
+      "sourceRrp": 2200.7059776,
+      "price": 2201
+    },
+    {
+      "slug": "dinamiki-estradnye-momo-he-815-20sm",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D11",
+      "model": "MOMO HE-815.3",
+      "multiplier": 1,
+      "sourceRrp": 5280,
+      "price": 5280
+    },
+    {
+      "slug": "sabvufer-avtomobilnyy-b-12-400-12-dyuymov-064850",
+      "sheet": "САБВУФЕРЫ",
+      "cell": "D12",
+      "model": "ZEUS B-12.400",
+      "multiplier": 1,
+      "sourceRrp": 5248,
+      "price": 5248
+    },
+    {
+      "slug": "sabvufer-avtomobilnyy-b-12-450-12-dyuymov-839456",
+      "sheet": "САБВУФЕРЫ",
+      "cell": "D13",
+      "model": "ZEUS B-12.450",
+      "multiplier": 1,
+      "sourceRrp": 5248,
+      "price": 5248
+    },
+    {
+      "slug": "sabvufer-avtomobilnyy-ts-10-600-10-dyuymov-182054",
+      "sheet": "САБВУФЕРЫ",
+      "cell": "D4",
+      "model": "MOMO TS-10.600 ",
+      "multiplier": 1,
+      "sourceRrp": 5367,
+      "price": 5367
+    },
+    {
+      "slug": "sabvufer-avtomobilnyy-ts-15-1100-15-dyuymov-064255",
+      "sheet": "САБВУФЕРЫ",
+      "cell": "D8",
+      "model": "MOMO TS-15.1100",
+      "multiplier": 1,
+      "sourceRrp": 9978,
+      "price": 9978
+    },
+    {
+      "slug": "sabvufer-avtomobilnyy-b-12-750-12-dyuymov-986648",
+      "sheet": "САБВУФЕРЫ",
+      "cell": "D10",
+      "model": "ZEUS B 12.750.3 ",
+      "multiplier": 1,
+      "sourceRrp": 7753,
+      "price": 7753
+    },
+    {
+      "slug": "sabvufer-avtomobilnyy-ub-12-350-12-dyuymov-041105",
+      "sheet": "САБВУФЕРЫ",
+      "cell": "D11",
+      "model": " MOMO UB-12.350",
+      "multiplier": 1,
+      "sourceRrp": 3977.8617644999995,
+      "price": 3978
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-bd-5000-1-803288",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D16",
+      "model": "MOMO BD-5000.1",
+      "multiplier": 1,
+      "sourceRrp": 18880,
+      "price": 18880
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-bm-1-1500-655537",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D8",
+      "model": "ZEUS BM-1.1500",
+      "multiplier": 1,
+      "sourceRrp": 9078.4,
+      "price": 9078
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-d-1000-356531",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D4",
+      "model": "MOMO D-1000",
+      "multiplier": 1,
+      "sourceRrp": 8931.2,
+      "price": 8931
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-d-500-147152",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D5",
+      "model": "MOMO D-500",
+      "multiplier": 1,
+      "sourceRrp": 5104,
+      "price": 5104
+    },
+    {
+      "slug": "monoblok-bd-1500-1",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D13",
+      "model": "MOMO BD-1500.1",
+      "multiplier": 1,
+      "sourceRrp": 9184,
+      "price": 9184
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-fr-500-138116",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D6",
+      "model": "MOMO FR-500",
+      "multiplier": 1,
+      "sourceRrp": 3984,
+      "price": 3984
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-m-1-800-361333",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D11",
+      "model": "ZEUS M-1.800",
+      "multiplier": 1,
+      "sourceRrp": 6240,
+      "price": 6240
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-m-1000-533001",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D10",
+      "model": "ZEUS M-1000",
+      "multiplier": 1,
+      "sourceRrp": 6964.8,
+      "price": 6965
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-momo-bd-3000-1-640730",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D15",
+      "model": "MOMO BD-3000.1",
+      "multiplier": 1,
+      "sourceRrp": 12432,
+      "price": 12432
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-zeus-m-1-1200-653712",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D9",
+      "model": "ZEUS M-1.1200",
+      "multiplier": 1,
+      "sourceRrp": 7345.6,
+      "price": 7346
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-zeus-m-600-611614",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D12",
+      "model": "ZEUS M-600",
+      "multiplier": 1,
+      "sourceRrp": 5688,
+      "price": 5688
+    },
+    {
+      "slug": "monoblok-avtomobilnyy-dlya-sabvufera-bd-2000-1-046476",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D14",
+      "model": "MOMO BD-2000.1",
+      "multiplier": 1,
+      "sourceRrp": 10720,
+      "price": 10720
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-ab-2-60-617369",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D20",
+      "model": "ZEUS AB-2.60",
+      "multiplier": 1,
+      "sourceRrp": 2958.4,
+      "price": 2958
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-ab-4-120-159023",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D21",
+      "model": "ZEUS AB-4.120",
+      "multiplier": 1,
+      "sourceRrp": 6864,
+      "price": 6864
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-ab-4-60-882001",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D24",
+      "model": "  ZEUS AB-4.60",
+      "multiplier": 1,
+      "sourceRrp": 3456,
+      "price": 3456
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-d-4-400-288535",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D25",
+      "model": "ZEUS D-4.400",
+      "multiplier": 1,
+      "sourceRrp": 9904,
+      "price": 9904
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-fr-2-1800-802013",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D18",
+      "model": "MOMO FR-2.1800",
+      "multiplier": 1,
+      "sourceRrp": 20640,
+      "price": 20640
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-fr-2-500-479742",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D27",
+      "model": "ZEUS FR-2.500",
+      "multiplier": 1,
+      "sourceRrp": 11792,
+      "price": 11792
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-momo-a-4-80-150092",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D23",
+      "model": "MOMO A-4.80",
+      "multiplier": 1,
+      "sourceRrp": 5104,
+      "price": 5104
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-p-4-75-147050",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D29",
+      "model": "MOMO P-4.75",
+      "multiplier": 1,
+      "sourceRrp": 4624,
+      "price": 4624
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-zeus-ab-4-100-588525",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D22",
+      "model": "ZEUS AB-4.100",
+      "multiplier": 1,
+      "sourceRrp": 4880,
+      "price": 4880
+    },
+    {
+      "slug": "usilitel-avtomobilnyy-zeus-fr-2-1100-421465",
+      "sheet": "УСИЛИТЕЛИ МОНОБЛОКИ",
+      "cell": "D19",
+      "model": "ZEUS FR-2.1100",
+      "multiplier": 1,
+      "sourceRrp": 15960,
+      "price": 15960
+    },
+    {
+      "slug": "avtomagnitola-android-10-2-16gb-wi-fi-gps-bt-806438",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C15",
+      "model": "Автомагнитола ANDROID             10 Дюймов  2+16 ",
+      "multiplier": 1,
+      "sourceRrp": 5759.168000000001,
+      "price": 5759
+    },
+    {
+      "slug": "avtomagnitola-android-10-2-32gb-005959",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C16",
+      "model": "Автомагнитола ANDOID                10 Дюймов  2+32",
+      "multiplier": 1,
+      "sourceRrp": 6098.144,
+      "price": 6098
+    },
+    {
+      "slug": "avtomagnitola-android-10-2-32gb-4g-329610",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C17",
+      "model": "Автомагнитола ANDROID  10  2+32 4G Sim",
+      "multiplier": 1,
+      "sourceRrp": 9526.808772000002,
+      "price": 9527
+    },
+    {
+      "slug": "avtomagnitola-android-9-2-32gb-4g-702453",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C14",
+      "model": "Автомагнитола ANDROID               9 Дюймов 2+32 4G Sim",
+      "multiplier": 1,
+      "sourceRrp": 8027.568000000001,
+      "price": 8028
+    },
+    {
+      "slug": "avtomagnitola-deh-4850-097139",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C20",
+      "model": "DEH4850SDBT",
+      "multiplier": 1,
+      "sourceRrp": 1210.8236400000003,
+      "price": 1211
+    },
+    {
+      "slug": "avtomagnitola-zeus-android-10-2-32gb-4g-310212",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C9",
+      "model": " ZEUS Android 10 Дюймов 2.32 4G",
+      "multiplier": 1,
+      "sourceRrp": 10677.744,
+      "price": 10678
+    },
+    {
+      "slug": "avtomagnitola-zeus-android-7-4-64gb-4g-169671",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C6",
+      "model": "ZEUS Android 7 Дюймов 4.64",
+      "multiplier": 1,
+      "sourceRrp": 11829.920000000002,
+      "price": 11830
+    },
+    {
+      "slug": "avtomagnitola-zeus-android-9-1-16gb-703833",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C4",
+      "model": " ZEUS Android 9 Дюймов 1.16",
+      "multiplier": 1,
+      "sourceRrp": 5661.091800000001,
+      "price": 5661
+    },
+    {
+      "slug": "avtomagnitola-zeus-android-9-2-32gb-4g-668166",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C8",
+      "model": " ZEUS Android 9 Дюймов 2.32 4G",
+      "multiplier": 1,
+      "sourceRrp": 10067.038675200003,
+      "price": 10067
+    },
+    {
+      "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-dsp-wi-fi-gps-bt-468040",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C11",
+      "model": " ZEUS Android 9 Дюймов 4.64 4G DSP (Digital Sound Processor)",
+      "multiplier": 1,
+      "sourceRrp": 14000,
+      "price": 14000
+    },
+    {
+      "slug": "avtomagnitola-zeus-android-9-4-64gb-4g-wi-fi-gps-bt-826302",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C10",
+      "model": " ZEUS Android 9 Дюймов 4.64 4G ",
+      "multiplier": 1,
+      "sourceRrp": 11200,
+      "price": 11200
+    },
+    {
+      "slug": "avtomagnitola-zeus-z-1bt-472657",
+      "sheet": "МУЛЬТИМЕДИА",
+      "cell": "C21",
+      "model": "Автопроигрыватель  ZEUS Z-1BT",
+      "multiplier": 1,
+      "sourceRrp": 870.4000000000001,
+      "price": 870
+    },
+    {
+      "slug": "hid-ksenonovaya-lampa-h4-3000-3200lm-5000-6000k-23000vt-zeus-857896",
+      "sheet": "АВТОСВЕТ",
+      "cell": "D25",
+      "model": "H4-6000K  комплект черный с блоком Zeus",
+      "multiplier": 1,
+      "sourceRrp": 2796.0616124999997,
+      "price": 2796
+    },
+    {
+      "slug": "super-led-f2-lh23-h7-svetodiodnye-lampy-v-fary-3200-lm-3500k-024972",
+      "sheet": "АВТОСВЕТ",
+      "cell": "D57",
+      "model": "LED LH 23 - H7 Zeus",
+      "multiplier": 1,
+      "sourceRrp": 1133.73,
+      "price": 1134
+    },
+    {
+      "slug": "svetodiodnaya-led-lampa-c6-h1-6000k-471819",
+      "sheet": "АВТОСВЕТ",
+      "cell": "D30",
+      "model": "LED C6 H1 - 6000K (КУЛЕР) Zeus",
+      "multiplier": 1,
+      "sourceRrp": 1283.9492249999998,
+      "price": 1284
+    },
+    {
+      "slug": "rca-2-1-kabel-5m-med-123754",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D45",
+      "model": "Rca 2.1",
+      "multiplier": 1,
+      "sourceRrp": 387.20000000000005,
+      "price": 387
+    },
+    {
+      "slug": "y-razvetvitel-rca-1-papa-2-mama-dlya-usilitelya-i-avtozvuka-053083",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D47",
+      "model": "Rca F2-M1",
+      "multiplier": 1,
+      "sourceRrp": 136,
+      "price": 136
+    },
+    {
+      "slug": "y-razvetvitel-rca-2-papa-1-mama-dlya-usilitelya-i-avtozvuka-047707",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D46",
+      "model": "Rca F1-M2",
+      "multiplier": 1,
+      "sourceRrp": 136,
+      "price": 136
+    },
+    {
+      "slug": "distribyutor-pitaniya-db-4-105833",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D63",
+      "model": "Дистрибьютор питания DB-4",
+      "multiplier": 1,
+      "sourceRrp": 423.2592000000001,
+      "price": 423
+    },
+    {
+      "slug": "zamok-centralnyy-dlya-avtomobilya-car-nk-860-001624",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D69",
+      "model": "NK860 ",
+      "multiplier": 1,
+      "sourceRrp": 1260.70776,
+      "price": 1261
+    },
+    {
+      "slug": "zaschitnye-alyuminievye-setki-gril-dlya-avtoakustiki-16-sm-k-638821",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D57",
+      "model": "Сетки Гриль М-165",
+      "multiplier": 2,
+      "sourceRrp": 704,
+      "price": 1408
+    },
+    {
+      "slug": "zaschitnye-alyuminievye-setki-gril-dlya-avtoakustiki-20-sm-k-975921",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D58",
+      "model": "Сетки Гриль М-200",
+      "multiplier": 2,
+      "sourceRrp": 784,
+      "price": 1568
+    },
+    {
+      "slug": "zaschitnye-setki-gril-dlya-avtoakustiki-20-sm-komplekt-2-sht-142558",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D60",
+      "model": "Сетки Гриль M-8.1",
+      "multiplier": 2,
+      "sourceRrp": 352,
+      "price": 704
+    },
+    {
+      "slug": "kabel-silovoy-pc-4ga-tc-luzhenaya-med-5h21mm2-50m-346494",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D39",
+      "model": "PC-4GA-TC Луженая медь 5х21мм2 v.2 50m",
+      "multiplier": 1,
+      "sourceRrp": 41593.600000000006,
+      "price": 41594
+    },
+    {
+      "slug": "kabel-silovoy-pc-8ga-cu-med-3-2h8-4mm2-50m-637756",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D36",
+      "model": "PC-8GA-CU Mедь 3,2х8,4мм2 v.2 50m",
+      "multiplier": 1,
+      "sourceRrp": 14843.2,
+      "price": 14843
+    },
+    {
+      "slug": "kabel-akusticheskiy-15ga-cu-med-357042",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D34",
+      "model": "SC-15GA-СU Mедь v.2 1,45x1,76mm2 ",
+      "multiplier": 1,
+      "sourceRrp": 13041.6,
+      "price": 13042
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-14ga-cu-med-2x2kv-mm-100m-967715",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D29",
+      "model": "SC-14GA-CU Медь v.2 2x2mm",
+      "multiplier": 1,
+      "sourceRrp": 15065.6,
+      "price": 15066
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-14ga-tc-luzhenaya-med-2x2kv-mm-100m-054144",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D28",
+      "model": "SC-14GA-TC Луженая медь v.2 2x2mm",
+      "multiplier": 1,
+      "sourceRrp": 15441.6,
+      "price": 15442
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-15ga-cca-omednennyy-alyuminiy-100m-mo-517393",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D35",
+      "model": "SC-15GA-CCA Омедненный алюминий v.2 1,45x1,76mm2 ",
+      "multiplier": 1,
+      "sourceRrp": 2960,
+      "price": 2960
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-15ga-ts-luzhenaya-med-2x1-76mm2-100m-659118",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D33",
+      "model": "SC-15GA-ТС Луженая медь v.2 1,45x1,76mm2 ",
+      "multiplier": 1,
+      "sourceRrp": 13374.400000000001,
+      "price": 13374
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-17ga-cu-med-2x1kv-mm-100m-085321",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D31",
+      "model": "SC-17GA-CU Медь v.2 2x1mm",
+      "multiplier": 1,
+      "sourceRrp": 7720,
+      "price": 7720
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-17ga-tc-luzhenaya-med-2x1kv-mm-100m-781430",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D30",
+      "model": "SC-17GA-TC Луженая медь v.2 2x1mm",
+      "multiplier": 1,
+      "sourceRrp": 7886.400000000001,
+      "price": 7886
+    },
+    {
+      "slug": "kabel-akusticheskiy-sc-17ga-ssa-omednennyy-alyuminiy-2x1kv-m-859170",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D32",
+      "model": "SC-17GA-ССА Омедненный алюминий v.2 2x1mm ",
+      "multiplier": 1,
+      "sourceRrp": 2320,
+      "price": 2320
+    },
+    {
+      "slug": "kabel-silovoy-pc-8ga-tc-luzhenaya-med-3-2h8-4-kv-mm-50m-638414",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D37",
+      "model": "PC-8GA-TC  Луженая медь 3,2х8,4мм2 v.2 50m",
+      "multiplier": 1,
+      "sourceRrp": 15273.6,
+      "price": 15274
+    },
+    {
+      "slug": "kamera-zadnego-vida-hd-na-nozhke-279071",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D6",
+      "model": "Камера заднего вида HD качества на ножках",
+      "multiplier": 1,
+      "sourceRrp": 891.8676,
+      "price": 892
+    },
+    {
+      "slug": "klemma-akkumulyatora-897178",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D62",
+      "model": "BT-242",
+      "multiplier": 1,
+      "sourceRrp": 240,
+      "price": 240
+    },
+    {
+      "slug": "klemma-akkumulyatora-dlya-avtomobilya-656147",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D62",
+      "model": "BT-242",
+      "multiplier": 1,
+      "sourceRrp": 240,
+      "price": 240
+    },
+    {
+      "slug": "komplekt-akusticheskih-kabeley-kit-m-042-304350",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D40",
+      "model": "KIT M-042",
+      "multiplier": 1,
+      "sourceRrp": 2178.27324,
+      "price": 2178
+    },
+    {
+      "slug": "kondensator-plenochnyy-d-pischalok-3-3mkf-250v-2-sht-kompl-286616",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D74",
+      "model": "Конденсатор  3.3UF 250V",
+      "multiplier": 1,
+      "sourceRrp": 235.20000000000002,
+      "price": 235
+    },
+    {
+      "slug": "litiy-ionnyy-akkumulyator-model-icr-18650-2500ma-h-3-7v-189990",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D67",
+      "model": "Литий-ионный аккумулятор Модель 18650, 2500 мАч",
+      "multiplier": 1,
+      "sourceRrp": 243.37404000000004,
+      "price": 243
+    },
+    {
+      "slug": "obzhimnaya-klemma-0-ga-962354",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D61",
+      "model": "RT-0",
+      "multiplier": 1,
+      "sourceRrp": 736,
+      "price": 736
+    },
+    {
+      "slug": "plata-na-avtomobilnyy-monoblok-zeus-m-1-1100-593342",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D73",
+      "model": "Плата M-1.1100",
+      "multiplier": 1,
+      "sourceRrp": 3948.8,
+      "price": 3949
+    },
+    {
+      "slug": "plata-na-avtomobilnyy-usilitel-momo-fr-2-1800-593767",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D72",
+      "model": "Плата FR-2.1800",
+      "multiplier": 1,
+      "sourceRrp": 16312.107240000005,
+      "price": 16312
+    },
+    {
+      "slug": "plata-na-avtomobilnyy-usilitel-zeus-ab-4-100-610915",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D70",
+      "model": "Плата AB 4.100",
+      "multiplier": 1,
+      "sourceRrp": 3840,
+      "price": 3840
+    },
+    {
+      "slug": "plata-na-avtomobilnyy-usilitel-zeus-fr-2-1100-603954",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D71",
+      "model": "Плата FR-2.1100",
+      "multiplier": 1,
+      "sourceRrp": 11809.6,
+      "price": 11810
+    },
+    {
+      "slug": "predohranitel-kolba-anl1-200a-416015",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D52",
+      "model": "ANL1-200А",
+      "multiplier": 1,
+      "sourceRrp": 313.6,
+      "price": 314
+    },
+    {
+      "slug": "predohranitel-kolba-anl2-200a-442213",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D53",
+      "model": "ANL2-200A",
+      "multiplier": 1,
+      "sourceRrp": 529.6,
+      "price": 530
+    },
+    {
+      "slug": "predohranitel-kolba-mini-anl-100-a-825930",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D55",
+      "model": "MINI ANL 100A",
+      "multiplier": 1,
+      "sourceRrp": 208,
+      "price": 208
+    },
+    {
+      "slug": "predohranitel-kolba-mini-anl-150-a-362803",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D54",
+      "model": "MINI ANL 150A",
+      "multiplier": 1,
+      "sourceRrp": 270.40000000000003,
+      "price": 270
+    },
+    {
+      "slug": "setka-zaschitnaya-dlya-avtoakustiki-gril-20-sm-alyuminiy-2-s-650490",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D58",
+      "model": "Сетки Гриль М-200",
+      "multiplier": 2,
+      "sourceRrp": 784,
+      "price": 1568
+    },
+    {
+      "slug": "ustanovochnyy-komplekt-dlya-2-h-kanalnogo-avtomobilnogo-usil-259457",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D43",
+      "model": "KIT M-082",
+      "multiplier": 1,
+      "sourceRrp": 1268.26596,
+      "price": 1268
+    },
+    {
+      "slug": "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-777635",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D41",
+      "model": "KIT M-044",
+      "multiplier": 1,
+      "sourceRrp": 2352,
+      "price": 2352
+    },
+    {
+      "slug": "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-4ga-5-m-r-264408",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D42",
+      "model": "KIT M-044LC",
+      "multiplier": 1,
+      "sourceRrp": 2241.76212,
+      "price": 2242
+    },
+    {
+      "slug": "ustanovochnyy-komplekt-dlya-4-kanalnogo-usilitelya-8ga-5-m-272891",
+      "sheet": "АКСЕССУАРЫ",
+      "cell": "D44",
+      "model": "KIT M-084",
+      "multiplier": 1,
+      "sourceRrp": 1744,
+      "price": 1744
+    },
+    {
+      "slug": "rupornye-dinamiki-tz-95",
+      "sheet": "ДИНАМИКИ РУПОРА",
+      "cell": "D18",
+      "model": "ZEUS TZ-95",
+      "multiplier": 1,
+      "sourceRrp": 1176,
+      "price": 1176
+    }
+  ]
+}
