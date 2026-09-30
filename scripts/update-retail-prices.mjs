@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import nextEnv from "@next/env";
 
-export const UPDATE_ID = "retail-prices-2026-09-30";
+export const UPDATE_ID = "retail-prices-from-2026-09-29-v1";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export function updateRetailPrices(dataDir, source) {
@@ -61,6 +61,6 @@ export function updateRetailPrices(dataDir, source) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   nextEnv.loadEnvConfig(root);
   const dataDir = process.env.MOMO_DATA_DIR?.trim() || path.join(root, "data");
-  const source = JSON.parse(fs.readFileSync(path.join(root, "scripts", "retail-prices-2026-09-30.json"), "utf8"));
+  const source = JSON.parse(fs.readFileSync(path.join(root, "scripts", "retail-prices-2026-09-29.json"), "utf8"));
   console.log(JSON.stringify(updateRetailPrices(dataDir, source)));
 }

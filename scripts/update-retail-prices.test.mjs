@@ -20,8 +20,8 @@ function fixture(t) {
 const source = { source: "Supplier.xlsx", products: [{ slug: "speaker", price: 120 }, { slug: "deleted", price: 200 }] };
 
 test("every published price matches the supplier RRP cell and reviewed sale unit", async () => {
-  const manifest = JSON.parse(fs.readFileSync(new URL("./retail-prices-2026-09-30.json", import.meta.url), "utf8"));
-  const sheets = await readXlsxFile(fileURLToPath(new URL("../src/lib/__fixtures__/dealer-price-2026-09-24.xlsx", import.meta.url)));
+  const manifest = JSON.parse(fs.readFileSync(new URL("./retail-prices-2026-09-29.json", import.meta.url), "utf8"));
+  const sheets = await readXlsxFile(fileURLToPath(new URL("../src/lib/__fixtures__/retail-price-2026-09-29.xlsx", import.meta.url)));
   const mapping = JSON.parse(fs.readFileSync(new URL("../src/lib/dealer-price-source-map.json", import.meta.url), "utf8"));
   for (const entry of manifest.products) {
     const sheet = sheets.find((s) => s.sheet === entry.sheet);
@@ -37,10 +37,14 @@ test("every published price matches the supplier RRP cell and reviewed sale unit
   }
   assert.equal(manifest.products.find((p) => p.model === "MINI ANL 150A").cell, "D54");
   assert.equal(manifest.products.find((p) => p.model === "ZEUS TZ-95").price, 1176);
+  assert.equal(manifest.products.find((p) => p.model === "MMO UB-10.250").price, 4080);
+  assert.equal(manifest.products.find((p) => p.model.trim() === "MOMO UB-12.350").price, 4243);
+  assert.equal(manifest.products.length, 108);
 });
 
 test("updates only retail price, preserving stock, visibility, dealer prices and deleted products", (t) => {
   const { dir, product, original, read } = fixture(t);
+  fs.writeFileSync(path.join(dir, ".catalog-update-retail-prices-2026-09-30"), "previous workbook already applied");
   assert.deepEqual(updateRetailPrices(dir, source).missing, ["deleted"]);
   assert.deepEqual(read(), [{ ...product, price: 120 }, original[1]]);
   assert.equal(fs.readFileSync(path.join(dir, "b2b-prices.json"), "utf8"), "unchanged dealer prices");
