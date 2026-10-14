@@ -13,7 +13,6 @@ import { CustomerProvider } from "@/components/customer-provider";
 import { SupportChatWidget } from "@/components/support-chat-widget";
 import { getSiteConfig } from "@/lib/data";
 import { payConfig } from "@/lib/yandex-pay";
-import Script from "next/script";
 
 /*
   Обвязка витрины: шапка, футер, оверлеи, счётчик. Вынесена из layout группы
@@ -40,13 +39,6 @@ export function ShopChrome({ children }: { children: React.ReactNode }) {
       }}
     >
       <CustomerProvider>
-        {pay && (
-          <Script
-            id="yandex-pay-web-sdk"
-            src="https://pay.yandex.ru/sdk/v1/pay.js"
-            strategy="afterInteractive"
-          />
-        )}
         <YandexMetrica />
         {/* Разметка продавца и сайта для поисковиков — на всех страницах */}
         <JsonLd data={organizationSchema()} />

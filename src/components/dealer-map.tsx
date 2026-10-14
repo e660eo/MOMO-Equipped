@@ -95,26 +95,6 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
   }, [onSelect]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || shouldLoad) return;
-    if (!("IntersectionObserver" in window)) {
-      setShouldLoad(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "240px" },
-    );
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [shouldLoad]);
-
-  useEffect(() => {
     if (!shouldLoad) return;
     let cancelled = false;
     const placemarks = placemarksRef.current;
@@ -248,7 +228,11 @@ export function DealerMap({ dealers, selectedDealerId, onSelect }: DealerMapProp
       />
       {!shouldLoad && pointsWithCoordinates > 0 && !mapError && (
         <div className="absolute inset-0 z-10 grid place-items-center bg-surface/90 p-6 text-center">
-          <p className="text-sm font-semibold text-muted-foreground">Загружаем карту…</p>
+          <div className="max-w-md">
+            <p className="text-sm text-muted-foreground">Карта — внешний сервис Яндекса. При загрузке он получит технические данные браузера и может использовать cookie и статистику.</p>
+            <button type="button" onClick={() => setShouldLoad(true)} className="mt-4 min-h-11 rounded-sm bg-signal px-5 py-3 text-sm font-semibold text-white">Показать карту Яндекса</button>
+            <p className="mt-3 text-sm text-muted-foreground">Адреса партнёров доступны в списке без загрузки карты.</p>
+          </div>
         </div>
       )}
       {!pointsWithCoordinates && !mapError && (

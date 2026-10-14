@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useEffect, useState } from "react";
+import Script from "next/script";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,8 @@ export function YandexSplitBadge({
   className?: string;
 }) {
   const { payEnabled, payMerchantId } = useSiteConfig();
+  const [requested, setRequested] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -50,8 +53,22 @@ export function YandexSplitBadge({
     return null;
   }
 
+  if (!requested) return (
+    <div className={cn("max-w-full", className)}>
+      <button type="button" onClick={() => setRequested(true)}
+        title="При открытии предложения Яндекс получит технические данные браузера и может использовать свои cookie."
+        className="min-h-11 text-left text-xs underline underline-offset-4">
+        Посмотреть условия Яндекс Сплита
+      </button>
+      <p className="text-[0.65rem] text-muted-foreground">Загрузится сервис Яндекса</p>
+    </div>
+  );
+
   return (
     <div className={cn("max-w-full", className)}>
+      <Script id="yandex-pay-web-sdk" src="https://pay.yandex.ru/sdk/v1/pay.js"
+        strategy="afterInteractive" onError={() => setFailed(true)} />
+      {failed && <p role="status" className="text-xs text-muted-foreground">Предложение пока недоступно. Условия можно проверить при переходе к оплате.</p>}
       {createElement("yandex-pay-badge", {
         key: `${theme}-${amount}-${size}-${variant}-${color}`,
         type: "bnpl",
