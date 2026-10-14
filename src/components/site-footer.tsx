@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookieSettingsButton } from "./cookie-settings-button";
 import Image from "next/image";
 import { siteConfig } from "@/lib/data";
 
@@ -177,6 +178,7 @@ export function SiteFooter() {
                 {l.label}
               </Link>
             ))}
+            <CookieSettingsButton />
             <span className="text-[0.74rem] text-white/35">© 2026 MOMO</span>
           </div>
         </div>

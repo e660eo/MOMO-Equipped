@@ -1,5 +1,8 @@
 "use server";
 
+import { captureConsent } from "@/lib/privacy-consent";
+import type { ConsentSubmission } from "@/lib/privacy-documents";
+
 import { revalidatePath } from "next/cache";
 import { clientIp } from "@/lib/client-ip";
 import { ExpectedError } from "@/lib/errors";
@@ -98,6 +101,7 @@ const EMAIL_RE = /^[^\s@]{1,64}@[^\s@.]+(\.[^\s@.]+)+$/;
 const MIN_PASSWORD_LENGTH = 8;
 
 export async function signUp(input: {
+  consent?: ConsentSubmission;
   name: string;
   email: string;
   phone: string;
@@ -121,6 +125,10 @@ export async function signUp(input: {
   // каждая успешная попытка выполняет scrypt, пишет JSON и ставит письмо в очередь.
   noteFailure(ip);
 
+  let consent;
+  try { consent = captureConsent(input.consent, "account"); } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Подтвердите согласие." };
+  }
   const name = typeof input.name === "string" ? input.name.trim().slice(0, 100) : "";
   const email = typeof input.email === "string" ? input.email.trim().slice(0, 120) : "";
   const phone = typeof input.phone === "string" ? input.phone.trim().slice(0, 30) : "";
@@ -141,7 +149,7 @@ export async function signUp(input: {
   }
 
   try {
-    const result = registerCustomer({ name, email, phone, password });
+    const result = registerCustomer({ name, email, phone, password, consent });
     if (!result.ok) {
       return result;
     }

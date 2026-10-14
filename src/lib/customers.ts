@@ -53,7 +53,7 @@ export function getCustomers(): Customer[] {
 
 /** Без хеша пароля — то, что можно отдать в браузер. */
 export function toPublic(c: Customer): PublicCustomer {
-  const { passwordHash: _hash, admin: _admin, ...rest } = c;
+  const { passwordHash: _hash, admin: _admin, consent: _consent, ...rest } = c;
   const bonus = getBonusSummary(c.id);
   return {
     ...rest,
@@ -86,6 +86,7 @@ export function registerCustomer(input: {
   email: string;
   phone: string;
   password: string;
+  consent?: Customer["consent"];
 }): RegisterResult {
   assertWritable();
 
@@ -106,6 +107,7 @@ export function registerCustomer(input: {
     phone,
     createdAt: new Date().toISOString(),
     passwordHash: hashPassword(input.password),
+    ...(input.consent ? { consent: input.consent } : {}),
   };
 
   updateJson<Customer[]>(FILE, (all) => [...all, customer]);

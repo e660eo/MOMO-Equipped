@@ -56,6 +56,10 @@ export async function POST(request: Request) {
     return json({ ok: false, error: "Не удалось прочитать сообщение." }, 400);
   }
 
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return json({ ok: false, error: "Не удалось прочитать сообщение." }, 400);
+  }
+
   if (body.action === "load") {
     return json({ ok: true, conversation: findPublicSupportConversation(body.token) });
   }
@@ -74,6 +78,7 @@ export async function POST(request: Request) {
   try {
     const customer = await currentCustomer();
     const conversation = addVisitorSupportMessage({
+      consent: body.consent,
       token: body.token,
       name: body.name || customer?.name,
       contact: body.contact || customer?.email || customer?.phone,

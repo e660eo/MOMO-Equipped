@@ -1,5 +1,7 @@
 "use server";
 
+import { consentFromForm } from "@/lib/privacy-consent";
+
 import { revalidatePath } from "next/cache";
 import { currentCustomer } from "@/lib/customer-auth";
 import { getProduct } from "@/lib/data";
@@ -68,16 +70,18 @@ export async function submitProductReview(
     if (text.length < 10) throw new ExpectedError("Напишите хотя бы 10 символов об опыте использования.");
     if (text.length > 1500) throw new ExpectedError("Отзыв длиннее 1500 символов — сократите текст.");
 
+    const consent = consentFromForm(formData, "review");
     const photo = formData.get("photo");
     if (photo instanceof File && photo.size > 0) {
       uploadedPhoto = await saveReviewPhoto(photo);
     }
 
     addProductReview({
+      consent,
       productSlug,
       productTitle: product.title,
       customerId: customer.id,
-      author: publicReviewAuthor(customer.name),
+      author: publicReviewAuthor("Покупатель"),
       rating: rating as ProductReview["rating"],
       text,
       ...(uploadedPhoto ? { photo: uploadedPhoto } : {}),

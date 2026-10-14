@@ -36,6 +36,9 @@ export async function registerNodeInstrumentation() {
     console.error("[ozon-product-map] пропущено:", err);
   }
 
+  const { schedulePrivacyMaintenance } = await import("./lib/privacy-maintenance");
+  schedulePrivacyMaintenance();
+
   const { scheduleDailyBackup } = await import("./lib/backup-scheduler");
   scheduleDailyBackup();
 

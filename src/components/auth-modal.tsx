@@ -1,5 +1,7 @@
 "use client";
 
+import { consentSubmission } from "@/lib/privacy-documents";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Eye, EyeOff } from "lucide-react";
@@ -148,7 +150,9 @@ export function AuthModal() {
       return;
     }
     setBusy(true);
+    const registration = new FormData(e.currentTarget as HTMLFormElement);
     const result = await signUp({
+      consent: consentSubmission(registration.get("consent") === "on"),
       name: rgName,
       email: rgEmail,
       phone: rgPhone,
@@ -462,7 +466,7 @@ export function AuthModal() {
                 className={inputCls}
               />
             </div>
-            <ConsentCheckbox id="rg-consent" className="pt-1" />
+            <ConsentCheckbox purpose="account" id="rg-consent" className="pt-1" />
             <button
               type="submit"
               disabled={busy}

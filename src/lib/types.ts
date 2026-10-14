@@ -183,6 +183,7 @@ export interface SiteBanner {
  * персональные данные, поэтому файл не хранится в репозитории.
  */
 export interface Customer {
+  consent?: import("./privacy-documents").ConsentEvidence;
   id: string;
   name: string;
   email: string;
@@ -203,7 +204,7 @@ export interface Customer {
 }
 
 /** Клиент без хеша пароля — то, что можно показать в браузере. */
-export type PublicCustomer = Omit<Customer, "passwordHash" | "admin"> & {
+export type PublicCustomer = Omit<Customer, "passwordHash" | "admin" | "consent"> & {
   /** Доступные к списанию бонусы. Рассчитываются на сервере по журналу. */
   bonusBalance: number;
   /** Ближайшая дата сгорания неиспользованных бонусов. */
@@ -215,6 +216,7 @@ export type PublicCustomer = Omit<Customer, "passwordHash" | "admin"> & {
  * от одного покупателя и никогда не передаётся в публичные компоненты.
  */
 export interface ProductReview {
+  consent?: import("./privacy-documents").ConsentEvidence;
   id: string;
   productSlug: string;
   /** Название фиксируется на момент публикации, чтобы отзыв не стал безымянным после удаления товара. */
@@ -230,7 +232,7 @@ export interface ProductReview {
 }
 
 /** Отзыв, безопасный для публичной карточки товара. */
-export type PublicProductReview = Omit<ProductReview, "customerId">;
+export type PublicProductReview = Omit<ProductReview, "customerId" | "consent">;
 
 export type BonusTransactionType =
   | "admin_credit"
@@ -388,6 +390,7 @@ export interface OrderDelivery {
  * внутри персональные данные покупателя.
  */
 export interface Order {
+  consent?: import("./privacy-documents").ConsentEvidence;
   /** Короткий номер для разговора с покупателем: 2607-014. */
   id: string;
   createdAt: string;
@@ -518,6 +521,7 @@ export interface DealerAccount {
 export type DealerApplicationStatus = "new" | "in_work" | "approved" | "rejected";
 
 export interface DealerApplication {
+  consent?: import("./privacy-documents").ConsentEvidence;
   id: string;
   createdAt: string;
   company: string;
@@ -590,6 +594,7 @@ export interface SupportChatMessage {
  * записывается только SHA-256-отпечаток.
  */
 export interface SupportConversation {
+  consent?: import("./privacy-documents").ConsentEvidence;
   id: string;
   visitorTokenHash: string;
   customerId?: string;

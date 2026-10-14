@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { consentSubmission } from "@/lib/privacy-documents";
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -449,6 +451,7 @@ export function CartPageClient() {
     */
     let saved: Awaited<ReturnType<typeof submitOrder>>;
     try { saved = await submitOrder({
+      consent: consentSubmission(consent),
       name: name.trim(),
       phone: phone.trim(),
       address: address.trim(),
@@ -860,7 +863,7 @@ export function CartPageClient() {
                           Пункты Ozon по всей России
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Найдите город или адрес и выберите пункт из списка. Карту можно посмотреть ниже.
+                          Найдите город и выберите пункт из списка или на карте. Карту можно посмотреть ниже.
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -888,7 +891,7 @@ export function CartPageClient() {
                     </div>
                     <div className="relative mt-3 flex gap-2">
                       <label htmlFor="ozon-place-search" className="sr-only">
-                        Город или адрес для поиска ПВЗ Ozon
+                        Город для поиска ПВЗ Ozon
                       </label>
                       <div className="relative min-w-0 flex-1">
                         <Search

@@ -1,5 +1,8 @@
 "use server";
 
+import { consentFromForm } from "@/lib/privacy-consent";
+import { ExpectedError } from "@/lib/errors";
+
 import { revalidatePath } from "next/cache";
 import { addDealerApplication } from "@/lib/dealers";
 import { notifyDealerApplication } from "@/lib/dealer-mail";
@@ -50,6 +53,7 @@ export async function submitDealerApplication(
 
   try {
     const application = addDealerApplication({
+      consent: consentFromForm(formData, "dealer"),
       company,
       city,
       contactName,
@@ -65,6 +69,7 @@ export async function submitDealerApplication(
     revalidatePath("/admin/dealers");
     return { ok: "Заявка принята. Менеджер свяжется с вами и уточнит формат сотрудничества." };
   } catch (error) {
+    if (error instanceof ExpectedError) return { error: error.message };
     console.error("dealer application:", error);
     return { error: "Не удалось сохранить заявку. Позвоните нам или напишите в WhatsApp." };
   }

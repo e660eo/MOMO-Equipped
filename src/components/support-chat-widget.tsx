@@ -1,5 +1,7 @@
 "use client";
 
+import { consentSubmission } from "@/lib/privacy-documents";
+
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Headphones, Loader2, MessageCircle, Send, X } from "lucide-react";
 import { useCustomer } from "@/components/customer-provider";
@@ -131,6 +133,7 @@ export function SupportChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "send",
+          consent: consentSubmission(consent),
           token: visitorToken(),
           name: name.trim(),
           contact: contact.trim(),
@@ -281,6 +284,7 @@ export function SupportChatWidget() {
             {!conversation && (
               <ConsentCheckbox
                 id="support-consent"
+                purpose="support"
                 checked={consent}
                 onChange={setConsent}
                 className="mt-3"

@@ -17,7 +17,7 @@ export function getProductReviews(productSlug?: string): ProductReview[] {
 }
 
 export function getPublicProductReviews(productSlug: string): PublicProductReview[] {
-  return getProductReviews(productSlug).map(({ customerId: _customerId, ...review }) => review);
+  return getProductReviews(productSlug).map(({ customerId: _customerId, consent: _consent, ...review }) => ({ ...review, author: "Покупатель" }));
 }
 
 export function findCustomerProductReview(

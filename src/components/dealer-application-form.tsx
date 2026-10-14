@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
+import { ConsentCheckbox } from "./consent-checkbox";
 import { PhoneInput } from "./phone-input";
 import { submitDealerApplication, type DealerApplicationState } from "@/app/(shop)/become-dealer/actions";
 
@@ -31,7 +32,7 @@ export function DealerApplicationForm() {
         <label className="text-[0.78rem] font-medium">Сайт или соцсеть <span className="font-normal text-muted-foreground">(необязательно)</span><input name="website" type="url" maxLength={240} placeholder="https://" className={`${field} mt-1.5`} /></label>
         <label className="text-[0.78rem] font-medium sm:col-span-2">Что важно обсудить<textarea name="comment" rows={4} maxLength={1500} placeholder="Город, текущий ассортимент, формат точки, вопросы по сотрудничеству" className={`${field} mt-1.5 resize-y`} /></label>
       </div>
-      <label className="mt-5 flex items-start gap-2.5 text-[0.76rem] leading-relaxed text-muted-foreground"><input type="checkbox" name="consent" required className="mt-0.5 accent-[#ff5500]" /><span>Согласен на обработку персональных данных и принимаю <Link href="/privacy" target="_blank" className="text-signal underline underline-offset-2">политику конфиденциальности</Link>.</span></label>
+      <ConsentCheckbox id="dealer-consent" purpose="dealer" className="mt-5" />
       {state.error && <p className="mt-4 rounded-sm border border-signal/30 bg-signal/5 px-3 py-2 text-sm text-[var(--signal-text)]" role="alert">{state.error}</p>}
       <button disabled={pending} className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-sm bg-signal px-6 text-sm font-semibold text-white transition hover:bg-[#ff6a1f] disabled:opacity-60">{pending ? "Отправляем…" : "Обсудить дилерство"}</button>
       <p className="mt-3 text-center text-[0.72rem] text-muted-foreground">Закрытые цены публикуются только в кабинете после одобрения заявки.</p>

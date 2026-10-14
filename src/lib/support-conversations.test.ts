@@ -6,10 +6,12 @@ import {
   addAdminSupportReply,
   addVisitorSupportMessage,
   findPublicSupportConversation,
+  getSupportConversations,
   isSupportConversationWaiting,
   setSupportConversationStatus,
   toPublicSupportConversation,
 } from "./support-conversations";
+import { consentSubmission } from "./privacy-documents";
 import type { SupportConversation } from "./types";
 
 const conversation: SupportConversation = {
@@ -74,15 +76,26 @@ describe("support conversations", () => {
     expect(isSupportConversationWaiting({ ...conversation, status: "closed" })).toBe(false);
   });
 
+  it("rejects a new conversation without consent before persisting data", () => {
+    const token = "6a2664a1-0e94-4fb8-826e-9d7c72045238";
+    expect(() => addVisitorSupportMessage({ token, name: "Test", contact: "test@example.invalid", text: "test" })).toThrow();
+    expect(findPublicSupportConversation(token)).toBeNull();
+  });
+
   it("persists a visitor message, an admin reply and the closed status", () => {
     const token = "9adf46e3-dff4-4eb6-b167-ccb63c2449c1";
     const created = addVisitorSupportMessage({
       token,
+      consent: consentSubmission(),
       name: "Анна",
       contact: "+7 900 000-00-00",
       text: "Подскажите по усилителю",
     });
     expect(created.messages.at(-1)?.author).toBe("visitor");
+    const stored = getSupportConversations().find((item) => item.id === created.id);
+    expect(stored?.consent).toMatchObject({ purpose: "support", version: consentSubmission().version });
+    expect(stored?.consent?.document).toContain("mail@momo-eq.ru");
+    expect(created).not.toHaveProperty("consent");
 
     const replied = addAdminSupportReply(created.id, "Поможем подобрать модель");
     expect(replied?.messages.at(-1)?.author).toBe("admin");

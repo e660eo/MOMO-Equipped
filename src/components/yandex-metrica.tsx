@@ -1,101 +1,36 @@
 "use client";
-
 import Script from "next/script";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
-import {
-  ANALYTICS_CONSENT_EVENT,
-  METRIKA_GOAL_EVENT,
-  YANDEX_METRIKA_ID,
-  analyticsConsentGranted,
-} from "@/lib/metrika";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ANALYTICS_CONSENT_EVENT, METRIKA_GOAL_EVENT, YANDEX_METRIKA_ID, analyticsConsentGranted, analyticsPathAllowed } from "@/lib/metrika";
 
-/*
-  init засчитывает первый просмотр сам. Дальше сайт работает как SPA: переходы
-  между страницами идут без перезагрузки, и Метрика их не видит — без ручного
-  hit в статистике был бы только вход, весь путь покупателя терялся бы.
-  Поэтому на каждую смену маршрута шлём hit, пропуская самый первый рендер,
-  чтобы не задвоить стартовую страницу.
-
-  useSearchParams обязывает обернуть чтение в Suspense, иначе сборка падает —
-  поэтому трекер вынесен отдельным компонентом под <Suspense/> ниже. Параметры
-  запроса в URL нужны: категория и поиск в каталоге живут именно в них
-  (/catalog?category=…), без них все фильтры слились бы в один адрес.
-*/
-function MetrikaRouteTracker() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    const qs = searchParams.toString();
-    const url = location.origin + pathname + (qs ? `?${qs}` : "");
-    window.ym?.(YANDEX_METRIKA_ID, "hit", url);
-  }, [pathname, searchParams]);
-
-  return null;
-}
-
-/*
-  Загрузчик Метрики вынесен в public/yandex-metrica.js, чтобы он кэшировался
-  как обычный файл. Опции init оставлены ровно те, что были выбраны в счётчике:
-  webvisor (запись сессий), clickmap (карта кликов), ecommerce (события
-  корзины из dataLayer — пригодятся, когда начнём их отправлять).
-  afterInteractive используется после согласия: компонент может появиться уже
-  после window.load, но скрипт всё равно должен быть вставлен в документ.
-
-  Внешние адреса явно разрешены в CSP.
-*/
+/** Параметры URL, номера заказов, кабинет и поля форм не передаём. */
 export function YandexMetrica() {
-  const [enabled, setEnabled] = useState(false);
-  const pending = useRef<Array<{ goal: string; params?: Record<string, unknown> }>>([]);
-
+  const pathname = usePathname();
+  const [consented, setConsented] = useState(false);
+  const [ready, setReady] = useState(false);
+  const enabled = consented && analyticsPathAllowed(pathname);
   useEffect(() => {
-    setEnabled(analyticsConsentGranted());
-    const onConsent = () => setEnabled(analyticsConsentGranted());
-    window.addEventListener(ANALYTICS_CONSENT_EVENT, onConsent);
-    return () => window.removeEventListener(ANALYTICS_CONSENT_EVENT, onConsent);
+    const update = () => setConsented(analyticsConsentGranted());
+    update();
+    window.addEventListener(ANALYTICS_CONSENT_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => { window.removeEventListener(ANALYTICS_CONSENT_EVENT, update); window.removeEventListener("storage", update); };
   }, []);
-
   useEffect(() => {
-    if (!enabled) return;
-    const onGoal = (event: Event) => {
-      const detail = (event as CustomEvent<{ goal: string; params?: Record<string, unknown> }>).detail;
-      if (!detail?.goal) return;
-      if (window.ym) window.ym(YANDEX_METRIKA_ID, "reachGoal", detail.goal, detail.params);
-      else pending.current.push(detail);
+    if (!enabled || !ready || !analyticsConsentGranted()) return;
+    window.ym?.(YANDEX_METRIKA_ID, "init", { defer: true, webvisor: false, clickmap: false, trackLinks: false, accurateTrackBounce: false, triggerEvent: false, url: location.origin + "/", referrer: "" });
+    window.ym?.(YANDEX_METRIKA_ID, "hit", location.origin + pathname, { title: "MOMO", referer: "" });
+    const goal = (event: Event) => {
+      const d = (event as CustomEvent<{ goal: string; params?: Record<string, unknown> }>).detail;
+      if (analyticsConsentGranted() && d?.goal) window.ym?.(YANDEX_METRIKA_ID, "reachGoal", d.goal, d.params);
     };
-    window.addEventListener(METRIKA_GOAL_EVENT, onGoal);
-    return () => window.removeEventListener(METRIKA_GOAL_EVENT, onGoal);
-  }, [enabled]);
-
+    window.addEventListener(METRIKA_GOAL_EVENT, goal);
+    return () => {
+      window.removeEventListener(METRIKA_GOAL_EVENT, goal);
+      window.ym?.(YANDEX_METRIKA_ID, "destruct");
+    };
+  }, [enabled, ready, pathname]);
   if (!enabled) return null;
-
-  const flush = () => {
-    if (!window.ym) return;
-    for (const item of pending.current.splice(0)) {
-      window.ym(YANDEX_METRIKA_ID, "reachGoal", item.goal, item.params);
-    }
-  };
-
-  return (
-    <>
-      <Script
-        id="yandex-metrica"
-        src="/yandex-metrica.js"
-        // Компонент появляется только после согласия, то есть зачастую уже
-        // после window.load. afterInteractive гарантированно вставляет скрипт
-        // и при таком позднем условном рендере.
-        strategy="afterInteractive"
-        onReady={flush}
-      />
-      <Suspense fallback={null}>
-        <MetrikaRouteTracker />
-      </Suspense>
-    </>
-  );
+  return <Script id="yandex-metrica" src="/yandex-metrica.js?v=20261014" strategy="afterInteractive" onReady={() => setReady(true)} />;
 }

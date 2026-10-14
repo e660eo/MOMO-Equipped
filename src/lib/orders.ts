@@ -1,4 +1,4 @@
-import { readJson, updateJson, assertWritable } from "./store";
+import { readJson, updateJson, assertWritable, withStoreTransaction } from "./store";
 import type {
   Order,
   OrderItem,
@@ -96,8 +96,14 @@ function withoutExpired(orders: Order[]): Order[] {
   return orders.filter(
     (o) => {
       // Неоплаченная техническая попытка не должна лежать вечно как «новая».
-      if (isUnpaidPaymentAttempt(o) && o.createdAt <= unpaidEdge) return false;
-      return o.createdAt > stamp || (o.status !== "done" && o.status !== "canceled");
+      const inactiveAttempt = (o.status === "new" || o.status === "canceled") &&
+        (!o.payment || ["none", "created", "FAILED", "VOIDED"].includes(o.payment.status));
+      if (isUnpaidPaymentAttempt(o) && inactiveAttempt && o.createdAt <= unpaidEdge) return false;
+      if (o.status !== "done" && o.status !== "canceled") return true;
+      // Дата создания не доказывает дату исполнения; старые записи без истории сохраняем.
+      const closedAt = o.history?.filter((entry) => entry.type === "status").at(-1);
+      return !closedAt || closedAt.to !== o.status || !Number.isFinite(Date.parse(closedAt.at)) ||
+        Date.parse(closedAt.at) > Date.parse(stamp);
     },
   );
 }
@@ -145,14 +151,14 @@ function releaseResourcesFromExpiredPaymentAttempts(before: Order[], after: Orde
 
 /** Убирает просроченные заказы. Возвращает, сколько удалено. */
 export function pruneOldOrders(): number {
-  const orders = getOrders();
-  const kept = withoutExpired(orders);
-  if (kept.length === orders.length) return 0;
-
-  assertWritable();
-  releaseResourcesFromExpiredPaymentAttempts(orders, kept);
-  updateJson<Order[]>(FILE, withoutExpired);
-  return orders.length - kept.length;
+  return withStoreTransaction(() => {
+    const orders = getOrders();
+    const kept = withoutExpired(orders);
+    if (kept.length === orders.length) return 0;
+    releaseResourcesFromExpiredPaymentAttempts(orders, kept);
+    updateJson<Order[]>(FILE, () => kept);
+    return orders.length - kept.length;
+  });
 }
 
 export function addOrder(order: Omit<Order, "id" | "createdAt" | "status">): Order {

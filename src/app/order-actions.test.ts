@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { consentSubmission } from "../lib/privacy-documents";
 import { cartSnapshot } from "../lib/cart-review";
 
 const state = vi.hoisted(() => ({
@@ -18,7 +19,7 @@ vi.mock("@/lib/bonus-ledger", () => ({ attachBonusToOrder: vi.fn(), getBonusSumm
 vi.mock("@/lib/ozon-delivery", () => ({ consumeOzonSelection: state.consumeDelivery, getOzonMapArea: vi.fn(), quoteOzonPickup: vi.fn() }));
 import { submitOrder } from "./order-actions";
 
-const payload = () => ({ name: "Тестовый покупатель", phone: "+79990000000", address: "Тестовый адрес", items: [{ slug: "speaker", qty: 2 }], snapshot: cartSnapshot([{ slug: "speaker", price: 1000, qty: 2 }]), expectedTotal: 2000 });
+const payload = () => ({ consent: consentSubmission(), name: "Тестовый покупатель", phone: "+79990000000", address: "Тестовый адрес", items: [{ slug: "speaker", qty: 2 }], snapshot: cartSnapshot([{ slug: "speaker", price: 1000, qty: 2 }]), expectedTotal: 2000 });
 beforeEach(() => {
   vi.resetAllMocks();
   state.ip += 1;
@@ -83,6 +84,12 @@ describe("payment and delivery recovery", () => {
   });
 });
 describe("checkout rejects changed terms before any external side effect", () => {
+  it("rejects missing consent before creating an order or contacting payment services", async () => {
+    expect(await submitOrder({ ...payload(), consent: undefined })).toMatchObject({ ok: false });
+    expect(state.addOrder).not.toHaveBeenCalled();
+    expect(state.createPayment).not.toHaveBeenCalled();
+    expect(state.enqueue).not.toHaveBeenCalled();
+  });
   it.each(["price", "stock", "missing"])("requires review after %s changes", async (change) => {
     if (change === "price") state.products[0].price = 1100;
     if (change === "stock") state.products[0].stock = 1;

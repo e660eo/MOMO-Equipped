@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { captureConsent } from "./privacy-consent";
 import { audit } from "./audit-log";
 import { ExpectedError } from "./errors";
 import { assertWritable, readJson, updateJson } from "./store";
@@ -79,6 +80,7 @@ export function findPublicSupportConversation(token: unknown): PublicSupportConv
 }
 
 export function addVisitorSupportMessage(input: {
+  consent?: unknown;
   token: unknown;
   name?: unknown;
   contact?: unknown;
@@ -119,8 +121,10 @@ export function addVisitorSupportMessage(input: {
     if (name.length < 2) throw new ExpectedError("Укажите имя.");
     if (contact.length < 5) throw new ExpectedError("Укажите телефон или email для связи.");
 
+    const consent = captureConsent(input.consent, "support");
     created = true;
     result = {
+      consent,
       id: conversationId(),
       visitorTokenHash: hash,
       ...(input.customerId ? { customerId: input.customerId } : {}),

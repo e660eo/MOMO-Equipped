@@ -1,5 +1,8 @@
 "use server";
 
+import { captureConsent } from "@/lib/privacy-consent";
+import type { ConsentSubmission } from "@/lib/privacy-documents";
+
 import crypto from "node:crypto";
 import { clientIp } from "@/lib/client-ip";
 import { addOrder, setOrderPayment, updateOrder } from "@/lib/orders";
@@ -151,7 +154,7 @@ export async function searchPickupPlace(query: string): Promise<
     const places = await searchRussianPlaces(query);
     return places.length
       ? { ok: true, places }
-      : { ok: false, error: "Город или адрес не найден. Уточните запрос." };
+      : { ok: false, error: "Город не найден в справочнике. Уточните название или выберите пункт на карте." };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Не удалось найти адрес.";
     return { ok: false, error: message };
@@ -272,6 +275,7 @@ export type OrderResult =
   | { ok: false; error: string; requiresAuth?: boolean; requiresEmailVerification?: boolean; cartChanged?: boolean; requiresDeliveryRefresh?: boolean };
 
 export async function submitOrder(payload: {
+  consent?: ConsentSubmission;
   name: string;
   phone: string;
   address: string;
@@ -288,6 +292,10 @@ export async function submitOrder(payload: {
   /** Целое число бонусов. Сервер заново проверяет баланс и предел 30%. */
   bonusAmount?: number;
 }): Promise<OrderResult> {
+  let consent;
+  try { consent = captureConsent(payload.consent, "order"); } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Подтвердите согласие." };
+  }
   const me = await currentCustomer();
 
   // Клиентская кнопка тоже проверяет вход, но серверное действие можно
@@ -529,6 +537,7 @@ export async function submitOrder(payload: {
     }
     const payable = total - requestedBonus + deliveryCharge;
     const order = addOrder({
+      consent,
       customer: {
         name,
         ...(me?.email ? { email: me.email } : {}),

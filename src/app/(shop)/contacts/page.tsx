@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/data";
-import { ConsentCheckbox } from "@/components/consent-checkbox";
+import { ContactForm } from "@/components/contact-form";
 import { YandexMap } from "@/components/yandex-map";
 import { publicPageMetadata } from "@/lib/seo-metadata";
 
@@ -17,8 +17,6 @@ const rows = (c: typeof siteConfig.contacts) => [
   { label: "Режим работы", value: c.hours },
 ];
 
-const inputCls =
-  "w-full rounded-sm border border-input bg-bg px-3.5 py-3 text-sm text-foreground transition-colors focus:border-signal focus:outline-none";
 const labelCls =
   "mb-1.5 block font-mono text-[0.66rem] uppercase tracking-[0.18em] text-muted-foreground";
 
@@ -68,33 +66,7 @@ export default function ContactsPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Ответим в течение рабочего дня.
           </p>
-          <form className="mt-6 space-y-3.5" action={c.whatsapp} method="get">
-            <div>
-              <label className={labelCls} htmlFor="ct-name">
-                Имя
-              </label>
-              <input id="ct-name" name="name" className={inputCls} autoComplete="name" />
-            </div>
-            <div>
-              <label className={labelCls} htmlFor="ct-contact">
-                Телефон или email
-              </label>
-              <input id="ct-contact" name="contact" className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls} htmlFor="ct-msg">
-                Сообщение
-              </label>
-              <textarea id="ct-msg" name="text" rows={4} className={inputCls} />
-            </div>
-            <ConsentCheckbox id="ct-consent" className="pt-1" />
-            <button
-              type="submit"
-              className="w-full rounded-sm bg-signal py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#ff6a1f]"
-            >
-              Отправить
-            </button>
-          </form>
+          <ContactForm />
         </div>
       </div>
 

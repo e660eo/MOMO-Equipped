@@ -1,5 +1,7 @@
 "use client";
 
+import { ConsentCheckbox } from "./consent-checkbox";
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -215,6 +217,8 @@ export function ReviewForm({
         </div>
       )}
 
+      <p className="mt-5 text-sm text-muted-foreground">Отзыв будет опубликован от имени «Покупатель». Не добавляйте контакты, лица или другие данные людей без их разрешения.</p>
+      <ConsentCheckbox id={"review-consent-" + productSlug} purpose="review" className="mt-4" />
       {(state.error || fileError) && (
         <p role="alert" className="mt-5 rounded-sm border border-[var(--signal-text)] bg-signal/5 px-4 py-3 text-sm text-[var(--signal-text)]">
           {state.error || fileError}
