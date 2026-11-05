@@ -51,7 +51,7 @@ function needsSession(pathname: string): boolean {
 function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yastatic.net https://*.yandex.ru https://*.yandex.net",
+    "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yastatic.net https://*.yandex.ru https://*.yandex.net https://top-fwz1.mail.ru",
     // React не использует HTML-обработчики onclick="...". Запрещаем их
     // отдельно, даже пока bootstrap Next требует inline script elements.
     "script-src-attr 'none'",
@@ -60,11 +60,11 @@ function contentSecurityPolicy(): string {
     "style-src 'self' 'unsafe-inline' blob:",
     // data: — заглушки next/image; внешние домены — Метрика, Web SDK Пэй и
     // подложка Яндекс Карты для выбора ПВЗ Ozon.
-    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.maps.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
+    "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.maps.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru https://top-fwz1.mail.ru",
     "font-src 'self' data:",
     // Куда странице разрешено стучаться. Даже выполнившийся чужой скрипт не
     // отправит отсюда корзину и телефоны покупателей на свой сервер.
-    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.yandex.ru https://*.maps.yandex.net https://*.taxi.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru",
+    "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://pay.yandex.ru https://yandex.ru https://*.yandex.ru https://*.maps.yandex.net https://*.taxi.yandex.net https://api-maps.yandex.ru https://*.api-maps.yandex.ru https://top-fwz1.mail.ru",
     // Карта проезда, служебная рамка Метрики и — когда включат — оплата.
     "child-src https://api-maps.yandex.ru",
     "frame-src https://yandex.ru https://mc.yandex.ru https://pay.yandex.ru https://api-maps.yandex.ru",

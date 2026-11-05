@@ -60,7 +60,28 @@ export default function RootLayout({
       <head>
         <Script src="/theme-init.js" strategy="beforeInteractive" />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* Top.Mail.Ru: run at the start of the document, load the counter asynchronously. */}
+        <script
+          id="top-mail-ru-counter"
+          dangerouslySetInnerHTML={{ __html: `var _tmr = window._tmr || (window._tmr = []);
+_tmr.push({id: "3811856", type: "pageView", start: (new Date()).getTime()});
+(function (d, w, id) {
+  if (d.getElementById(id)) return;
+  var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+  ts.src = "https://top-fwz1.mail.ru/js/code.js";
+  var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+  if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+})(document, window, "tmr-code");` }}
+        />
+        <noscript>
+          <div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Tracking pixel must bypass image optimization. */}
+            <img src="https://top-fwz1.mail.ru/counter?id=3811856;js=na" style={{ position: "absolute", left: "-9999px" }} alt="Top.Mail.Ru" />
+          </div>
+        </noscript>
+        {children}
+      </body>
     </html>
   );
 }
