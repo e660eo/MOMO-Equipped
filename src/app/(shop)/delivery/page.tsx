@@ -96,7 +96,7 @@ export default function DeliveryPage() {
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               Забирайте комплект сейчас, платите по четверти суммы раз в две
               недели, без процентов и переплат. Выберите Сплит на странице
-              Яндекс Pay после нажатия «Оплатить на сайте».
+              Яндекс Pay после перехода к оплате из корзины.
             </p>
           </div>
         </div>
