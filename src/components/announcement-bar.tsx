@@ -30,14 +30,12 @@ export function AnnouncementBar() {
             className="momo-promo-marquee flex w-max items-center text-[0.75rem] font-semibold sm:text-[0.8rem]"
             aria-hidden="true"
           >
-            <div className="flex items-center" aria-hidden="true">
-              <PromoMessage />
-              <span className="text-signal/50" aria-hidden="true">✦</span>
-            </div>
-            <div className="flex items-center" aria-hidden="true">
-              <PromoMessage />
-              <span className="text-signal/50" aria-hidden="true">✦</span>
-            </div>
+            {Array.from({ length: 5 }, (_, index) => (
+              <div key={index} className="flex shrink-0 items-center" aria-hidden="true">
+                <PromoMessage />
+                <span className="text-signal/50" aria-hidden="true">✦</span>
+              </div>
+            ))}
           </div>
         </div>
 

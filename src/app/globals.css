@@ -891,12 +891,11 @@ html[data-theme-vt="active"]::view-transition-group(root) {
 
 /* Непрерывная верхняя строка с предложением MOMO. */
 @keyframes promo-marquee {
-  to { transform: translateX(-50%); }
+  to { transform: translateX(-20%); }
 }
 .momo-promo-marquee {
-  animation: promo-marquee 28s linear infinite;
+  animation: promo-marquee 20s linear infinite;
 }
-.momo-promo-marquee:hover { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
   *,
