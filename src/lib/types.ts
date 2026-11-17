@@ -96,6 +96,8 @@ export interface Promo {
   createdAt: string;
   /** Можно временно остановить промокод, не удаляя его и статистику. */
   active?: boolean;
+  /** Разрешён только покупателю без предыдущих заказов, кроме отменённых и неуспешно оплаченных. */
+  firstOrderOnly?: boolean;
   startsAt?: string;
   endsAt?: string;
   minSubtotal?: number;

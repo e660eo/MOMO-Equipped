@@ -31,4 +31,12 @@ describe("advanced promo rules", () => {
     );
     expect(result).toEqual({ eligibleSubtotal: 10_000, discount: 900 });
   });
+
+  it("includes bundle lines when the promo is valid for the whole catalog", () => {
+    expect(promoDiscountForItems(
+      base,
+      [{ slug: "bundle:audio-set", price: 12_000, qty: 1 }],
+      [],
+    )).toEqual({ eligibleSubtotal: 12_000, discount: 2_400 });
+  });
 });

@@ -24,6 +24,7 @@ export async function savePromoAction(formData: FormData): Promise<void> {
     minSubtotal: Number(String(formData.get("minSubtotal") ?? "").trim() || "0"),
     maxDiscount: Number(String(formData.get("maxDiscount") ?? "").trim() || "0"),
     perCustomerLimit: Number(String(formData.get("perCustomerLimit") ?? "").trim() || "0"),
+    firstOrderOnly: formData.get("firstOrderOnly") === "on",
     productSlugs: String(formData.get("productSlugs") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
     categories: formData.getAll("categories").map(String).filter(Boolean),
   });

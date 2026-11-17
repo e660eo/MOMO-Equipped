@@ -15,6 +15,7 @@ function PromoFields({ promo, categories }: { promo?: Promo; categories: Categor
     <label className="grid gap-1"><span className={label}>Скидка, %</span><input name="percent" type="number" min={1} max={100} required defaultValue={promo?.percent ?? 10} className={input} /></label>
     <label className="grid gap-1"><span className={label}>Общий лимит</span><input name="limit" type="number" min={0} defaultValue={promo?.limit ?? 0} className={input} /></label>
     <label className="grid gap-1"><span className={label}>На одного клиента</span><input name="perCustomerLimit" type="number" min={0} defaultValue={promo?.perCustomerLimit ?? 0} className={input} /></label>
+    <label className="flex items-center gap-2 text-[0.82rem] md:col-span-2"><input type="checkbox" name="firstOrderOnly" defaultChecked={promo?.firstOrderOnly === true} />Только для первого заказа</label>
     <label className="grid gap-1"><span className={label}>Начало</span><input name="startsAt" type="date" defaultValue={promo?.startsAt?.slice(0, 10)} className={input} /></label>
     <label className="grid gap-1"><span className={label}>Окончание</span><input name="endsAt" type="date" defaultValue={promo?.endsAt?.slice(0, 10)} className={input} /></label>
     <label className="grid gap-1"><span className={label}>Минимальная корзина, ₽</span><input name="minSubtotal" type="number" min={0} defaultValue={promo?.minSubtotal ?? 0} className={input} /></label>

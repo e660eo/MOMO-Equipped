@@ -889,6 +889,15 @@ html[data-theme-vt="active"]::view-transition-group(root) {
   z-index: 60;
 }
 
+/* Непрерывная верхняя строка с предложением MOMO. */
+@keyframes promo-marquee {
+  to { transform: translateX(-50%); }
+}
+.momo-promo-marquee {
+  animation: promo-marquee 28s linear infinite;
+}
+.momo-promo-marquee:hover { animation-play-state: paused; }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -898,4 +907,5 @@ html[data-theme-vt="active"]::view-transition-group(root) {
     transition-duration: 0.01ms !important;
   }
   .wave .live { stroke-dasharray: none; opacity: 0.5; }
+  .momo-promo-marquee { animation: none !important; transform: none !important; }
 }

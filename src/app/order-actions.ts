@@ -5,12 +5,13 @@ import type { ConsentSubmission } from "@/lib/privacy-documents";
 
 import crypto from "node:crypto";
 import { clientIp } from "@/lib/client-ip";
-import { addOrder, setOrderPayment, updateOrder } from "@/lib/orders";
+import { addOrder, getOrders, setOrderPayment, updateOrder } from "@/lib/orders";
 import { enqueueIntegrationJob, runIntegrationQueue } from "@/lib/job-queue";
 import { createPayment, isPayConfigured } from "@/lib/yandex-pay";
 import { getBundles, getProducts, getRawBundles } from "@/lib/data";
 import { isInStock, stockLimit } from "@/lib/format";
 import { currentCustomer } from "@/lib/customer-auth";
+import { hasPreviousCustomerOrder } from "@/lib/first-order-promo";
 import { messageFor } from "@/lib/errors";
 import {
   findValidPromo,
@@ -214,6 +215,9 @@ export async function checkPromo(
   const promo = findValidPromo(typeof code === "string" ? code : "", { subtotal, customerKey });
   if (!promo) {
     return { ok: false, error: "Промокод не найден или больше не действует." };
+  }
+  if (promo.firstOrderOnly && hasPreviousCustomerOrder(getOrders(), { phone, email: me?.email })) {
+    return { ok: false, error: `Промокод ${promo.code} действует только на первый заказ.` };
   }
   const calculated = promoDiscountForItems(promo, items, products);
   if (calculated.discount <= 0) {
@@ -459,6 +463,9 @@ export async function submitOrder(payload: {
   if (typeof payload.promoCode === "string" && payload.promoCode.trim()) {
     const valid = findValidPromo(payload.promoCode, { subtotal, customerKey });
     if (valid) {
+      if (valid.firstOrderOnly && hasPreviousCustomerOrder(getOrders(), { phone, email: me?.email })) {
+        return { ok: false, error: `Промокод ${valid.code} действует только на первый заказ.` };
+      }
       const { discount } = promoDiscountForItems(valid, items, [...catalog.values()]);
       if (discount <= 0) return { ok: false, error: "Промокод не действует на товары в корзине." };
       total = subtotal - discount;

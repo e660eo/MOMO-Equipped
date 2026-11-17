@@ -1,62 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Truck, ShieldCheck, Clock, Phone } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tag, Phone } from "lucide-react";
 import { useSiteConfig } from "@/components/site-config-provider";
 
+const message = "Промокод MOMO — скидка 10% на первый заказ";
+
+function PromoMessage() {
+  return (
+    <span className="flex shrink-0 items-center gap-2 px-7">
+      <Tag size={14} strokeWidth={2.5} className="text-signal" aria-hidden="true" />
+      <span>{message}</span>
+      <span className="rounded-sm border border-signal/60 px-1.5 py-0.5 font-mono text-[0.68rem] font-extrabold tracking-[0.12em] text-signal">
+        MOMO
+      </span>
+    </span>
+  );
+}
+
 export function AnnouncementBar() {
-  const [index, setIndex] = useState(0);
-  const { contacts, trust } = useSiteConfig();
-  const items = [
-    { icon: Truck, text: `Бесплатная доставка от ${trust.freeShippingFrom} ₽` },
-    {
-      icon: ShieldCheck,
-      text: `Гарантия ${trust.warrantyMonths} мес. · ${trust.extendedWarrantyMonths} мес. с авторизованной установкой`,
-    },
-    { icon: Clock, text: `Обработка заказа за ${trust.processingDays} день` },
-  ];
-
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => {
-      setIndex((v) => (v + 1) % 3);
-    }, 3600);
-    return () => clearInterval(t);
-  }, []);
-
+  const { contacts } = useSiteConfig();
   const phone = contacts.phone;
 
   return (
     <div className="relative overflow-hidden bg-black text-white">
-      <div className="relative z-10 mx-auto flex h-10 max-w-[1200px] items-center justify-between gap-3 px-4 text-[0.75rem] font-semibold sm:px-6 sm:text-[0.8rem]">
-        {/* Ротация сообщений */}
-        <div className="relative h-5 flex-1 overflow-hidden">
-          {items.map((it, i) => {
-            const Icon = it.icon;
-            return (
-              <span
-                key={i}
-                aria-hidden={i !== index}
-                className={cn(
-                  "absolute inset-0 flex min-w-0 items-center gap-2 transition-all duration-500 ease-out",
-                  i === index
-                    ? "translate-y-0 opacity-100"
-                    : "pointer-events-none -translate-y-full opacity-0",
-                )}
-              >
-                <Icon size={15} strokeWidth={2.4} className="shrink-0 text-signal" />
-                <span className="truncate">{it.text}</span>
-              </span>
-            );
-          })}
+      <div className="mx-auto flex h-10 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <span className="sr-only">{message}</span>
+          <div
+            className="momo-promo-marquee flex w-max items-center text-[0.75rem] font-semibold sm:text-[0.8rem]"
+            aria-hidden="true"
+          >
+            <div className="flex items-center" aria-hidden="true">
+              <PromoMessage />
+              <span className="text-signal/50" aria-hidden="true">✦</span>
+            </div>
+            <div className="flex items-center" aria-hidden="true">
+              <PromoMessage />
+              <span className="text-signal/50" aria-hidden="true">✦</span>
+            </div>
+          </div>
         </div>
 
         <a
           href={`tel:${phone.replace(/[^+\d]/g, "")}`}
-          className="tap-44 relative flex shrink-0 items-center gap-2 transition-opacity hover:opacity-70"
+          aria-label={`Позвонить: ${phone}`}
+          className="tap-44 relative flex shrink-0 items-center gap-2 transition-opacity hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
         >
-          <Phone size={14} strokeWidth={2.4} />
+          <Phone size={14} strokeWidth={2.4} aria-hidden="true" />
           <span className="hidden sm:inline">{phone}</span>
         </a>
       </div>

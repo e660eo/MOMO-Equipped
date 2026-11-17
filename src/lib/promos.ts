@@ -71,7 +71,8 @@ export function promoDiscountForItems(
   const catalog = new Map(products.map((product) => [product.slug, product]));
   const eligibleSubtotal = items.reduce((sum, item) => {
     const product = catalog.get(item.slug);
-    return product && promoAppliesToProduct(promo, product)
+    const unrestricted = !promo.productSlugs?.length && !promo.categories?.length;
+    return (product ? promoAppliesToProduct(promo, product) : unrestricted)
       ? sum + item.price * item.qty
       : sum;
   }, 0);
@@ -180,6 +181,7 @@ export function savePromo(input: {
   productSlugs?: string[];
   categories?: string[];
   perCustomerLimit?: number;
+  firstOrderOnly?: boolean;
 }): PromoResult {
   assertWritable();
 
@@ -205,6 +207,7 @@ export function savePromo(input: {
     ...(cleanOptionalNumber(input.minSubtotal) ? { minSubtotal: cleanOptionalNumber(input.minSubtotal) } : {}),
     ...(cleanOptionalNumber(input.maxDiscount) ? { maxDiscount: cleanOptionalNumber(input.maxDiscount) } : {}),
     ...(cleanOptionalNumber(input.perCustomerLimit) ? { perCustomerLimit: cleanOptionalNumber(input.perCustomerLimit) } : {}),
+    firstOrderOnly: input.firstOrderOnly === true,
     ...(input.productSlugs?.length ? { productSlugs: input.productSlugs } : {}),
     ...(input.categories?.length ? { categories: input.categories } : {}),
   };
