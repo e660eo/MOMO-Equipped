@@ -3,15 +3,17 @@
 import { Tag, Phone } from "lucide-react";
 import { useSiteConfig } from "@/components/site-config-provider";
 
-const message = "Промокод MOMO — скидка 10% на первый заказ";
+const promoPrefix = "Скидка 10% на первый заказ по промокоду";
+const promoCode = '"MOMO"';
+const message = `${promoPrefix} ${promoCode}`;
 
 function PromoMessage() {
   return (
     <span className="flex shrink-0 items-center gap-2 px-7">
       <Tag size={14} strokeWidth={2.5} className="text-signal" aria-hidden="true" />
-      <span>{message}</span>
+      <span>{promoPrefix}</span>
       <span className="rounded-sm border border-signal/60 px-1.5 py-0.5 font-mono text-[0.68rem] font-extrabold tracking-[0.12em] text-signal">
-        MOMO
+        {promoCode}
       </span>
     </span>
   );
